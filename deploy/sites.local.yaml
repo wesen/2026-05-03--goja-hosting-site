@@ -9,3 +9,5 @@ sites:
     scriptsDir: ./sites/editorial/scripts
   - name: crm
     scriptsDir: ./sites/crm/scripts
+  - name: pizza
+    scriptsDir: ./sites/pizza/scripts

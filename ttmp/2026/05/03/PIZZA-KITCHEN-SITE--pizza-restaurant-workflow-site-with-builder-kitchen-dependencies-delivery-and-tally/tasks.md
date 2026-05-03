@@ -1,0 +1,21 @@
+# Tasks
+
+## TODO
+
+- [ ] Add tasks here
+
+
+
+## Implementation
+
+- [x] Create readable split-script Pizza Ops app.
+- [x] Add pizza builder form with `ui.dsl`.
+- [x] Add kitchen Kanban board with dependency gating.
+- [x] Add delivery Kanban board with kitchen-completion gating.
+- [x] Add paid/tips tally and JSON APIs.
+- [x] Add local and multi-site config entries for pizza.
+- [x] Remove generated precise-move controls from pizza cards.
+- [x] Stack kitchen and delivery boards vertically.
+- [x] Collapse Done kitchen tasks by pizza order into summary cards.
+- [x] Validate locally with single-site and multi-site servers.
+- [ ] Deploy to `pizza.kanban.yolo.scapegoat.dev`.
