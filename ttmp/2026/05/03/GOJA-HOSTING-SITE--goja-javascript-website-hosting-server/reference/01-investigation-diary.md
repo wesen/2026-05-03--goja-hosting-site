@@ -160,3 +160,149 @@ find ../corporate-headquarters/discord-bot -maxdepth 4 -type f | head -120
 find ../corporate-headquarters/jesus -maxdepth 4 -type f | head -120
 rg -n "Register|NativeModule|database|fs|module|require\(" ../corporate-headquarters/go-go-goja/{engine,modules,testdata} ../corporate-headquarters/discord-bot/internal/jsdiscord ../corporate-headquarters/jesus/pkg -S
 ```
+
+## Step 2: Implemented the server and browser-tested the Kanban website
+
+I implemented the first complete version of the Goja website hosting server. The repository now contains a Glazed/Cobra CLI, an application host that builds a `go-go-goja` runtime, an Express-style HTTP module, an HTML UI DSL module, and a JavaScript-only Kanban example backed by SQLite.
+
+I also validated the implementation with Go unit/integration tests, a live local server, curl checks, and Playwright browser interactions. Playwright found one browser-console issue: the browser requested `/favicon.ico` and received 404. I added a `204` favicon route in the Kanban JavaScript app and reran the browser test with a clean console.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1 plus follow-up request to create phased tasks, work through them, commit, keep a diary, build the website, and test it with Playwright)
+
+**Assistant interpretation:** Turn the design ticket into a working implementation, manage it through phased tasks, commit at checkpoints, keep the diary current, and validate the full Kanban website in a real browser.
+
+**Inferred user intent:** The user wanted to leave and return to a complete, working, tested local website/server implementation rather than only a design document.
+
+**Commit (code):** `41cbc8ed8c2a3d202ba6ac1008b004fe32e48369` — "Implement goja website hosting server"
+
+### What I did
+
+- Replaced the short task list with a detailed multi-phase task plan.
+- Created `go.mod` and wired a local replace for `../corporate-headquarters/go-go-goja`.
+- Implemented `cmd/goja-site` with a Glazed-defined `serve` command.
+- Implemented `pkg/app.Server` to open SQLite, build a go-go-goja runtime, load JavaScript scripts, and serve HTTP.
+- Implemented `pkg/web`:
+  - ordered route registry,
+  - path parameter matching,
+  - `require("express")`,
+  - request DTO parsing,
+  - response object methods,
+  - runtime-owner based dispatch.
+- Implemented `pkg/uidsl`:
+  - HTML node model,
+  - safe renderer,
+  - `require("ui.dsl")`,
+  - `require("ui")` alias,
+  - common HTML tag constructors,
+  - `page`, `fragment`, `text`, `raw`, and `render` helpers.
+- Implemented `examples/kanban/scripts/app.js` with database migration, seeded cards, board rendering, CSS, JSON API, create endpoint, move endpoint, and favicon endpoint.
+- Added Go tests for UI rendering, route matching, and Express route integration.
+- Ran Playwright against the live Kanban app:
+  - loaded `/`,
+  - filled and submitted the create-card form,
+  - moved the new card to `done`,
+  - verified `/api/cards`,
+  - captured `goja-kanban-playwright.png`.
+
+### Why
+
+- The server needed to prove the design with an actual end-to-end JS website.
+- The route module and UI DSL needed runtime tests because most bugs in this kind of host appear at Go/JS conversion boundaries.
+- Playwright validation was necessary to verify that the generated HTML is usable in a browser, not only correct by curl or unit tests.
+
+### What worked
+
+- `GOTOOLCHAIN=go1.26.2 go mod tidy` completed successfully.
+- `GOTOOLCHAIN=go1.26.2 go test ./... -count=1` passed after fixing JS request object field names.
+- The server started and served the Kanban app from JavaScript scripts.
+- `curl` verified the homepage and JSON API.
+- Playwright successfully created a card and moved it between columns.
+- The final Playwright console check for the active page had zero errors and zero warnings.
+
+### What didn't work
+
+- The first local manual test used ports `8099` and `18099`, but those were already occupied by a `glaze` process. Curl hit the existing Glazed help browser, not this server. I switched to a high free port (`60021`, then `60022`).
+
+Exact observed server error:
+
+```text
+Error: listen tcp 127.0.0.1:8099: bind: address already in use
+```
+
+- Initial integration tests failed because Goja exposed Go struct field names as `Method`, `Params`, and `Body`, while JavaScript expected lower-case `req.method`, `req.params`, and `req.body`. I changed HTTP dispatch to pass `req.Map()` into Goja instead of the Go struct directly.
+
+Exact failing test symptom:
+
+```text
+TypeError: Cannot read property 'name' of undefined at <eval>:5:70(6)
+TypeError: Cannot read property 'title' of undefined at <eval>:4:75(9)
+```
+
+- Initial Playwright navigation showed one console error for missing `/favicon.ico`. I added a JS route returning status `204`.
+
+### What I learned
+
+- The `go-go-goja` runtime owner made HTTP dispatch straightforward once all JS calls were routed through `Runtime.Owner.Call`.
+- For host APIs intended to look idiomatic in JavaScript, explicit map conversion is safer than relying on Goja field name mapping.
+- A fully server-rendered app can be written with the small `ui.dsl` constructor set; no client-side JavaScript was required for the Kanban smoke test.
+
+### What was tricky to build
+
+- The database module had to be preconfigured by Go while still fitting the `go-go-goja` module system. I registered custom `NativeModuleSpec` entries for `database` and `db` backed by the same `*sql.DB`.
+- Response handling had to support both Express style (`res.html(...)`, `res.json(...)`, `res.redirect(...)`) and return-value style (`return ui.h1(...)`). The host now renders returned non-string values as HTML when the response has not already been sent.
+- Browser validation required distinguishing this server from an already-running `glaze` server that occupied common test ports.
+
+### What warrants a second pair of eyes
+
+- Review `pkg/web/request_response.go` for response writer lifetime and double-send behavior.
+- Review `pkg/app/server.go` for module selection and database lifecycle.
+- Review `pkg/uidsl/render.go` for escaping and raw HTML behavior.
+- Review whether the `fs` module should be path-scoped before use outside trusted local scripts.
+
+### What should be done in the future
+
+- Add async/promise handler support if the first real app needs it.
+- Add a reload mode for iterative JavaScript development.
+- Add TypeScript declarations for `express` and `ui.dsl`.
+- Add an executable security warning to the root README.
+
+### Code review instructions
+
+- Start with `cmd/goja-site/serve.go` to understand the CLI entry point.
+- Then read `pkg/app/server.go` for runtime composition.
+- Read `pkg/web/express_module.go` and `pkg/web/host.go` for request dispatch.
+- Read `pkg/uidsl/module.go` and `pkg/uidsl/render.go` for HTML generation.
+- Open `examples/kanban/scripts/app.js` to see the intended JavaScript developer experience.
+- Validate with:
+
+```bash
+GOTOOLCHAIN=go1.26.2 go test ./... -count=1
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve --db /tmp/goja-kanban.db --scripts examples/kanban/scripts --addr 127.0.0.1:60022 --dev
+```
+
+### Technical details
+
+Key validation commands and results:
+
+```bash
+GOTOOLCHAIN=go1.26.2 go mod tidy
+GOTOOLCHAIN=go1.26.2 go test ./... -count=1
+# passed for cmd/goja-site, pkg/app, pkg/uidsl, pkg/web
+
+curl -fsS http://127.0.0.1:60022/ >/tmp/goja-home.html
+curl -fsS http://127.0.0.1:60022/api/cards
+# returned seeded Kanban cards
+```
+
+Playwright validation:
+
+- Navigated to `http://127.0.0.1:60022/`.
+- Verified title `Goja Kanban`.
+- Filled `Card title` with `Playwright card`.
+- Filled `Description` with `Created by browser test`.
+- Selected `doing` and clicked `Add card`.
+- Moved the created card to `done`.
+- Verified `/api/cards` returned the card with status `done`.
+- Captured full-page screenshot: `goja-kanban-playwright.png`.

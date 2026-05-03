@@ -110,6 +110,10 @@ app.get("/style.css", (req, res) => {
   res.type("text/css; charset=utf-8").send(stylesheet());
 });
 
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end();
+});
+
 app.get("/api/cards", (req, res) => {
   res.json(db.query("SELECT * FROM cards ORDER BY position, id"));
 });

@@ -84,11 +84,11 @@
 - [x] Start the Kanban server locally.
 - [x] Verify homepage with `curl`.
 - [x] Verify JSON API with `curl`.
-- [ ] Test the Kanban website with Playwright.
-- [ ] Fix any browser/UI issues found by Playwright.
-- [ ] Commit implementation at appropriate checkpoints.
-- [ ] Update diary with commands, failures, and validation evidence.
-- [ ] Run final `docmgr doctor`.
+- [x] Test the Kanban website with Playwright.
+- [x] Fix any browser/UI issues found by Playwright.
+- [x] Commit implementation at appropriate checkpoints.
+- [x] Update diary with commands, failures, and validation evidence.
+- [x] Run final `docmgr doctor`.
 
 ## Future hardening tasks
 

@@ -40,3 +40,21 @@ Uploaded GOJA-HOSTING-SITE design bundle to reMarkable at /ai/2026/05/03/GOJA-HO
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/design-doc/01-goja-javascript-website-hosting-server-design-and-implementation-guide.md — Included in uploaded reMarkable bundle
 
+
+## 2026-05-03
+
+Implemented Goja hosting server, UI DSL, Express-style module, Kanban example, and Playwright browser validation (commit 41cbc8e plus follow-up favicon fix).
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Kanban JavaScript website and Playwright-tested UI
+
+
+## 2026-05-03
+
+Updated diary with implementation, failures, fixes, Go test, curl, and Playwright validation evidence.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/reference/01-investigation-diary.md — Implementation diary updated after browser validation
+
