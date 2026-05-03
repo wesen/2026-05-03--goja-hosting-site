@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dop251/goja"
 	"github.com/go-go-golems/go-go-goja/pkg/runtimeowner"
@@ -14,11 +15,17 @@ type HostOptions struct {
 	Renderer Renderer
 }
 
+type StaticMount struct {
+	Prefix  string
+	Handler http.Handler
+}
+
 type Host struct {
 	registry *Registry
 	dev      bool
 	renderer Renderer
 	owner    runtimeowner.Runner
+	static   []StaticMount
 }
 
 func NewHost(opts HostOptions) *Host {
@@ -29,8 +36,18 @@ func (h *Host) SetRuntime(owner runtimeowner.Runner) { h.owner = owner }
 func (h *Host) Register(method, pattern string, handler goja.Callable) {
 	h.registry.Add(method, pattern, handler)
 }
+func (h *Host) RegisterStatic(prefix, dir string) {
+	prefix = cleanPath(prefix)
+	h.static = append(h.static, StaticMount{Prefix: prefix, Handler: http.StripPrefix(prefix, http.FileServer(http.Dir(dir)))})
+}
 
 func (h *Host) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	for _, mount := range h.static {
+		if r.URL.Path == mount.Prefix || strings.HasPrefix(r.URL.Path, mount.Prefix+"/") {
+			mount.Handler.ServeHTTP(w, r)
+			return
+		}
+	}
 	if h.owner == nil {
 		http.Error(w, "runtime not initialized", http.StatusInternalServerError)
 		return

@@ -18,7 +18,7 @@ func (r *Registrar) RegisterRuntimeModules(ctx *engine.RuntimeModuleContext, reg
 	return nil
 }
 
-var tags = []string{"html", "head", "body", "title", "meta", "link", "script", "style", "main", "div", "span", "h1", "h2", "h3", "h4", "p", "a", "form", "input", "button", "select", "option", "ul", "ol", "li", "table", "thead", "tbody", "tr", "th", "td", "section", "article", "header", "footer", "nav", "label", "textarea", "strong", "em", "small", "pre", "code"}
+var tags = []string{"html", "head", "body", "title", "meta", "link", "script", "style", "main", "img", "br", "hr", "time", "svg", "path", "rect", "line", "polyline", "circle", "div", "span", "h1", "h2", "h3", "h4", "p", "a", "form", "input", "button", "select", "option", "ul", "ol", "li", "table", "thead", "tbody", "tr", "th", "td", "section", "article", "header", "footer", "nav", "label", "textarea", "strong", "em", "small", "pre", "code"}
 var headTags = map[string]bool{"meta": true, "link": true, "style": true, "title": true}
 
 func Loader(vm *goja.Runtime, moduleObj *goja.Object) {

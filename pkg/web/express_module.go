@@ -41,5 +41,12 @@ func (r *ExpressRegistrar) appObject(vm *goja.Runtime) goja.Value {
 			return nil
 		})
 	}
+	_ = obj.Set("static", func(prefix, dir string) error {
+		if prefix == "" || dir == "" {
+			return fmt.Errorf("app.static requires prefix and directory")
+		}
+		r.host.RegisterStatic(prefix, dir)
+		return nil
+	})
 	return obj
 }

@@ -306,3 +306,108 @@ Playwright validation:
 - Moved the created card to `done`.
 - Verified `/api/cards` returned the card with status `done`.
 - Captured full-page screenshot: `goja-kanban-playwright.png`.
+
+## Step 3: Restyled Kanban to match the Field Notes reference
+
+I used the provided monochrome trail-map image as a real static asset and restyled the Kanban example toward the Field Notes screenshot. The app now has a paper-like monochrome layout, typewriter font, dotted column headers, heavy borders, count badges, card check controls, tag pills, due-date metadata, a toolbar, four columns, and an image card.
+
+I also extended the host and UI DSL only where necessary: the DSL gained missing semantic/media tags such as `img` and `time`, and the Express-style app gained `app.static(prefix, dir)` so JS websites can serve real assets without embedding base64 strings.
+
+### Prompt Context
+
+**User prompt (verbatim):** "alright, do it. /tmp/pi-clipboard-ad2c877d-a80d-4cc1-ac3f-e8f68d047cc5.png
+
+here's a test img asset as well"
+
+**Assistant interpretation:** Apply the screenshot-inspired Kanban redesign and use the provided image as an asset in the JavaScript website.
+
+**Inferred user intent:** The user wants the working Kanban example to visually resemble the Field Notes board and to prove that the hosting stack can serve richer assets and layouts.
+
+**Commit (code):** f5230ce2e0d5d6c68b4b3dd8bcc63f12b3383f40 — "Restyle kanban as field notes board"
+
+### What I did
+
+- Copied the provided image to `examples/kanban/assets/trail-map.png`.
+- Added UI DSL tag constructors for `img`, `br`, `hr`, `time`, and a small SVG tag set.
+- Added `app.static(prefix, dir)` support to the Express-style module.
+- Added static mount dispatch in `pkg/web.Host`.
+- Rewrote `examples/kanban/scripts/app.js` to use:
+  - four columns: `To Do`, `In Progress`, `Done`, `Someday`,
+  - count badges,
+  - monochrome toolbar,
+  - field-note-style page header/footer,
+  - dotted column headers,
+  - bordered/shadowed cards,
+  - tag pills,
+  - due dates,
+  - check-style move controls,
+  - static image asset in the route-planning card.
+- Ran Go tests.
+- Restarted the local server on port `60023` with a fresh SQLite database.
+- Tested the redesigned app with Playwright.
+
+### Why
+
+- The previous Kanban app proved the architecture, but not the richer design target.
+- Serving the image as a static asset is closer to how small JS websites will actually be authored.
+- `img` and `time` are basic HTML tags; adding them to the DSL improves general-purpose coverage without making the Go DSL app-specific.
+
+### What worked
+
+- `GOTOOLCHAIN=go1.26.2 go test ./... -count=1` passed.
+- Playwright loaded `http://127.0.0.1:60023/` with title `Trail Notes: Cascade Loop`.
+- Playwright confirmed the static asset route returned status `200` and `content-type: image/png`.
+- Playwright created a new `Bear canister` card in the `Someday` column.
+- Playwright console check returned zero errors and warnings.
+
+### What didn't work
+
+- The first wide screenshot still looked narrower than the reference because the board is constrained by current column minimums and content sizing. The visual direction is correct, but pixel-perfect matching would require another pass on exact dimensions and typography.
+
+### What I learned
+
+- The current DSL design remains sufficient for rich server-rendered layouts as long as it includes ordinary HTML tag coverage and arbitrary attributes.
+- Static asset support belongs in the HTTP module/host layer, not the UI DSL.
+- The image asset works well with CSS `image-rendering: pixelated`, grayscale, and contrast filters to match the monochrome reference.
+
+### What was tricky to build
+
+- Existing demo databases may have older schemas. I added defensive `ALTER TABLE` calls wrapped in JavaScript `try/catch` so the new fields (`tag`, `due_date`, `done`, `image`) can be added when needed.
+- The screenshot has checkbox visuals, but the server-rendered app still uses normal form posts. I represented the checkbox as a small submit button that advances the card status.
+
+### What warrants a second pair of eyes
+
+- Review `app.static` path handling before exposing it to arbitrary script authors.
+- Review whether the static directory should be resolved relative to the scripts directory instead of the process working directory.
+- Review the visual CSS against the source screenshot for another tuning pass if pixel similarity matters.
+
+### What should be done in the future
+
+- Add a small static path resolver based on the script root.
+- Add a dedicated `ui.icon` or safe SVG icon helper only if more designs need reusable icons.
+- Add drag/drop or modal editing if the Kanban board needs real advanced interactions.
+
+### Code review instructions
+
+- Start with `pkg/web/express_module.go` for `app.static`.
+- Then read `pkg/web/host.go` for static mount dispatch.
+- Review `pkg/uidsl/module.go` for new tag coverage.
+- Review `examples/kanban/scripts/app.js` for the Field Notes board implementation.
+
+### Technical details
+
+Validation commands:
+
+```bash
+GOTOOLCHAIN=go1.26.2 go test ./... -count=1
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve --db /tmp/goja-kanban-newstyle.db --scripts examples/kanban/scripts --addr 127.0.0.1:60023 --dev
+```
+
+Playwright checks:
+
+- navigated to `http://127.0.0.1:60023/`,
+- verified title `Trail Notes: Cascade Loop`,
+- added `Bear canister` to `Someday`,
+- verified `/assets/trail-map.png` returns `200 image/png`,
+- captured screenshots `goja-kanban-field-notes.png` and `goja-kanban-field-notes-wide.png`,
+- verified zero current console errors/warnings.

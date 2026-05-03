@@ -3,6 +3,18 @@ const express = require("express");
 const ui = require("ui.dsl");
 
 const app = express.app();
+app.static("/assets", "examples/kanban/assets");
+
+const columns = [
+  ["todo", "To Do"],
+  ["progress", "In Progress"],
+  ["done", "Done"],
+  ["someday", "Someday"],
+];
+
+function ignoreDuplicateColumn(fn) {
+  try { fn(); } catch (e) { /* older demo dbs may already have the column */ }
+}
 
 function migrate() {
   db.exec(`CREATE TABLE IF NOT EXISTS cards (
@@ -11,92 +23,149 @@ function migrate() {
     description TEXT,
     status TEXT NOT NULL DEFAULT 'todo',
     position INTEGER NOT NULL DEFAULT 0,
+    tag TEXT NOT NULL DEFAULT 'Planning',
+    due_date TEXT NOT NULL DEFAULT '',
+    done INTEGER NOT NULL DEFAULT 0,
+    image TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
+  ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN tag TEXT NOT NULL DEFAULT 'Planning'"));
+  ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN due_date TEXT NOT NULL DEFAULT ''"));
+  ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN done INTEGER NOT NULL DEFAULT 0"));
+  ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN image TEXT NOT NULL DEFAULT ''"));
 }
 
 function seedIfEmpty() {
   const rows = db.query("SELECT COUNT(*) AS count FROM cards");
   if (rows.length && Number(rows[0].count || 0) === 0) {
-    db.exec("INSERT INTO cards(title, description, status, position) VALUES (?, ?, ?, ?)", "Write server", "Implement Express-style routing", "todo", 1);
-    db.exec("INSERT INTO cards(title, description, status, position) VALUES (?, ?, ?, ?)", "Build UI DSL", "Render safe HTML from JavaScript", "doing", 2);
-    db.exec("INSERT INTO cards(title, description, status, position) VALUES (?, ?, ?, ?)", "Test in browser", "Use Playwright for smoke tests", "done", 3);
+    const cards = [
+      ["Research campsites", "Look into options near Sahale and Colonial Creek.", "todo", 1, "Planning", "May 12", 0, ""],
+      ["Book permit", "Wilderness permit for 2 nights.", "todo", 2, "Logistics", "May 13", 0, ""],
+      ["Check weather", "Keep an eye on the forecast and pack accordingly.", "todo", 3, "Planning", "May 14", 0, ""],
+      ["Map the route", "Confirm trailhead, mileage, and elevation gain.", "progress", 4, "Planning", "May 15", 0, "/assets/trail-map.png"],
+      ["Gear check", "Make a list and check everything twice.", "progress", 5, "Logistics", "May 16", 0, ""],
+      ["Review trail conditions", "All clear on WTA. Snow mostly melted out.", "done", 6, "Research", "May 9", 1, ""],
+      ["Plan meals", "Simple, light, and good food.", "done", 7, "Planning", "May 10", 1, ""],
+      ["Invite crew", "Jordan and Casey are in. Let’s go.", "done", 8, "Logistics", "May 11", 1, ""],
+      ["Side trip: Blue Lake", "Look into adding Blue Lake as a day hike.", "someday", 9, "Ideas", "", 0, ""],
+      ["New camera?", "Start saving for something lighter.", "someday", 10, "Gear", "", 0, ""],
+    ];
+    cards.forEach(c => db.exec("INSERT INTO cards(title, description, status, position, tag, due_date, done, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", ...c));
   }
 }
 
 function stylesheet() {
   return `
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; background: #f6f7fb; color: #172033; }
-    header { padding: 28px 36px; background: linear-gradient(135deg, #1f4ed8, #8b5cf6); color: white; box-shadow: 0 12px 30px rgba(31, 78, 216, .22); }
-    header h1 { margin: 0; font-size: 32px; letter-spacing: -0.03em; }
-    header p { margin: 8px 0 0; opacity: .88; }
-    .shell { padding: 28px 36px 40px; }
-    .new-card { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(260px, 2fr) 170px auto; gap: 10px; margin-bottom: 24px; background: white; padding: 16px; border-radius: 18px; box-shadow: 0 8px 30px rgba(15, 23, 42, .08); }
-    input, select, button { border-radius: 12px; border: 1px solid #d8deea; padding: 10px 12px; font: inherit; }
-    button { cursor: pointer; border: 0; background: #1f4ed8; color: white; font-weight: 700; }
-    button.secondary { background: #edf2ff; color: #1f4ed8; }
-    .board { display: grid; grid-template-columns: repeat(3, minmax(240px, 1fr)); gap: 18px; align-items: start; }
-    .column { background: #e9edf7; border-radius: 22px; padding: 14px; min-height: 320px; }
-    .column h2 { margin: 4px 6px 14px; text-transform: uppercase; font-size: 13px; letter-spacing: .12em; color: #526179; }
-    .card { background: white; border-radius: 18px; padding: 14px; margin-bottom: 12px; box-shadow: 0 6px 20px rgba(15, 23, 42, .08); border: 1px solid rgba(15, 23, 42, .04); }
-    .card h3 { margin: 0 0 6px; font-size: 17px; }
-    .card p { margin: 0 0 12px; color: #64748b; line-height: 1.35; }
-    .move { display: flex; gap: 8px; }
-    .move select { min-width: 0; flex: 1; }
-    .empty { color: #7b879a; font-style: italic; padding: 12px 8px; }
-    @media (max-width: 860px) { .board, .new-card { grid-template-columns: 1fr; } header, .shell { padding-left: 18px; padding-right: 18px; } }
+    :root { --ink: #0d0d0d; --paper: #fbfbfa; --soft: #f2f2ef; --line: #111; font-family: "Courier New", "IBM Plex Mono", ui-monospace, monospace; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 "Courier New", ui-monospace, monospace; }
+    .page { max-width: 1500px; margin: 0 auto; padding: 34px 36px 24px; }
+    .hero { border-bottom: 2px solid var(--line); padding-bottom: 26px; margin-bottom: 34px; display: flex; justify-content: space-between; gap: 24px; align-items: end; }
+    .brand { display: flex; gap: 22px; align-items: center; }
+    .mascot { width: 68px; height: 68px; border: 3px solid var(--line); box-shadow: 4px 4px 0 var(--line); display: grid; place-items: center; font-size: 32px; transform: rotate(-1deg); background: white; }
+    h1, h2, h3, p { margin: 0; }
+    .brand h1 { font-size: 31px; line-height: 1; letter-spacing: -1px; }
+    .brand p, .subtitle { margin-top: 8px; }
+    .title-row { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 30px; }
+    .title-row h2 { font-size: 30px; line-height: 1.1; }
+    .toolbar { display: flex; gap: 18px; align-items: center; }
+    button, input, select { font: inherit; }
+    .toolbar button, .new-card button, .icon-button { border: 2px solid var(--line); background: white; color: var(--ink); min-height: 42px; padding: 8px 18px; box-shadow: 3px 3px 0 var(--line); font-weight: 700; cursor: pointer; }
+    .toolbar .primary { background: var(--ink); color: white; box-shadow: none; }
+    .icon-button { width: 50px; padding-inline: 0; }
+    .new-card { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(260px, 2fr) 150px 130px 120px; gap: 10px; margin-bottom: 26px; border: 2px solid var(--line); padding: 12px; background: white; box-shadow: 4px 4px 0 var(--line); }
+    .new-card input, .new-card select { border: 2px solid var(--line); padding: 8px; background: white; }
+    .board { display: grid; grid-template-columns: repeat(4, minmax(230px, 1fr)); gap: 14px; align-items: start; }
+    .column { border: 2px solid var(--line); background: #f7f7f4; min-height: 638px; }
+    .column-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--line); padding: 9px 14px; background-image: radial-gradient(var(--line) .55px, transparent .55px); background-size: 4px 4px; }
+    .column-header h2 { font-size: 20px; background: var(--paper); padding-right: 6px; }
+    .count { border: 2px solid var(--line); background: var(--paper); padding: 0 8px; font-weight: 700; box-shadow: 2px 2px 0 var(--line); }
+    .card-list { padding: 12px 9px 8px; }
+    .kanban-card { border: 2px solid var(--line); background: white; padding: 12px; margin-bottom: 12px; box-shadow: 3px 3px 0 var(--line); }
+    .card-top { display: grid; grid-template-columns: 20px 1fr 34px; gap: 8px; align-items: start; margin-bottom: 7px; }
+    .check { width: 17px; height: 17px; border: 2px solid var(--line); display: inline-grid; place-items: center; font-size: 14px; line-height: 1; background:white; padding:0; box-shadow:none; cursor:pointer; }
+    .kanban-card h3 { font-size: 16px; font-weight: 700; }
+    .card-menu { border: 0; background: transparent; font-weight: 900; padding: 0; cursor: pointer; letter-spacing: 2px; }
+    .desc { white-space: pre-line; margin-bottom: 16px; }
+    .card-image { width: 100%; display: block; border: 0; margin: 6px 0 16px; image-rendering: pixelated; filter: grayscale(1) contrast(1.2); }
+    .card-meta { display: flex; justify-content: space-between; align-items: end; gap: 8px; margin-top: 14px; }
+    .tag { border: 2px solid var(--line); padding: 2px 7px; background: var(--paper); box-shadow: 1px 1px 0 var(--line); font-size: 14px; }
+    time { font-size: 14px; white-space: nowrap; }
+    .add-card { border: 0; background: transparent; padding: 0 3px 12px; cursor: pointer; text-align: left; }
+    .footer { border-top: 2px solid var(--line); margin-top: 48px; padding-top: 20px; display: flex; justify-content: space-between; }
+    @media (max-width: 1100px) { .board { grid-template-columns: repeat(2, minmax(230px, 1fr)); } .new-card { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 680px) { .page { padding: 20px 14px; } .hero, .title-row { display: block; } .toolbar { margin-top: 20px; flex-wrap: wrap; } .board, .new-card { grid-template-columns: 1fr; } }
   `;
 }
 
+function toolbarButton(icon, label, klass) {
+  return ui.button({ class: klass || "" }, ui.span({ "aria-hidden": "true" }, icon), " ", label);
+}
+
 function cardView(card) {
-  return ui.article({ class: "card", "data-card-id": card.id },
-    ui.h3(card.title),
-    card.description ? ui.p(card.description) : null,
-    ui.form({ class: "move", method: "post", action: `/cards/${card.id}/move` },
-      ui.select({ name: "status", "aria-label": "Move card status" },
-        ["todo", "doing", "done"].map(status =>
-          ui.option({ value: status, selected: status === card.status }, status)
-        )
+  const next = nextStatus(card.status);
+  return ui.article({ class: "kanban-card", "data-card-id": card.id },
+    ui.div({ class: "card-top" },
+      ui.form({ method: "post", action: `/cards/${card.id}/move` },
+        ui.input({ type: "hidden", name: "status", value: next }),
+        ui.input({ type: "hidden", name: "done", value: next === "done" ? "1" : "0" }),
+        ui.button({ class: "check", title: "Move card", "aria-label": "Move card" }, Number(card.done) ? "✓" : "")
       ),
-      ui.button({ class: "secondary", type: "submit" }, "Move")
+      ui.h3(card.title),
+      ui.button({ class: "card-menu", "aria-label": "Card menu" }, "...")
+    ),
+    ui.p({ class: "desc" }, card.description),
+    card.image ? ui.img({ class: "card-image", src: card.image, alt: "Trail map sketch" }) : null,
+    ui.div({ class: "card-meta" },
+      ui.span({ class: "tag" }, card.tag || "Planning"),
+      card.due_date ? ui.time({ datetime: card.due_date }, card.due_date) : ui.span("")
     )
   );
+}
+
+function nextStatus(status) {
+  if (status === "todo") return "progress";
+  if (status === "progress") return "done";
+  if (status === "done") return "someday";
+  return "todo";
 }
 
 function columnView(cards, status, label) {
   const filtered = cards.filter(card => card.status === status);
   return ui.section({ class: "column", "data-status": status },
-    ui.h2(`${label} (${filtered.length})`),
-    filtered.length ? filtered.map(cardView) : ui.div({ class: "empty" }, "No cards yet")
+    ui.div({ class: "column-header" }, ui.h2(label), ui.span({ class: "count" }, filtered.length)),
+    ui.div({ class: "card-list" }, filtered.map(cardView), ui.button({ class: "add-card" }, "+ Add a card"))
   );
 }
 
 function boardPage() {
   const cards = db.query("SELECT * FROM cards ORDER BY position, id");
-  return ui.page({ title: "Goja Kanban" },
+  return ui.page({ title: "Trail Notes: Cascade Loop" },
     ui.link({ rel: "stylesheet", href: "/style.css" }),
-    ui.header(
-      ui.h1("Goja Kanban"),
-      ui.p("A tiny website written entirely in JavaScript, backed by SQLite, and rendered by ui.dsl.")
-    ),
-    ui.main({ class: "shell" },
+    ui.main({ class: "page" },
+      ui.header({ class: "hero" },
+        ui.div({ class: "brand" }, ui.div({ class: "mascot" }, "☻"), ui.div(ui.h1("Field Notes"), ui.p("Observations from the trail."))),
+        ui.div({ class: "footer-note" }, "Made with goja-site")
+      ),
+      ui.div({ class: "title-row" },
+        ui.div(ui.h2("Trail Notes: Cascade Loop"), ui.p({ class: "subtitle" }, "Planning and notes for our weekend in the mountains.")),
+        ui.div({ class: "toolbar" },
+          toolbarButton("≡", "Filter"),
+          toolbarButton("↕", "Sort"),
+          toolbarButton("+", "New Card", "primary"),
+          ui.button({ class: "icon-button", "aria-label": "More options" }, "...")
+        )
+      ),
       ui.form({ class: "new-card", method: "post", action: "/cards" },
         ui.input({ name: "title", placeholder: "Card title", required: true }),
         ui.input({ name: "description", placeholder: "Description" }),
-        ui.select({ name: "status" },
-          ui.option({ value: "todo" }, "todo"),
-          ui.option({ value: "doing" }, "doing"),
-          ui.option({ value: "done" }, "done")
-        ),
+        ui.select({ name: "status" }, columns.map(([value, label]) => ui.option({ value }, label))),
+        ui.input({ name: "tag", placeholder: "Tag", value: "Planning" }),
         ui.button({ type: "submit" }, "Add card")
       ),
-      ui.div({ class: "board" },
-        columnView(cards, "todo", "To do"),
-        columnView(cards, "doing", "Doing"),
-        columnView(cards, "done", "Done")
-      )
+      ui.div({ class: "board" }, columns.map(([status, label]) => columnView(cards, status, label))),
+      ui.footer({ class: "footer" }, ui.span("© 2025 Field Notes"), ui.span("Made with Microscape ◱"))
     )
   );
 }
@@ -121,14 +190,16 @@ app.get("/api/cards", (req, res) => {
 app.post("/cards", (req, res) => {
   const body = req.body || {};
   const title = String(body.title || "").trim();
-  if (!title) {
-    return res.status(400).send("title is required");
-  }
-  db.exec("INSERT INTO cards(title, description, status, position) VALUES (?, ?, ?, ?)",
+  if (!title) return res.status(400).send("title is required");
+  db.exec("INSERT INTO cards(title, description, status, position, tag, due_date, done, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     title,
     String(body.description || ""),
     String(body.status || "todo"),
-    Date.now()
+    Date.now(),
+    String(body.tag || "Planning"),
+    "",
+    body.status === "done" ? 1 : 0,
+    ""
   );
   res.redirect("/");
 });
@@ -136,6 +207,7 @@ app.post("/cards", (req, res) => {
 app.post("/cards/:id/move", (req, res) => {
   const body = req.body || {};
   const status = String(body.status || "todo");
-  db.exec("UPDATE cards SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", status, req.params.id);
+  const done = String(body.done || "0") === "1" ? 1 : 0;
+  db.exec("UPDATE cards SET status = ?, done = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", status, done, req.params.id);
   res.redirect("/");
 });

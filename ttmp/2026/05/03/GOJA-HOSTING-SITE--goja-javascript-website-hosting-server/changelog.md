@@ -58,3 +58,12 @@ Updated diary with implementation, failures, fixes, Go test, curl, and Playwrigh
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/reference/01-investigation-diary.md — Implementation diary updated after browser validation
 
+
+## 2026-05-03
+
+Restyled Kanban to Field Notes visual design, added static asset serving, and extended UI DSL tag coverage.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Field Notes Kanban redesign
+
