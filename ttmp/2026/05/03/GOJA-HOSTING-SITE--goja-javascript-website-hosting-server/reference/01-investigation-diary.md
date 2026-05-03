@@ -487,3 +487,102 @@ The new design guide is stored at:
 ```text
 ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/design-doc/02-client-interactivity-and-ui-dsl-redesign-guide.md
 ```
+
+## Step 5: Implemented Phase 7 search and precise movement
+
+I implemented the useful Phase 7 pieces directly in the Kanban JavaScript app. The board now has a server-rendered search form, live client-side search, JSON card search, specific destination/position move controls, a persisted move algorithm with column position normalization, a JSON move endpoint, and an app-specific `/app.js` route for browser behavior.
+
+I kept the server-side `ui.dsl` unchanged for this step. That matched the design guide: use normal HTML attributes and app-specific browser JavaScript first, then extract generic helpers only after the shape proves itself.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Implement phase 7"
+
+**Assistant interpretation:** Implement the Phase 7 client-interactivity plan from the ticket: search, precise move, APIs, browser JS, data attributes, and validation.
+
+**Inferred user intent:** The user wants the Kanban app to become practically usable, not just visually styled.
+
+**Commit (code):** 406e7667ad14b4de0c62dc061ea2f722c4ded67c — "Implement kanban phase 7 interactions"
+
+### What I did
+
+- Added `normalizeFilters`, `listCards`, `listColumn`, `normalizeColumn`, `moveCard`, and `nextPosition` helpers in `examples/kanban/scripts/app.js`.
+- Added server-rendered search form with `search` and `status` controls.
+- Added live browser search using `/app.js` and `data-live-search` / `data-search-text` attributes.
+- Added per-card move forms with `toStatus` and `toIndex` selects.
+- Replaced hard-coded `nextStatus()` movement with `moveCard({ id, toStatus, toIndex })`.
+- Added `GET /api/cards?search=&status=&tag=` backed by filtered SQL.
+- Added `POST /api/cards/:id/move` returning JSON.
+- Kept `POST /cards/:id/move` as the form fallback that redirects back to `/`.
+- Added draggable/drop-zone attributes and a small drag/drop script in `/app.js`.
+
+### Why
+
+- Search can be implemented immediately with both a no-JS server fallback and a client-side live filter.
+- Specific move controls are the reliable baseline for precise movement and accessibility.
+- JSON endpoints make later richer browser behavior possible without changing the data model again.
+
+### What worked
+
+- `GOTOOLCHAIN=go1.26.2 go test ./... -count=1` passed.
+- `docmgr doctor --ticket GOJA-HOSTING-SITE --stale-after 30` passed.
+- `curl 'http://127.0.0.1:60024/api/cards?search=permit'` returned only `Book permit`.
+- `curl -X POST /api/cards/2/move` moved `Book permit` to `done` with position `10`.
+- Playwright verified live search: typing `permit` hid unrelated cards and updated counts.
+- Playwright verified precise movement: `Book permit` moved to `Done` at position `#1` and remained first after reload.
+- Playwright verified `/app.js` is served as `application/javascript` and contains the live search runtime.
+
+### What didn't work
+
+- The first fresh-server attempt reused an already-running compiled `goja-site` child process from an earlier `go run`; killing only the parent `go run` process was not enough. I used `pkill -f 'goja-site serve'` and then started a fresh server on port `60025`.
+- A Playwright `dragTo` smoke test did not trigger the HTML5 drag/drop path reliably. The precise move form and JSON endpoint are verified and functional; the drag/drop script exists, but it should receive a more targeted browser test or a small pointer-event shim in a follow-up.
+
+### What I learned
+
+- The important usability win is the precise move form and persisted move algorithm; drag/drop is secondary progressive enhancement.
+- The current request parsing and JSON response surface was sufficient for Phase 7 without Go changes.
+- App-specific browser JavaScript was the right first step; no new generic `ui.client` module was needed yet.
+
+### What was tricky to build
+
+- Position normalization needs to update both destination and source columns when a card moves across columns. Without this, old columns can retain sparse or duplicate order values.
+- Existing long-running test servers made browser validation confusing because ports could still be held by orphaned compiled binaries.
+
+### What warrants a second pair of eyes
+
+- Review `moveCard` for edge cases when moving within the same column to a later index.
+- Review the dynamic SQL in `listCards` and verify database argument spreading remains stable.
+- Review the drag/drop script separately if drag/drop must be considered a required feature rather than a progressive enhancement.
+
+### What should be done in the future
+
+- Add a dedicated automated Playwright spec file instead of manual Playwright tool steps.
+- Extract reusable `ui.clientScript`, `ui.clientState`, and `ui.behavior` helpers only after another app needs the same patterns.
+- Add transaction-like behavior around multi-update move operations if concurrent users matter.
+
+### Code review instructions
+
+- Start in `examples/kanban/scripts/app.js` with `listCards`, `moveCard`, `cardView`, `columnView`, `boardPage`, `clientScript`, and the `/api/cards/:id/move` route.
+- Validate with:
+
+```bash
+GOTOOLCHAIN=go1.26.2 go test ./... -count=1
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve --db /tmp/goja-kanban-phase7.db --scripts examples/kanban/scripts --addr 127.0.0.1:60025 --dev
+```
+
+### Technical details
+
+Key browser validations:
+
+- Search:
+  - typed `permit` into `Search notes...`,
+  - only `Book permit` remained visible,
+  - column counts updated to `todo=1`, others `0`.
+- Move:
+  - selected `Done` and `#1` on `Book permit`,
+  - submitted `Move`,
+  - verified first card in `Done` was `Book permit`,
+  - reloaded and verified it persisted.
+- API:
+  - `/api/cards?search=permit` returned `Book permit` with status `done` after movement.
+  - `/app.js` returned `200` with `application/javascript; charset=utf-8`.
