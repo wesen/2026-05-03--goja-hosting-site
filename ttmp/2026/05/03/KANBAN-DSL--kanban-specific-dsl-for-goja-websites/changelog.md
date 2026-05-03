@@ -111,3 +111,12 @@ Propagated host sessions through mounted Kanban render/action routes and session
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Uses session_id for scoped card data
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/mount.go — Passes session into render contexts and action events
 
+
+## 2026-05-03
+
+Removed the duplicate non-functional outer toolbar from the Kanban example; the board now relies on its own functional search/filter toolbar.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Removed decorative title-row toolbar buttons and unused helper
+

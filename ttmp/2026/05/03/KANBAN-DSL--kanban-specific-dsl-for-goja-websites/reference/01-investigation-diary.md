@@ -581,3 +581,14 @@ The DSL should hide transport mechanics. The application still needs to use the 
 - `go test ./pkg/kanbanddsl -count=1`
 - `go test ./... -count=1`
 - Live two-cookie-jar smoke test confirmed one session's new card is invisible to another session.
+
+## Step 8: Removed the duplicate outer Kanban toolbar
+
+The user noticed that the page still had an outer non-functional toolbar even though the board now renders its own functional toolbar through `kanban.dsl`'s `render.toolbar(...)` hook. I removed the old decorative title-row toolbar buttons (`Filter`, `Sort`, `New Card`, and `...`) and deleted the now-unused `toolbarButton(...)` helper.
+
+### Validation
+
+- `node -c examples/kanban/scripts/app.js`
+- `go test ./... -count=1`
+- Restarted the local server on `127.0.0.1:60128`.
+- Verified the old outer toolbar markers are absent while the Kanban board search form remains.

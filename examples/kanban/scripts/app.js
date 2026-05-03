@@ -200,10 +200,6 @@ function stylesheet() {
   `;
 }
 
-function toolbarButton(icon, label, klass) {
-  return ui.button({ class: klass || "" }, ui.span({ "aria-hidden": "true" }, icon), " ", label);
-}
-
 function searchText(card) {
   return `${card.title || ""} ${card.description || ""} ${card.tag || ""} ${columnLabel(card.status)}`.toLowerCase();
 }
@@ -281,13 +277,7 @@ function boardPage(req) {
         ui.div({ class: "footer-note" }, "Made with goja-site")
       ),
       ui.div({ class: "title-row" },
-        ui.div(ui.h2("Trail Notes: Cascade Loop"), ui.p({ class: "subtitle" }, "Planning and notes for our weekend in the mountains.")),
-        ui.div({ class: "toolbar" },
-          toolbarButton("≡", "Filter"),
-          toolbarButton("↕", "Sort"),
-          toolbarButton("+", "New Card", "primary"),
-          ui.button({ class: "icon-button", "aria-label": "More options" }, "...")
-        )
+        ui.div(ui.h2("Trail Notes: Cascade Loop"), ui.p({ class: "subtitle" }, "Planning and notes for our weekend in the mountains."))
       ),
       ui.form({ class: "new-card", method: "post", action: "/cards" },
         ui.input({ name: "title", placeholder: "Card title", required: true }),
