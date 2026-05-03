@@ -43,6 +43,7 @@ type CheckResult struct {
 	SkippedReason    string `json:"skippedReason"`
 	CleanupAttempt   int64  `json:"cleanupAttempt"`
 	OriginalQuery    string `json:"originalQuery,omitempty"`
+	SQLKind          string `json:"sqlKind,omitempty"`
 	FailHardLimitHit bool   `json:"failHardLimitHit"`
 }
 
@@ -78,6 +79,7 @@ func (r CheckResult) Map() map[string]any {
 		"skippedReason":    r.SkippedReason,
 		"cleanupAttempt":   r.CleanupAttempt,
 		"originalQuery":    r.OriginalQuery,
+		"sqlKind":          r.SQLKind,
 		"failHardLimitHit": r.FailHardLimitHit,
 	}
 	if r.After != nil {

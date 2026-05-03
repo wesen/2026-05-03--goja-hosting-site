@@ -22,16 +22,22 @@ RelatedFiles:
       Note: |-
         Server currently opens SQLite and wires preconfigured database modules
         Creates Guard
+    - Path: pkg/dbguard/errors.go
+      Note: HardLimitError surfaced through db.exec
     - Path: pkg/dbguard/guard.go
       Note: Implemented size checks
     - Path: pkg/dbguard/guard_test.go
       Note: Stats and no-callback over-limit tests
+    - Path: pkg/dbguard/hardlimit_test.go
+      Note: Hard-limit rejected/allowed statement coverage
     - Path: pkg/dbguard/metered.go
       Note: Metered QueryExecer wrapper used to avoid changing upstream database module
     - Path: pkg/dbguard/registrar.go
       Note: db.guard native module API implementation
     - Path: pkg/dbguard/registrar_test.go
       Note: Runtime integration test for cleanup callback dispatch through database module
+    - Path: pkg/dbguard/sqlkind.go
+      Note: SQL classification used by hard-limit enforcement
     - Path: pkg/web/session.go
       Note: Session identity enables per-session cleanup policies
 ExternalSources: []
@@ -40,6 +46,7 @@ LastUpdated: 2026-05-03T16:45:00-04:00
 WhatFor: Use when implementing database quota/cleanup behavior for goja-site sessions and app-owned data.
 WhenToUse: Read before adding DB size limits, cleanup callbacks, session pruning, or replacing/wrapping the database module.
 ---
+
 
 
 
@@ -887,3 +894,91 @@ This gives us the behavior we want without forking or editing `go-go-goja/module
 Do not modify the upstream database module yet. Use the extension point it already provides: `WithPreconfiguredDB` accepts a `QueryExecer`, so `goja-site` can pass a metered wrapper. Add a separate `db.guard` module to register cleanup callbacks and expose stats. This keeps the existing JavaScript database API stable while adding storage policy around it.
 
 If the wrapper later proves insufficient, write a local app database module in `pkg/sitedb` or `pkg/appdb` and explicitly document why the fork is necessary. But the first implementation should prefer composition over replacement.
+
+## Addendum: hard-limit enforcement policy
+
+The first `db.guard` implementation intentionally implemented soft-limit detection and cleanup callbacks before write rejection. The next implementation step should enforce hard limits, but only when the app explicitly opts into it:
+
+```javascript
+guard.configure({
+  softMaxBytes: 50 * 1024 * 1024,
+  hardMaxBytes: 100 * 1024 * 1024,
+  failWritesOverHardLimit: true,
+});
+```
+
+The enforcement rule should be conservative:
+
+1. If `failWritesOverHardLimit` is false, never reject writes. Continue to detect, call cleanup, and report state.
+2. If `hardMaxBytes` is not configured, never reject writes.
+3. If cleanup is currently running, never reject writes. Cleanup callbacks must be able to execute `DELETE`, `PRAGMA wal_checkpoint`, and `VACUUM` even while the database is over the hard limit.
+4. If the database is already over the hard limit before a growth-oriented statement, reject the statement before it executes.
+5. If a statement executes, triggers cleanup, and the database is still over the hard limit afterward, return a hard-limit error for growth-oriented statements.
+6. Do not reject cleanup/maintenance statements such as `DELETE`, `DROP`, `VACUUM`, and `PRAGMA wal_checkpoint`.
+
+This means hard-limit enforcement is not a blunt "block all SQL" mode. It is a protection against continued growth while still allowing the app to recover.
+
+### SQL classification
+
+The first implementation should use a simple first-token classifier. It is not a full SQL parser, but it is good enough for the app-level guard and can be documented clearly.
+
+Suggested classes:
+
+| Class | First tokens | Enforcement behavior |
+|---|---|---|
+| Read | `SELECT`, `WITH` | Allowed. |
+| Growth | `INSERT`, `UPDATE`, `CREATE`, `ALTER`, `REPLACE` | Reject when over hard limit and fail mode is enabled. |
+| Cleanup | `DELETE`, `DROP`, `TRUNCATE` | Allowed. |
+| Maintenance | `VACUUM`, `PRAGMA`, `ANALYZE`, `REINDEX` | Allowed. |
+| Unknown | anything else | Treat as growth for safety when fail mode is enabled. |
+
+This intentionally treats unknown `Exec` statements as potentially growing. `Query` calls are not intercepted by hard-limit enforcement because they cannot mutate through the `QueryExecer.Query` path in normal app code.
+
+### Error shape
+
+The Go error should include enough detail for JavaScript to report a useful failure:
+
+```text
+sqlite hard limit exceeded before exec: totalBytes=123456 hardMaxBytes=100000 kind=growth
+```
+
+The upstream database module will surface that as a failed `db.exec(...)`. Application route handlers can catch it and map it to HTTP 507 Insufficient Storage if they want a storage-specific response.
+
+### Implementation sketch
+
+```go
+func (m *MeteredDB) Exec(query string, args ...any) (sql.Result, error) {
+    if m.guard != nil {
+        if err := m.guard.BeforeExec(query); err != nil {
+            return nil, err
+        }
+    }
+
+    result, err := m.inner.Exec(query, args...)
+    if err != nil {
+        return result, err
+    }
+
+    if m.guard != nil {
+        check, checkErr := m.guard.AfterExec(query)
+        if checkErr != nil {
+            return result, checkErr
+        }
+        if err := m.guard.ErrorAfterExec(query, check); err != nil {
+            return result, err
+        }
+    }
+
+    return result, nil
+}
+```
+
+The guard owns policy. The metered database wrapper only asks before and after executing.
+
+### Tests to add
+
+- Over-hard-limit `INSERT` is rejected when `failWritesOverHardLimit` is true.
+- Over-hard-limit `DELETE` is allowed.
+- Cleanup callback can call `db.exec("DELETE ...")` without rejection while over hard limit.
+- `failWritesOverHardLimit: false` preserves soft-limit behavior and does not reject writes.
+- Error messages include total size and hard limit.

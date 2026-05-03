@@ -90,26 +90,38 @@ func (g *Guard) IsOverLimit() bool {
 	return limit > 0 && stats.TotalBytes > limit
 }
 
+func (g *Guard) BeforeExec(query string) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.hardLimitErrorLocked("before exec", query, classifySQL(query), false)
+}
+
+func (g *Guard) ErrorAfterExec(query string, result CheckResult) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.hardLimitErrorLocked("after exec", query, classifySQL(query), true)
+}
+
 func (g *Guard) AfterExec(query string) (CheckResult, error) {
 	g.mu.Lock()
 	g.writeCount++
 	if g.inCleanup {
-		res := CheckResult{Reason: "afterExec", SkippedReason: "cleanup already running", OriginalQuery: query}
+		res := CheckResult{Reason: "afterExec", SkippedReason: "cleanup already running", OriginalQuery: query, SQLKind: string(classifySQL(query))}
 		g.mu.Unlock()
 		return res, nil
 	}
 	if g.limitBytesLocked() <= 0 {
-		res := CheckResult{Reason: "afterExec", SkippedReason: "no limit configured", OriginalQuery: query}
+		res := CheckResult{Reason: "afterExec", SkippedReason: "no limit configured", OriginalQuery: query, SQLKind: string(classifySQL(query))}
 		g.mu.Unlock()
 		return res, nil
 	}
 	if g.options.CheckEveryWrites > 0 && g.writeCount%g.options.CheckEveryWrites != 0 {
-		res := CheckResult{Reason: "afterExec", SkippedReason: "write counter throttle", OriginalQuery: query}
+		res := CheckResult{Reason: "afterExec", SkippedReason: "write counter throttle", OriginalQuery: query, SQLKind: string(classifySQL(query))}
 		g.mu.Unlock()
 		return res, nil
 	}
 	if !g.lastCleanup.IsZero() && g.options.Cooldown > 0 && time.Since(g.lastCleanup) < g.options.Cooldown {
-		res := CheckResult{Reason: "afterExec", SkippedReason: "cooldown", OriginalQuery: query}
+		res := CheckResult{Reason: "afterExec", SkippedReason: "cooldown", OriginalQuery: query, SQLKind: string(classifySQL(query))}
 		g.mu.Unlock()
 		return res, nil
 	}
@@ -134,7 +146,7 @@ func (g *Guard) CheckNow(reason string, originalQuery ...string) (CheckResult, e
 	}
 	g.lastStats = before
 	limit := g.limitBytesLocked()
-	res := CheckResult{Reason: reason, Before: before, OriginalQuery: query}
+	res := CheckResult{Reason: reason, Before: before, OriginalQuery: query, SQLKind: string(classifySQL(query))}
 	if limit <= 0 {
 		res.SkippedReason = "no limit configured"
 		g.lastResult = res
@@ -244,6 +256,27 @@ func (g *Guard) measureLocked() (Stats, error) {
 		}
 	}
 	return stats, nil
+}
+
+func (g *Guard) hardLimitErrorLocked(phase, query string, kind SQLKind, afterExec bool) error {
+	if !g.options.FailOverHardLimit || g.options.HardMaxBytes <= 0 {
+		return nil
+	}
+	if g.inCleanup {
+		return nil
+	}
+	if !growthBlockedKind(kind) {
+		return nil
+	}
+	stats, err := g.measureLocked()
+	if err != nil {
+		return err
+	}
+	g.lastStats = stats
+	if stats.TotalBytes <= g.options.HardMaxBytes {
+		return nil
+	}
+	return &HardLimitError{Phase: phase, Path: g.path, Query: query, Kind: kind, TotalBytes: stats.TotalBytes, HardMaxBytes: g.options.HardMaxBytes, AfterExec: afterExec}
 }
 
 func (g *Guard) limitBytesLocked() int64 {

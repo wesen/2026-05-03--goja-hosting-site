@@ -172,3 +172,49 @@ Evidence:
 ### Remaining work
 
 The implementation currently supports the soft-limit path. The future hard-limit behavior (`failWritesOverHardLimit`) is represented in the option/result types but is not enforced yet. The Kanban example also does not yet register a real cleanup policy; that should be added behind an explicit demo/config flag.
+
+## Step 3: Implemented opt-in hard-limit write enforcement
+
+After the soft-limit guard was implemented, the user asked why hard-limit enforcement was not active. I documented the enforcement policy and then implemented it.
+
+### What changed
+
+- Added SQL statement classification in `pkg/dbguard/sqlkind.go`.
+- Added `Guard.BeforeExec(query)` for hard-limit preflight checks.
+- Added `Guard.ErrorAfterExec(query, result)` for post-exec hard-limit errors after cleanup attempts.
+- Added `HardLimitError` with explicit total size, hard limit, SQL kind, phase, and DB path.
+- Updated `MeteredDB.Exec(...)` to:
+  - reject growth/unknown statements before execution when already over hard limit,
+  - run normal exec otherwise,
+  - run soft-limit cleanup checks after successful exec,
+  - reject growth/unknown statements after exec if cleanup leaves the DB over hard limit.
+- Cleanup and maintenance SQL remains allowed while over the hard limit.
+- Writes are allowed while cleanup is running, so cleanup callbacks can execute `DELETE`, `VACUUM`, and `PRAGMA` statements.
+
+### Policy
+
+Hard-limit enforcement is opt-in:
+
+```javascript
+guard.configure({
+  hardMaxBytes: 100 * 1024 * 1024,
+  failWritesOverHardLimit: true,
+});
+```
+
+Without `failWritesOverHardLimit`, the guard remains soft: it detects, calls cleanup, and reports state without rejecting writes.
+
+### Validation
+
+```bash
+go test ./pkg/dbguard -count=1
+go test ./... -count=1
+```
+
+New tests cover:
+
+- growth statements such as `INSERT` are rejected over the hard limit,
+- cleanup statements such as `DELETE` are allowed over the hard limit,
+- maintenance statements such as `VACUUM` are allowed over the hard limit,
+- soft-limit behavior still does not reject writes when hard failure is disabled,
+- hard-limit errors surface through the normal JavaScript `db.exec(...)` path.

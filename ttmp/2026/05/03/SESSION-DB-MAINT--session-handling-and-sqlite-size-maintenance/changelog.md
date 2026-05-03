@@ -52,3 +52,25 @@ Uploaded updated SESSION-DB-MAINT implementation bundle to reMarkable after db.g
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/SESSION-DB-MAINT--session-handling-and-sqlite-size-maintenance/changelog.md — Recorded implementation bundle upload
 
+
+## 2026-05-03
+
+Added hard-limit enforcement policy and implementation tasks to the SQLite size guard design.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/SESSION-DB-MAINT--session-handling-and-sqlite-size-maintenance/design-doc/02-sqlite-size-guard-and-cleanup-callback-design.md — Hard-limit enforcement addendum
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/SESSION-DB-MAINT--session-handling-and-sqlite-size-maintenance/tasks.md — Hard-limit implementation tasks
+
+
+## 2026-05-03
+
+Implemented opt-in hard-limit write enforcement for db.guard with SQL classification and tests.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/dbguard/guard.go — Adds hard-limit preflight and post-exec enforcement
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/dbguard/hardlimit_test.go — Hard-limit enforcement tests
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/dbguard/metered.go — Rejects growth writes when hard limit policy requires it
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/dbguard/sqlkind.go — Classifies SQL statements for hard-limit policy
+

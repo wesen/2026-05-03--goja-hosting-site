@@ -31,6 +31,18 @@
 - [x] Include session-aware cleanup policy examples.
 - [x] Include phased implementation plan and risks.
 
+
+## Phase 3 — Hard-limit enforcement
+
+- [x] Add hard-limit enforcement policy to the design document.
+- [x] Add SQL statement classification for growth vs cleanup/maintenance statements.
+- [x] Add `Guard.BeforeExec(query)` hard-limit preflight.
+- [x] Add post-exec hard-limit error handling after cleanup attempts.
+- [x] Allow cleanup and maintenance statements while over the hard limit.
+- [x] Always allow writes while the cleanup callback is running.
+- [x] Return explicit hard-limit errors through `db.exec(...)` when fail mode is enabled.
+- [x] Add tests for rejected growth writes and allowed cleanup writes.
+
 ## Future implementation tasks
 
 - [x] Create `pkg/dbguard` stats package.
