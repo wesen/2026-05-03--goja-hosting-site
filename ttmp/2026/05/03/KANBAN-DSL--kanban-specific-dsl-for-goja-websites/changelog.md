@@ -49,3 +49,14 @@ Uploaded updated KANBAN-DSL Architecture Guide bundle to reMarkable at /ai/2026/
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/tasks.md — Marked reMarkable upload complete
 
+
+## 2026-05-03
+
+Implemented initial pkg/kanbanddsl native module with fluid builder, Go-owned client runtime, mount routes, dispatch, rendering, and tests.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go — Registered kanban.dsl runtime module
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl — Initial kanban.dsl implementation
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/reference/01-investigation-diary.md — Recorded implementation step
+

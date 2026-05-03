@@ -15,6 +15,7 @@ import (
 	"github.com/dop251/goja"
 	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
+	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
 	"github.com/go-go-golems/goja-site/pkg/uidsl"
 	"github.com/go-go-golems/goja-site/pkg/web"
 	_ "github.com/mattn/go-sqlite3"
@@ -69,7 +70,7 @@ func NewServer(cfg Config) (*Server, error) {
 			engine.NativeModuleSpec{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
 		).
 		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer")).
-		WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar()).
+		WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()).
 		Build()
 	if err != nil {
 		_ = db.Close()

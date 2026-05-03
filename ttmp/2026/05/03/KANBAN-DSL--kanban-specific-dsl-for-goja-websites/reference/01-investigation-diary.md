@@ -184,3 +184,89 @@ const board = kanban.board("trail-notes")
   .actions(actions => actions.cardMoved(onCardMoved))
   .build();
 ```
+
+## Step 3: Implemented first `kanban.dsl` module shell and builder runtime
+
+I implemented the first working version of `require("kanban.dsl")`. The implementation follows the updated design direction: importing the DSL gives app authors a fluid `kanban.board(id)` builder, and mounting a board lets the Go side inject and serve the generic browser runtime at `/<prefix>/client.js`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Implement"
+
+**User prompt (verbatim):** "keep a diary, commit at appropriate intervals"
+
+**User prompt (verbatim):** "importing the dsl also means that the go side can inject / serve custom frontend JS that the app itself doesn't need to write"
+
+**Assistant interpretation:** Start with the reusable native module, keep chronological notes, and make sure the design principle about Go-owned frontend runtime is implemented rather than left as prose.
+
+**Inferred user intent:** The app should not need to define `/app.js` for standard Kanban behaviors. Once the script imports `kanban.dsl` and calls `board.mount(app, prefix)`, the Go module should register the browser runtime route and action routes.
+
+**Commit (code):** pending at time of writing this diary step.
+
+### What I did
+
+- Added `pkg/kanbanddsl`.
+- Implemented `NewRegistrar()` and registered native module `kanban.dsl`.
+- Wired `kanbanddsl.NewRegistrar()` into `pkg/app/server.go`.
+- Added `kanban.board(id)` returning a mutable fluid builder.
+- Added builder families:
+  - `BoardBuilder`,
+  - `ColumnListBuilder`,
+  - `ColumnBuilder`,
+  - `DataBuilder`,
+  - `FeatureBuilder`,
+  - `RenderBuilder`,
+  - `ActionBuilder`.
+- Added `.build()` validation with aggregated error messages.
+- Added immutable `Board` objects with:
+  - `.render(ctx)`,
+  - `.mount(app, prefix)`,
+  - `.dispatch(action, event)`,
+  - `.clientScriptURL()`.
+- Added server-rendered board/column/card output backed by `ui.dsl` node structs.
+- Added `board.mount(app, prefix)` route registration:
+  - `GET <prefix>/client.js`,
+  - `GET <prefix>/<boardId>/fragment`,
+  - `POST <prefix>/<boardId>/action/:action`.
+- Added generic browser runtime source in Go via `ClientScript()`.
+- Added runtime integration tests for `require("kanban.dsl")`, builder rendering, validation aggregation, dispatch event normalization, and client script availability.
+
+### Why
+
+This establishes the core abstraction before migrating the example app. The important architectural move is that the Go native module owns the browser runtime. App authors should write data hooks, render hooks, and callbacks; they should not need to write drag/drop, precise-move fetch calls, fragment replacement, or count updates.
+
+### What worked
+
+- The existing `express` app object is sufficient for `board.mount(app, prefix)` because Go can call its `get` and `post` methods with Go-backed function values.
+- The existing `ui.dsl` node structs can be constructed directly by `kanban.dsl` and still rendered by `res.html(...)` / `ui.render(...)`.
+- Runtime integration tests can build an engine with `kanbanddsl.NewRegistrar()` and `uidsl.NewRegistrar()` and then use normal JavaScript `require(...)`.
+
+### What didn't work
+
+- The first `cardMoved` dispatch normalization test failed because missing Goja object properties were not always caught by `goja.IsUndefined(...)` alone. The event normalizer now treats `nil`, `undefined`, and `null` as missing via a helper.
+
+### Exact validation commands
+
+```bash
+go test ./pkg/kanbanddsl -count=1
+go test ./... -count=1
+```
+
+Both pass after the missing-value fix.
+
+### What was tricky
+
+- `board.mount(...)` has to bridge in the opposite direction from typical Express use: instead of JavaScript calling Go handlers directly, Go calls JavaScript-facing `app.get` / `app.post` methods with Go-backed handler functions.
+- The browser runtime must be generic and data-attribute driven. It currently looks for `data-kb-*` attributes instead of app-specific classes.
+
+### What warrants a second pair of eyes
+
+- Whether action route names should stay `/<prefix>/<boardId>/action/:action` or move to a more RPC-like shape.
+- Whether `board.render(...)` should include the client script tag automatically only after mount or always expose it explicitly.
+- Whether `.mount(...)` should register duplicate `client.js` routes for multiple boards or share them per prefix. The current implementation shares one client script route per prefix.
+
+### What should be done next
+
+- Commit this foundation.
+- Migrate `examples/kanban/scripts/app.js` to use the builder and remove app-owned `/app.js` Kanban runtime code.
+- Add an HTTP integration test proving `/_kanban/client.js` is served through the mounted Express app.
