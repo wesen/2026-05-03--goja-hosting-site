@@ -55,6 +55,12 @@ func (h *Host) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	route, params, ok := h.registry.Match(r.Method, r.URL.Path)
+	if !ok && r.Method == http.MethodHead {
+		route, params, ok = h.registry.Match(http.MethodGet, r.URL.Path)
+		if ok {
+			w = headResponseWriter{ResponseWriter: w}
+		}
+	}
 	if !ok {
 		http.NotFound(w, r)
 		return
@@ -93,4 +99,12 @@ func (h *Host) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 	}
+}
+
+type headResponseWriter struct {
+	http.ResponseWriter
+}
+
+func (w headResponseWriter) Write(b []byte) (int, error) {
+	return len(b), nil
 }

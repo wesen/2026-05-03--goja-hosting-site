@@ -83,3 +83,39 @@ func TestExpressPostJSONEcho(t *testing.T) {
 		t.Fatalf("body=%s", rr.Body.String())
 	}
 }
+
+func TestHeadFallsBackToGetWithoutBody(t *testing.T) {
+	host := NewHost(HostOptions{Dev: true, Renderer: uidsl.RenderAny})
+	factory, err := engine.NewBuilder().WithRuntimeModuleRegistrars(NewExpressRegistrar(host), uidsl.NewRegistrar()).Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rt, err := factory.NewRuntime(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rt.Close(context.Background())
+	host.SetRuntime(rt.Owner)
+	_, err = rt.Owner.Call(context.Background(), "load-test", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		_, err := vm.RunString(`
+			const express = require("express");
+			const app = express.app();
+			app.get("/hello", (req, res) => res.type("text/plain").send("hello body"));
+		`)
+		return nil, err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	host.ServeHTTP(rr, httptest.NewRequest(http.MethodHead, "/hello", nil))
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	if rr.Body.Len() != 0 {
+		t.Fatalf("expected empty HEAD body, got %q", rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); !strings.Contains(ct, "text/plain") {
+		t.Fatalf("content-type=%s", ct)
+	}
+}

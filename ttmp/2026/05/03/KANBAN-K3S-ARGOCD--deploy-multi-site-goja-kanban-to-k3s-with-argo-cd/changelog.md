@@ -103,3 +103,15 @@ Updated Hetzner K3s runbooks to document the local-path PVC WaitForFirstConsumer
 - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/operator-troubleshooting-faq.md — Added troubleshooting entry for Pending PVC with no Deployment
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded runbook update
 
+
+## 2026-05-03
+
+Implemented HEAD fallback and replaced placeholder editorial/CRM sites with real Kanban apps.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/web/host.go — HEAD falls back to GET with body suppression
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/web/host_integration_test.go — HEAD fallback integration test
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/crm/scripts/app.js — Real CRM Kanban app
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/app.js — Real editorial Kanban app
+

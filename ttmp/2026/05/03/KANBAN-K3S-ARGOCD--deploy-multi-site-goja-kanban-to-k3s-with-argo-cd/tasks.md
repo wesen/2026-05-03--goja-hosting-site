@@ -56,3 +56,14 @@
 - [x] Push GitOps changes.
 - [x] One-time apply Argo CD Application with `kubectl apply -f gitops/applications/goja-kanban.yaml`.
 - [x] Validate Argo CD sync, pod health, PVC, ingress, cert-manager certificate, and public URLs.
+
+
+## Production app content
+
+- [x] Implement HEAD fallback for dynamic Goja routes.
+- [x] Add a real Editorial Pipeline Kanban app.
+- [x] Add a real CRM Pipeline Kanban app.
+- [x] Validate GET and HEAD locally for trail, editorial, and CRM hosts.
+- [ ] Publish updated image through GitHub Actions.
+- [ ] Update K3s GitOps image tag to the published SHA.
+- [ ] Validate updated production GET and HEAD behavior.

@@ -435,3 +435,52 @@ Committed and pushed in K3s repo:
 ```text
 a8db0b3 Document local-path PVC sync wave trap
 ```
+
+## Step 13: Implemented HEAD fallback and real editorial/CRM apps
+
+Implemented dynamic route HEAD fallback in `pkg/web/host.go`.
+
+Policy:
+
+- explicit `HEAD` route still wins,
+- if no explicit `HEAD` route exists and a matching `GET` route exists, run the `GET` handler,
+- wrap the response writer so headers/status are preserved but body bytes are discarded.
+
+This makes `curl -I /` work for Goja apps that only define `app.get("/", ...)`.
+
+Also replaced the placeholder production sites with real Kanban apps:
+
+- `sites/editorial/scripts/app.js`
+  - Editorial Desk / Editorial Pipeline,
+  - columns: Pitch, Draft, Edit, Scheduled, Published,
+  - SQLite-backed, session-scoped, searchable, draggable, precise move.
+- `sites/crm/scripts/app.js`
+  - Sales Room / CRM Pipeline,
+  - columns: Lead, Qualified, Proposal, Negotiation, Won,
+  - SQLite-backed, session-scoped, searchable, draggable, precise move.
+
+Validation:
+
+```bash
+node -c sites/editorial/scripts/app.js
+node -c sites/crm/scripts/app.js
+go test ./... -count=1
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve-multi --config deploy/sites.local.yaml
+curl -H 'Host: trail.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl -H 'Host: editorial.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl -H 'Host: crm.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl -I -H 'Host: trail.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl -I -H 'Host: editorial.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl -I -H 'Host: crm.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+```
+
+Results:
+
+```text
+GET trail      -> Trail Notes
+GET editorial  -> Editorial Desk
+GET crm        -> Sales Room
+HEAD trail     -> HTTP/1.1 200 OK
+HEAD editorial -> HTTP/1.1 200 OK
+HEAD crm       -> HTTP/1.1 200 OK
+```
