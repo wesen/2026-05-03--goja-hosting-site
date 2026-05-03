@@ -33,12 +33,12 @@
 
 ## Future implementation tasks
 
-- [ ] Create `pkg/dbguard` stats package.
-- [ ] Measure main DB, WAL, and SHM file sizes.
-- [ ] Add SQLite page stats via `PRAGMA page_size`, `page_count`, and `freelist_count`.
-- [ ] Add `db.guard` native module registrar.
-- [ ] Add `guard.configure`, `guard.stats`, `guard.checkNow`, and `guard.onLimitExceeded`.
-- [ ] Wrap `*sql.DB` with `MeteredDB` before passing it to `databasemod.WithPreconfiguredDB`.
-- [ ] Trigger soft-limit checks after writes with cooldown and recursion guard.
-- [ ] Add runtime integration tests for cleanup callback dispatch.
+- [x] Create `pkg/dbguard` stats package.
+- [x] Measure main DB, WAL, and SHM file sizes.
+- [x] Add SQLite page stats via `PRAGMA page_size`, `page_count`, and `freelist_count`.
+- [x] Add `db.guard` native module registrar.
+- [x] Add `guard.configure`, `guard.stats`, `guard.checkNow`, and `guard.onLimitExceeded`.
+- [x] Wrap `*sql.DB` with `MeteredDB` before passing it to `databasemod.WithPreconfiguredDB`.
+- [x] Trigger soft-limit checks after writes with cooldown and recursion guard.
+- [x] Add runtime integration tests for cleanup callback dispatch.
 - [ ] Add Kanban example cleanup policy behind an explicit demo/config flag.

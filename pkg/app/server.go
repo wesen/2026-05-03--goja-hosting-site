@@ -15,6 +15,7 @@ import (
 	"github.com/dop251/goja"
 	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
+	"github.com/go-go-golems/goja-site/pkg/dbguard"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
 	"github.com/go-go-golems/goja-site/pkg/uidsl"
 	"github.com/go-go-golems/goja-site/pkg/web"
@@ -54,13 +55,15 @@ func NewServer(cfg Config) (*Server, error) {
 	}
 
 	host := web.NewHost(web.HostOptions{Dev: cfg.Dev, Renderer: uidsl.RenderAny})
+	guard := dbguard.New(db, cfg.DBPath)
+	meteredDB := dbguard.NewMeteredDB(db, guard)
 	databaseModule := databasemod.New(
-		databasemod.WithPreconfiguredDB(db),
+		databasemod.WithPreconfiguredDB(meteredDB),
 		databasemod.WithConfigureEnabled(false),
 	)
 	dbAliasModule := databasemod.New(
 		databasemod.WithName("db"),
-		databasemod.WithPreconfiguredDB(db),
+		databasemod.WithPreconfiguredDB(meteredDB),
 		databasemod.WithConfigureEnabled(false),
 	)
 
@@ -70,7 +73,7 @@ func NewServer(cfg Config) (*Server, error) {
 			engine.NativeModuleSpec{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
 		).
 		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer")).
-		WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()).
+		WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(), dbguard.NewRegistrar(guard)).
 		Build()
 	if err != nil {
 		_ = db.Close()

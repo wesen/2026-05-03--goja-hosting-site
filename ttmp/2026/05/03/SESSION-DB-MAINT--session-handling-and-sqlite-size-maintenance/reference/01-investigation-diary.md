@@ -112,3 +112,63 @@ docmgr doctor --ticket KANBAN-DSL --stale-after 30
 ```
 
 This ticket still needs its own `docmgr doctor` and reMarkable upload after the documents are complete.
+
+## Step 2: Implemented `db.guard` and metered SQLite writes
+
+I implemented the first version of the SQLite size guard that the design document proposed. The implementation avoids changing the upstream `go-go-goja/modules/database` module by wrapping the preconfigured `*sql.DB` in a local `MeteredDB` that implements the same `QueryExecer` interface expected by `databasemod.WithPreconfiguredDB`.
+
+### What changed
+
+- Added `pkg/dbguard` with:
+  - `Guard`,
+  - `MeteredDB`,
+  - `Stats`,
+  - `CheckResult`,
+  - `db.guard` runtime registrar.
+- `Guard.Stats()` measures:
+  - main SQLite DB file,
+  - `-wal` file,
+  - `-shm` file,
+  - `PRAGMA page_size`,
+  - `PRAGMA page_count`,
+  - `PRAGMA freelist_count`.
+- `MeteredDB.Exec(...)` triggers `guard.AfterExec(...)` after successful writes.
+- `db.guard` exposes:
+  - `configure(options)`,
+  - `onLimitExceeded(fn)`,
+  - `stats()`,
+  - `checkNow(reason)`,
+  - `isOverLimit()`,
+  - `lastResult()`.
+- `pkg/app/server.go` now creates one guard, wraps SQLite with `MeteredDB`, passes the wrapper to both `database` and `db`, and registers `db.guard`.
+
+### Callback behavior
+
+The cleanup callback is synchronous in v1. This is safe because it is called from `db.exec(...)`, which is already executing inside the Goja runtime. A recursion guard prevents cleanup writes from recursively triggering cleanup callbacks.
+
+### Validation
+
+Commands:
+
+```bash
+go test ./pkg/dbguard -count=1
+go test ./... -count=1
+```
+
+Live smoke test:
+
+- Started a temporary `goja-site` app on `127.0.0.1:60130`.
+- The app required `database` and `db.guard`.
+- Configured `maxBytes: 1`, `checkEveryWrites: 1`, and a cleanup callback.
+- Posted to `/add`, which inserted a row through `db.exec(...)`.
+- Observed callback dispatch through the normal database module path.
+
+Evidence:
+
+```text
+{'cleanupCalls': 1, 'callbackCalled': True, 'triggered': True, 'totalBytes': 8192}
+```
+
+### Remaining work
+
+The implementation currently supports the soft-limit path. The future hard-limit behavior (`failWritesOverHardLimit`) is represented in the option/result types but is not enforced yet. The Kanban example also does not yet register a real cleanup policy; that should be added behind an explicit demo/config flag.

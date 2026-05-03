@@ -19,7 +19,19 @@ RelatedFiles:
     - Path: go.mod
       Note: Shows local go-go-goja replace and dependency context
     - Path: pkg/app/server.go
-      Note: Server currently opens SQLite and wires preconfigured database modules
+      Note: |-
+        Server currently opens SQLite and wires preconfigured database modules
+        Creates Guard
+    - Path: pkg/dbguard/guard.go
+      Note: Implemented size checks
+    - Path: pkg/dbguard/guard_test.go
+      Note: Stats and no-callback over-limit tests
+    - Path: pkg/dbguard/metered.go
+      Note: Metered QueryExecer wrapper used to avoid changing upstream database module
+    - Path: pkg/dbguard/registrar.go
+      Note: db.guard native module API implementation
+    - Path: pkg/dbguard/registrar_test.go
+      Note: Runtime integration test for cleanup callback dispatch through database module
     - Path: pkg/web/session.go
       Note: Session identity enables per-session cleanup policies
 ExternalSources: []
@@ -28,6 +40,7 @@ LastUpdated: 2026-05-03T16:45:00-04:00
 WhatFor: Use when implementing database quota/cleanup behavior for goja-site sessions and app-owned data.
 WhenToUse: Read before adding DB size limits, cleanup callbacks, session pruning, or replacing/wrapping the database module.
 ---
+
 
 
 # SQLite Size Guard and Cleanup Callback Design

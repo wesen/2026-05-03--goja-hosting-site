@@ -32,3 +32,14 @@ Prepared SESSION-DB-MAINT ticket documentation for commit after doctor validatio
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/SESSION-DB-MAINT--session-handling-and-sqlite-size-maintenance/tasks.md — Marked documentation commit task complete
 
+
+## 2026-05-03
+
+Implemented pkg/dbguard with metered database wrapper, db.guard module, SQLite stats, soft-limit cleanup callbacks, tests, and server wiring.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go — Wraps SQLite with MeteredDB and registers db.guard
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/dbguard — New DB size guard package and db.guard module
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/SESSION-DB-MAINT--session-handling-and-sqlite-size-maintenance/reference/01-investigation-diary.md — Recorded db.guard implementation and validation
+
