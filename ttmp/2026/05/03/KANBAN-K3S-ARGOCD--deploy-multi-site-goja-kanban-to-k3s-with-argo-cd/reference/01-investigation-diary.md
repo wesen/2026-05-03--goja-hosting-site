@@ -375,3 +375,42 @@ Validation:
 ```bash
 go test ./... -count=1
 ```
+
+
+## Step 11: Resolved Argo CD sync-wave/PVC wait issue and validated public deployment
+
+The deployment initially appeared to hang with only the PVC created. Argo CD was running an older sync operation at revision `cfebf6d` and was waiting for the `goja-kanban-data` PVC to become healthy before applying later waves. Because the cluster's `local-path` storage class uses `WaitForFirstConsumer`, the PVC cannot bind until a Pod exists. But the Deployment was in a later sync wave, so Argo waited on the PVC and never created the Pod.
+
+Fix:
+
+- changed the Deployment and Service sync wave from `2` to `1`, matching the PVC wave,
+- committed and pushed the K3s repo fix as `8d5a879 Fix goja kanban PVC sync wave`,
+- removed the stuck Argo operation by patching the Application's `operation` field,
+- forced a hard refresh.
+
+After that, Argo synced revision `8d5a879`, created the Deployment, the first Pod consumed the PVC, and local-path provisioned/bound the volume.
+
+Final status:
+
+```text
+goja-kanban   Synced   Healthy
+```
+
+Runtime status:
+
+```text
+pod/goja-kanban-... Running Ready=True
+pvc/goja-kanban-data Bound 10Gi RWO
+certificate/goja-kanban-tls Ready=True
+order.acme.cert-manager.io/... valid
+```
+
+Public GET validation:
+
+```bash
+curl -k -fsS https://trail.kanban.yolo.scapegoat.dev/ | grep 'Trail Notes'
+curl -k -fsS https://editorial.kanban.yolo.scapegoat.dev/ | grep 'Editorial Kanban'
+curl -k -fsS https://crm.kanban.yolo.scapegoat.dev/ | grep 'CRM Kanban'
+```
+
+All three public hostnames returned the expected site content. `curl -I` currently returns 404 because the JS apps define GET routes, not HEAD routes; GET works.

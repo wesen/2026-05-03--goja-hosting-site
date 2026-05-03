@@ -53,6 +53,6 @@
 - [x] Add `gitops/applications/goja-kanban.yaml`.
 - [x] Run `kubectl kustomize gitops/kustomize/goja-kanban`.
 - [x] Commit GitOps changes.
-- [ ] Push GitOps changes.
-- [ ] One-time apply Argo CD Application with `kubectl apply -f gitops/applications/goja-kanban.yaml`.
-- [ ] Validate Argo CD sync, pod health, PVC, ingress, cert-manager certificate, and public URLs.
+- [x] Push GitOps changes.
+- [x] One-time apply Argo CD Application with `kubectl apply -f gitops/applications/goja-kanban.yaml`.
+- [x] Validate Argo CD sync, pod health, PVC, ingress, cert-manager certificate, and public URLs.
