@@ -49,3 +49,25 @@ Implemented local serve-multi host router, multi-site config, packaged site layo
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/multi_config.go — Multi-site config loader and validation
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/multi_server.go — Host-routed multi-site HTTP server
 
+
+## 2026-05-03
+
+Applied Terraform DNS wildcard for *.kanban.yolo.scapegoat.dev and validated resolution.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded Terraform plan/apply and DNS validation
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/tasks.md — Marked DNS Terraform tasks complete
+- /home/manuel/code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf — Added wildcard_kanban_yolo_a
+
+
+## 2026-05-03
+
+Added K3s GitOps manifests for goja-kanban Argo CD deployment and validated kustomize rendering.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/applications/goja-kanban.yaml — New Argo CD Application
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban — Kustomize package for namespace
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded GitOps implementation
+

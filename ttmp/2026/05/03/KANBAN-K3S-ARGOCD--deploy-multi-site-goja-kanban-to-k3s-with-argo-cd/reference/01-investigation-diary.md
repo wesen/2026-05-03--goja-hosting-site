@@ -247,3 +247,100 @@ All host routes responded. The Trail site produced the expected Field Notes boar
 ### Notes
 
 The Trail app still logs expected duplicate-column errors during migration because its JavaScript migration deliberately catches older demo DB alteration failures. This is pre-existing behavior from the database module logging exec errors before JS catches them.
+
+## Step 8: Added and applied Terraform DNS wildcard
+
+Implemented the nested Kanban wildcard in the Terraform DNS repo.
+
+Changed:
+
+- `/home/manuel/code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf`
+
+Added:
+
+```hcl
+wildcard_kanban_yolo_a = {
+  type  = "A"
+  name  = "*.kanban.yolo"
+  value = "91.98.46.169"
+  ttl   = 3600
+}
+```
+
+Commands:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+terraform -chdir=dns/zones/scapegoat-dev/envs/prod fmt
+terraform -chdir=dns/zones/scapegoat-dev/envs/prod plan -no-color
+terraform -chdir=dns/zones/scapegoat-dev/envs/prod apply -auto-approve -no-color
+dig +short trail.kanban.yolo.scapegoat.dev A @1.1.1.1
+```
+
+Plan result:
+
+```text
+Plan: 1 to add, 0 to change, 0 to destroy.
+```
+
+Apply result:
+
+```text
+wildcard_kanban_yolo_a = *.kanban.yolo.scapegoat.dev -> 91.98.46.169
+```
+
+DNS validation result:
+
+```text
+91.98.46.169
+```
+
+Committed in Terraform repo:
+
+```text
+54e9572 Add kanban yolo DNS wildcard
+```
+
+## Step 9: Added K3s GitOps manifests for goja-kanban
+
+Implemented the Argo CD/Kustomize side in the Hetzner K3s repo.
+
+Added:
+
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/applications/goja-kanban.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/namespace.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/pvc.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/configmap.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/deployment.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/service.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/ingress.yaml`
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/kustomization.yaml`
+
+Important manifest choices:
+
+- namespace: `goja-kanban`,
+- image: `ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-00f04da`,
+- PVC: `goja-kanban-data`, `10Gi`, `local-path`, `ReadWriteOnce`,
+- deployment: `replicas: 1`, `strategy: Recreate`,
+- config map owns `/etc/goja-site/sites.yaml`,
+- service exposes port 80 to container port 8080,
+- ingress hosts:
+  - `trail.kanban.yolo.scapegoat.dev`,
+  - `editorial.kanban.yolo.scapegoat.dev`,
+  - `crm.kanban.yolo.scapegoat.dev`,
+- TLS issuer: `letsencrypt-prod`.
+
+Validation:
+
+```bash
+cd /home/manuel/code/wesen/2026-03-27--hetzner-k3s
+kubectl kustomize gitops/kustomize/goja-kanban
+```
+
+Result: rendered 195 lines of Kubernetes YAML successfully.
+
+Committed in K3s repo:
+
+```text
+3b260e5 Add goja kanban Argo CD deployment
+```
