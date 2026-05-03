@@ -160,3 +160,90 @@ Implement in this order:
 4. GitOps `goja-kanban` Kustomize package.
 5. One-time Argo CD Application apply.
 6. Public URL validation.
+
+## Step 6: Corrected DNS ownership to Terraform repo
+
+The user clarified that DNS updates should not be done manually in a DNS UI. They should happen through the adjacent Terraform repository:
+
+```text
+/home/manuel/code/wesen/terraform
+```
+
+I inspected:
+
+- `/home/manuel/code/wesen/terraform/dns/README.md`
+- `/home/manuel/code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf`
+
+Finding:
+
+- the DigitalOcean `scapegoat.dev` zone is managed in `dns/zones/scapegoat-dev/envs/prod`,
+- records are declared in `local.base_records`,
+- existing K3s records include:
+  - `k3s` -> `91.98.46.169`,
+  - `*.yolo` -> `91.98.46.169`.
+
+Therefore the Kanban nested wildcard should be implemented as a Terraform record similar to:
+
+```hcl
+wildcard_kanban_yolo_a = {
+  type  = "A"
+  name  = "*.kanban.yolo"
+  value = "91.98.46.169"
+  ttl   = 3600
+}
+```
+
+The implementation task list was updated so DNS work happens through Terraform, not manual DNS edits.
+
+## Step 7: Implemented local multi-site server and packaging scaffold
+
+I implemented the local app-side foundation for the deployment plan.
+
+### Code changes
+
+- Added `pkg/app/multi_config.go`:
+  - `MultiConfig`,
+  - `SiteConfig`,
+  - YAML/JSON config loading,
+  - host and DB path derivation,
+  - duplicate host/name validation.
+- Added `pkg/app/multi_server.go`:
+  - one outer HTTP server,
+  - host-header dispatch,
+  - `/healthz` and `/readyz`,
+  - one isolated `app.Server` per site.
+- Updated `pkg/app/server.go`:
+  - exposed `Handler()` and `ServeHTTP(...)`.
+- Added `cmd/goja-site/serve_multi.go` and wired it into `cmd/goja-site/main.go`.
+
+### Site and packaging changes
+
+- Added `sites/trail/scripts/app.js` based on the existing Field Notes Kanban app.
+- Added placeholder sites:
+  - `sites/editorial/scripts/app.js`,
+  - `sites/crm/scripts/app.js`.
+- Added:
+  - `deploy/sites.yaml`,
+  - `deploy/sites.local.yaml`,
+  - `Dockerfile`,
+  - `.dockerignore`,
+  - `.github/workflows/publish-image.yaml`.
+
+### Validation
+
+Ran:
+
+```bash
+go test ./... -count=1
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve-multi --config deploy/sites.local.yaml
+curl -H 'Host: trail.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl -H 'Host: editorial.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl -H 'Host: crm.kanban.yolo.scapegoat.dev' http://127.0.0.1:60131/
+curl http://127.0.0.1:60131/healthz
+```
+
+All host routes responded. The Trail site produced the expected Field Notes board; the other two placeholders responded with their titles.
+
+### Notes
+
+The Trail app still logs expected duplicate-column errors during migration because its JavaScript migration deliberately catches older demo DB alteration failures. This is pre-existing behavior from the database module logging exec errors before JS catches them.

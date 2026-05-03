@@ -1,0 +1,11 @@
+addr: "127.0.0.1:60131"
+dataDir: "./tmp/multi-sites"
+baseDomain: "kanban.yolo.scapegoat.dev"
+dev: true
+sites:
+  - name: trail
+    scriptsDir: ./sites/trail/scripts
+  - name: editorial
+    scriptsDir: ./sites/editorial/scripts
+  - name: crm
+    scriptsDir: ./sites/crm/scripts

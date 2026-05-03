@@ -41,6 +41,23 @@ func main() {
 	}
 	root.AddCommand(serveCobra)
 
+	serveMultiCmd, err := newServeMultiCommand()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	serveMultiCobra, err := cli.BuildCobraCommand(serveMultiCmd,
+		cli.WithParserConfig(cli.CobraParserConfig{
+			ShortHelpSections: []string{schema.DefaultSlug},
+			MiddlewaresFunc:   cli.CobraCommandDefaultMiddlewares,
+		}),
+	)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	root.AddCommand(serveMultiCobra)
+
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

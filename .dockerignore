@@ -1,0 +1,8 @@
+.git
+.ttmp.yaml
+ttmp
+.tmp
+tmp
+*.db
+*.db-shm
+*.db-wal

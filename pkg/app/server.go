@@ -95,6 +95,14 @@ func NewServer(cfg Config) (*Server, error) {
 	return s, nil
 }
 
+func (s *Server) Handler() http.Handler {
+	return s.host
+}
+
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.host.ServeHTTP(w, r)
+}
+
 func (s *Server) Run(ctx context.Context) error {
 	s.httpSrv = &http.Server{Addr: s.cfg.Addr, Handler: s.host, ReadHeaderTimeout: 5 * time.Second}
 	errCh := make(chan error, 1)

@@ -1,0 +1,11 @@
+addr: ":8080"
+dataDir: "/data/sites"
+baseDomain: "kanban.yolo.scapegoat.dev"
+dev: false
+sites:
+  - name: trail
+    scriptsDir: /app/sites/trail/scripts
+  - name: editorial
+    scriptsDir: /app/sites/editorial/scripts
+  - name: crm
+    scriptsDir: /app/sites/crm/scripts

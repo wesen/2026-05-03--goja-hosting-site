@@ -549,6 +549,33 @@ Needed DNS record:
 *.kanban.yolo.scapegoat.dev A 91.98.46.169
 ```
 
+This record must be added through the Terraform DNS repository, not manually in the DigitalOcean UI. The DNS owner is:
+
+```text
+/home/manuel/code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf
+```
+
+The existing `*.yolo.scapegoat.dev` record is represented there as a `local.base_records` entry named `wildcard_yolo_a`. Add a sibling record such as:
+
+```hcl
+wildcard_kanban_yolo_a = {
+  type  = "A"
+  name  = "*.kanban.yolo"
+  value = "91.98.46.169"
+  ttl   = 3600
+}
+```
+
+Then run:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+terraform -chdir=dns/zones/scapegoat-dev/envs/prod fmt
+terraform -chdir=dns/zones/scapegoat-dev/envs/prod plan
+# apply only after review/approval
+terraform -chdir=dns/zones/scapegoat-dev/envs/prod apply
+```
+
 If IPv6 is used later, add the corresponding AAAA record too.
 
 ### DNS validation commands
@@ -994,13 +1021,26 @@ curl -H 'Host: editorial.kanban.yolo.scapegoat.dev' http://127.0.0.1:8080/
 curl http://127.0.0.1:8080/healthz
 ```
 
-### Phase 2: DNS
+### Phase 2: DNS through Terraform
 
-Add:
+Do not add this record manually. Edit the DigitalOcean zone Terraform in:
 
 ```text
-*.kanban.yolo.scapegoat.dev A 91.98.46.169
+/home/manuel/code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf
 ```
+
+Add to `local.base_records`:
+
+```hcl
+wildcard_kanban_yolo_a = {
+  type  = "A"
+  name  = "*.kanban.yolo"
+  value = "91.98.46.169"
+  ttl   = 3600
+}
+```
+
+Then run `terraform fmt`, `terraform plan`, and only then `terraform apply` if approved.
 
 Validate:
 
@@ -1203,7 +1243,7 @@ ConfigMaps are still useful for the site list.
 ### DNS checklist
 
 - [ ] Confirm K3s public IP is still `91.98.46.169`.
-- [ ] Add `*.kanban.yolo.scapegoat.dev A 91.98.46.169`.
+- [ ] Add `*.kanban.yolo.scapegoat.dev A 91.98.46.169` through `/home/manuel/code/wesen/terraform/dns/zones/scapegoat-dev/envs/prod/main.tf`.
 - [ ] Validate with `dig`.
 
 ### GitOps checklist

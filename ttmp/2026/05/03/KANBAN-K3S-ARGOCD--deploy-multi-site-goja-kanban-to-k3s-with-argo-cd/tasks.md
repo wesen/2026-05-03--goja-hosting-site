@@ -13,29 +13,34 @@
 
 ## Local goja-site implementation plan
 
-- [ ] Add `sites/<name>/scripts` production layout.
-- [ ] Add `deploy/sites.yaml` multi-site config.
-- [ ] Add `MultiConfig` and `SiteConfig` types.
-- [ ] Add YAML/JSON config loader.
-- [ ] Add `app.MultiServer` with host-based routing.
-- [ ] Expose `Server.Handler()` or `Server.ServeHTTP` for reuse by host router.
-- [ ] Add `goja-site serve-multi --config <path>` CLI command.
-- [ ] Add Go-owned `/healthz` and `/readyz` endpoints in multi-site server.
-- [ ] Add tests for duplicate hosts, unknown hosts, DB isolation, and health checks.
-- [ ] Update production site scripts to use image paths such as `/app/sites/<name>/assets`.
+- [x] Add `sites/<name>/scripts` production layout.
+- [x] Add `deploy/sites.yaml` multi-site config.
+- [x] Add `MultiConfig` and `SiteConfig` types.
+- [x] Add YAML/JSON config loader.
+- [x] Add `app.MultiServer` with host-based routing.
+- [x] Expose `Server.Handler()` or `Server.ServeHTTP` for reuse by host router.
+- [x] Add `goja-site serve-multi --config <path>` CLI command.
+- [x] Add Go-owned `/healthz` and `/readyz` endpoints in multi-site server.
+- [x] Add tests for duplicate hosts, unknown hosts, DB isolation, and health checks.
+- [x] Update production site scripts to use image paths such as `/app/sites/<name>/assets`.
 
 ## Packaging plan
 
-- [ ] Add Dockerfile for CGO SQLite build and Debian runtime image.
-- [ ] Add GitHub Actions workflow to test, build, and publish GHCR image.
+- [x] Add Dockerfile for CGO SQLite build and Debian runtime image.
+- [x] Add GitHub Actions workflow to test, build, and publish GHCR image.
 - [ ] Decide whether GHCR package is public or private.
 - [ ] If private, copy the `hair-booking` Vault/VSO image pull secret pattern.
 - [ ] Pin deployments to immutable `sha-<commit>` image tags.
 
 ## DNS and TLS plan
 
+- [x] Locate the Terraform-owned DigitalOcean DNS zone in `../terraform`.
+- [x] Confirm existing `*.yolo.scapegoat.dev` record is managed in Terraform.
 - [ ] Confirm current K3s public IP.
-- [ ] Add DNS record `*.kanban.yolo.scapegoat.dev A <k3s-ip>`.
+- [ ] Add Terraform record `*.kanban.yolo.scapegoat.dev A <k3s-ip>` in `../terraform/dns/zones/scapegoat-dev/envs/prod/main.tf`.
+- [ ] Run `terraform -chdir=dns/zones/scapegoat-dev/envs/prod fmt`.
+- [ ] Run `terraform -chdir=dns/zones/scapegoat-dev/envs/prod plan`.
+- [ ] Apply the Terraform DNS change, if approved.
 - [ ] Validate site hostnames with `dig`.
 - [ ] Use explicit Ingress hosts for first deployment.
 - [ ] Revisit DNS-01 wildcard certificate support only if dynamic site creation is needed.
