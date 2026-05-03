@@ -126,3 +126,14 @@ Published sha-5fdc211 image, updated K3s GitOps deployment, and validated produc
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded image workflow and production validation
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/tasks.md — Marked production deploy validation tasks complete
 
+
+## 2026-05-03
+
+Added automatic GitOps PR workflow wiring using infra-tooling and Vault-backed GitHub Actions OIDC.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/.github/workflows/publish-image.yaml — Reusable publish and GitOps PR workflow
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/deploy/gitops-targets.json — goja-kanban-prod GitOps target
+- /home/manuel/code/wesen/terraform/vault/github-actions/envs/k3s/main.tf — Vault role and policy for goja hosting GitOps PR token
+

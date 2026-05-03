@@ -1,0 +1,11 @@
+{
+  "targets": [
+    {
+      "name": "goja-kanban-prod",
+      "gitops_repo": "wesen/2026-03-27--hetzner-k3s",
+      "gitops_branch": "main",
+      "manifest_path": "gitops/kustomize/goja-kanban/deployment.yaml",
+      "container_name": "goja-kanban"
+    }
+  ]
+}

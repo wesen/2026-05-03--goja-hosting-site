@@ -535,3 +535,44 @@ HEAD https://crm.kanban.yolo.scapegoat.dev/        -> HTTP/2 200
 ```
 
 Note: this tested the current publish-image and direct GitOps image-bump path. A separate automated source-repo-to-K3s PR workflow has not been implemented in this app repo yet.
+
+## Step 15: Added automatic GitOps PR workflow wiring
+
+The user asked whether the app repo can automatically open a K3s GitOps PR on push/merge to `main`, like `hair-booking`. I wired the app repo to use the same reusable `go-go-golems/infra-tooling` workflow pattern.
+
+Terraform/Vault setup:
+
+- Added a new Vault GitHub Actions role in `/home/manuel/code/wesen/terraform/vault/github-actions/envs/k3s/main.tf`:
+  - role: `goja-hosting-site-gitops-pr`,
+  - repository claim: `wesen/2026-05-03--goja-hosting-site`,
+  - branch/event claims: `refs/heads/main`, `push`,
+  - policy: `gha-goja-hosting-site-gitops-pr`,
+  - secret path: `kv/data/ci/github/goja-hosting-site/gitops-pr-token`.
+- Ran Terraform plan/apply. Result: 2 resources added.
+- Seeded the repo-specific Vault KV path with the existing GitOps PR token.
+- Committed Terraform repo:
+  - `4524740 Add goja hosting GitOps PR Vault role`.
+
+App repo workflow setup:
+
+- Added `deploy/gitops-targets.json`:
+  - target: `goja-kanban-prod`,
+  - GitOps repo: `wesen/2026-03-27--hetzner-k3s`,
+  - manifest: `gitops/kustomize/goja-kanban/deployment.yaml`,
+  - container: `goja-kanban`.
+- Replaced the local Docker workflow with the shared reusable workflow:
+  - `.github/workflows/publish-image.yaml`,
+  - builds/publishes GHCR image,
+  - reads GitOps PR token from Vault via GitHub Actions OIDC,
+  - opens a K3s PR after a successful push to `main`.
+- Added path filters so doc-only ticket commits do not publish images or open GitOps PRs.
+- Kept a custom `test_command` that clones `go-go-goja` into the local replace path before running tests.
+
+Validation so far:
+
+```bash
+python -m json.tool deploy/gitops-targets.json
+go test ./... -count=1
+```
+
+Next validation is the real workflow test after pushing this commit: it should publish the new image and open/update a PR in `wesen/2026-03-27--hetzner-k3s`.
