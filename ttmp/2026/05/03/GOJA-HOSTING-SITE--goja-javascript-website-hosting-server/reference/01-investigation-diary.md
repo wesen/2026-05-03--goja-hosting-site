@@ -586,3 +586,93 @@ Key browser validations:
 - API:
   - `/api/cards?search=permit` returned `Book permit` with status `done` after movement.
   - `/app.js` returned `200` with `application/javascript; charset=utf-8`.
+
+## Step 8: Added cookie-backed session identity for scoped apps
+
+I added Go-side session support so JavaScript apps can scope state to a browser cookie without having to implement cookie generation, validation, or `Set-Cookie` handling themselves. The immediate target was the Kanban app: each browser should get its own board data, but the app should only need the session ID where it queries or mutates SQLite.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, let's add go side support for user sessinos, so that the JS can scope kanban boards to a cookie, but almost doesn't have to see the session id except when querying the db."
+
+**Assistant interpretation:** Add an opaque cookie session ID at the HTTP host layer, expose it as `req.session`, and make mounted Kanban routes pass the session into render contexts and action events.
+
+**Inferred user intent:** Session handling should be infrastructure. Application JavaScript should not manually parse cookies or generate IDs. It should simply use `req.session.id`, `ctx.session.id`, or `event.session.id` when it needs to query session-scoped rows.
+
+**Commit (code):** pending at time of writing this diary step.
+
+### What I did
+
+- Added `pkg/web/session.go` with a lightweight `SessionManager`.
+- The host now issues an opaque `goja_site_session` cookie for dynamic routes when one is missing or invalid.
+- The session cookie is:
+  - random 32 bytes,
+  - base64url encoded,
+  - `HttpOnly`,
+  - `SameSite=Lax`,
+  - path `/`,
+  - one-year max age by default.
+- Added `SessionDTO` to the JavaScript request object as `req.session`.
+- Added session tests proving a cookie is issued on the first request and reused on the second request.
+- Updated `kanban.dsl` mounted routes so:
+  - fragment renders receive `ctx.session`,
+  - action callbacks receive `event.session`,
+  - refresh rerenders receive the same session.
+- Updated the mounted Kanban integration test to assert that `event.session.id` reaches the callback.
+- Updated `examples/kanban/scripts/app.js` to store and query cards by `session_id`.
+- Updated the Kanban README with the session behavior.
+
+### Why
+
+A Kanban board is naturally user-scoped. Without server-side session support, every app has to repeat cookie mechanics or all users share one board. The goal is not a full session store. It is an opaque stable identity that lets JavaScript attach rows to a browser.
+
+### What worked
+
+The existing `RequestDTO` map was the right integration point. Once `req.session` exists, normal app routes can pass `req.session` into `board.render(...)`, and the Kanban mount layer can propagate it automatically into `ctx.session` and `event.session`.
+
+### Validation
+
+Unit and integration tests:
+
+```bash
+node -c examples/kanban/scripts/app.js
+go test ./pkg/web ./pkg/kanbanddsl -count=1
+go test ./... -count=1
+```
+
+Live session smoke test:
+
+```bash
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve \
+  --db /tmp/goja-session-XXXX.db \
+  --scripts examples/kanban/scripts \
+  --addr 127.0.0.1:60129 \
+  --dev
+```
+
+Then I used two independent cookie jars. Both sessions initially saw the seeded 10-card board, but after posting a new card with session A's cookie, only session A saw `Session A Only` through `/api/cards`; session B did not.
+
+Observed evidence:
+
+```text
+A_COOKIE=Z7N66gK2VGvZpy34vSmVUbLiILzbwl-ru2AaX9leuRo
+B_COOKIE=UuQ11H0yj8F3W3pqdxyAFA-66VjAXS76asvI8fh-Yu8
+A_COUNT=10
+B_COUNT=10
+A_HAS=1
+B_HAS=0
+```
+
+### What was tricky
+
+The app should not need to know the session ID everywhere. The final shape is:
+
+- route handlers use `req.session` when creating cards or rendering a board,
+- board data hooks use `ctx.session` when querying cards,
+- board action callbacks use `event.session` when mutating cards.
+
+That is still explicit at the database boundary, which is good: the app chooses how to scope its rows. But it avoids all manual cookie plumbing.
+
+### Future considerations
+
+This is an identity cookie, not a full server-side session store. If the project needs login, auth, expiration policies, CSRF protection, or per-session server data, this should grow into a more complete session/auth module. For now it is intentionally small and appropriate for trusted local/internal apps.

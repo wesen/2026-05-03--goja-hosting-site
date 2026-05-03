@@ -26,12 +26,29 @@ RelatedFiles:
       Note: Provides filesystem module API to expose to trusted scripts
     - Path: ../../../../../../../corporate-headquarters/jesus/pkg/engine/handlers.go
       Note: Historical Express-style request and response reference
+    - Path: examples/kanban/README.md
+      Note: Documents goja_site_session cookie behavior
+    - Path: examples/kanban/scripts/app.js
+      Note: Example card data scoped by session_id
+    - Path: pkg/kanbanddsl/mount.go
+      Note: Kanban mounted routes pass session into render contexts and action events
+    - Path: pkg/kanbanddsl/mount_test.go
+      Note: Kanban callback session propagation coverage
+    - Path: pkg/web/host.go
+      Note: Host attaches session before dynamic route dispatch
+    - Path: pkg/web/request_response.go
+      Note: Request DTO exposes session to JavaScript as req.session
+    - Path: pkg/web/session.go
+      Note: Cookie-backed opaque session identity support
+    - Path: pkg/web/session_test.go
+      Note: Session issuance and reuse coverage
 ExternalSources: []
 Summary: Design for a Glazed-powered Go server that hosts JavaScript websites using go-go-goja, SQLite, fs, Express-style routing, and an HTML UI DSL.
 LastUpdated: 2026-05-03T13:45:00-04:00
 WhatFor: Onboard an intern to implement the Go + goja JavaScript website hosting server.
 WhenToUse: Use before implementing the server, modules, DSL, tests, or demo Kanban application.
 ---
+
 
 
 # Goja JavaScript Website Hosting Server Design and Implementation Guide

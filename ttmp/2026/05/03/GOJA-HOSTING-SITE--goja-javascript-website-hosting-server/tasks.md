@@ -90,6 +90,17 @@
 - [x] Update diary with commands, failures, and validation evidence.
 - [x] Run final `docmgr doctor`.
 
+
+## Phase 8 — Cookie-backed user sessions
+
+- [x] Add Go-side session manager for opaque cookie IDs.
+- [x] Expose `req.session.id` to JavaScript route handlers.
+- [x] Propagate sessions into mounted Kanban render contexts as `ctx.session`.
+- [x] Propagate sessions into Kanban action callbacks as `event.session`.
+- [x] Scope the example Kanban database rows by `session_id`.
+- [x] Add tests for cookie issuance/reuse and mounted Kanban callback session propagation.
+- [x] Validate two browser/curl cookie jars get isolated Kanban card data.
+
 ## Future hardening tasks
 
 - [ ] Add path-scoped filesystem module or document a hard trusted-script boundary in the executable README.

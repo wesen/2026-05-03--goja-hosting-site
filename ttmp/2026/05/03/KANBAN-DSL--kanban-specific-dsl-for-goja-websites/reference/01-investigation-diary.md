@@ -554,3 +554,30 @@ go test ./... -count=1
 ### Notes on the Rangy errors
 
 Those errors mention `index.js`, not `/_kanban/client.js`, and they did not appear in my current browser console after restart. They are likely from an extension, injected script, or unrelated page helper. The Kanban runtime now avoids assuming `document.head` exists when injecting its own styles.
+
+## Step 7: Propagated host sessions through Kanban render and action routes
+
+The host now exposes `req.session`, and `kanban.dsl` propagates that session through mounted routes. This lets app authors scope board rows by cookie without writing cookie plumbing in app JavaScript.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, let's add go side support for user sessinos, so that the JS can scope kanban boards to a cookie, but almost doesn't have to see the session id except when querying the db."
+
+**Assistant interpretation:** Mounted Kanban fragment and action routes should carry the host session into `ctx.session` and `event.session` automatically.
+
+### What changed
+
+- `GET /_kanban/<board>/fragment` now calls `board.Render` with `{ query, session }`.
+- `POST /_kanban/<board>/action/:action` injects `session` into the event before dispatch.
+- Action-triggered refresh renders also receive the same session.
+- The Kanban example now queries and mutates `cards` by `session_id`.
+
+### Why
+
+The DSL should hide transport mechanics. The application still needs to use the session ID at the persistence boundary, but it should not generate cookies or manually parse them.
+
+### Validation
+
+- `go test ./pkg/kanbanddsl -count=1`
+- `go test ./... -count=1`
+- Live two-cookie-jar smoke test confirmed one session's new card is invisible to another session.

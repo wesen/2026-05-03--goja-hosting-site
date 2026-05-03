@@ -13,6 +13,7 @@ import (
 type HostOptions struct {
 	Dev      bool
 	Renderer Renderer
+	Sessions SessionOptions
 }
 
 type StaticMount struct {
@@ -25,11 +26,12 @@ type Host struct {
 	dev      bool
 	renderer Renderer
 	owner    runtimeowner.Runner
+	sessions *SessionManager
 	static   []StaticMount
 }
 
 func NewHost(opts HostOptions) *Host {
-	return &Host{registry: NewRegistry(), dev: opts.Dev, renderer: opts.Renderer}
+	return &Host{registry: NewRegistry(), dev: opts.Dev, renderer: opts.Renderer, sessions: NewSessionManager(opts.Sessions)}
 }
 
 func (h *Host) SetRuntime(owner runtimeowner.Runner) { h.owner = owner }
@@ -57,7 +59,12 @@ func (h *Host) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	req, err := NewRequestDTO(r, params)
+	session, err := h.sessions.Session(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	req, err := NewRequestDTO(r, params, session)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

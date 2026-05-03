@@ -21,6 +21,7 @@ type RequestDTO struct {
 	Params  map[string]string
 	Headers map[string]string
 	Cookies map[string]string
+	Session *SessionDTO
 	IP      string
 	Body    any
 	RawBody string
@@ -35,13 +36,14 @@ func (r *RequestDTO) Map() map[string]any {
 		"params":  r.Params,
 		"headers": r.Headers,
 		"cookies": r.Cookies,
+		"session": r.Session.Map(),
 		"ip":      r.IP,
 		"body":    r.Body,
 		"rawBody": r.RawBody,
 	}
 }
 
-func NewRequestDTO(r *http.Request, params map[string]string) (*RequestDTO, error) {
+func NewRequestDTO(r *http.Request, params map[string]string, session *SessionDTO) (*RequestDTO, error) {
 	body, raw, err := parseBody(r)
 	if err != nil {
 		return nil, err
@@ -66,7 +68,7 @@ func NewRequestDTO(r *http.Request, params map[string]string) (*RequestDTO, erro
 	if err != nil {
 		ip = r.RemoteAddr
 	}
-	return &RequestDTO{Method: r.Method, URL: r.URL.String(), Path: r.URL.Path, Query: query, Params: params, Headers: headers, Cookies: cookies, IP: ip, Body: body, RawBody: raw}, nil
+	return &RequestDTO{Method: r.Method, URL: r.URL.String(), Path: r.URL.Path, Query: query, Params: params, Headers: headers, Cookies: cookies, Session: session, IP: ip, Body: body, RawBody: raw}, nil
 }
 
 type Response struct {

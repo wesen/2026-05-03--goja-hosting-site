@@ -29,6 +29,7 @@ function ignoreDuplicateColumn(fn) {
 function migrate() {
   db.exec(`CREATE TABLE IF NOT EXISTS cards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL DEFAULT 'default',
     title TEXT NOT NULL,
     description TEXT,
     status TEXT NOT NULL DEFAULT 'todo',
@@ -40,14 +41,21 @@ function migrate() {
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`);
+  ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN session_id TEXT NOT NULL DEFAULT 'default'"));
   ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN tag TEXT NOT NULL DEFAULT 'Planning'"));
   ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN due_date TEXT NOT NULL DEFAULT ''"));
   ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN done INTEGER NOT NULL DEFAULT 0"));
   ignoreDuplicateColumn(() => db.exec("ALTER TABLE cards ADD COLUMN image TEXT NOT NULL DEFAULT ''"));
 }
 
-function seedIfEmpty() {
-  const rows = db.query("SELECT COUNT(*) AS count FROM cards");
+function sessionId(session) {
+  if (typeof session === "string") return session;
+  return String(session?.id || "default");
+}
+
+function seedIfEmpty(session) {
+  const sid = sessionId(session);
+  const rows = db.query("SELECT COUNT(*) AS count FROM cards WHERE session_id = ?", sid);
   if (rows.length && Number(rows[0].count || 0) === 0) {
     const cards = [
       ["Research campsites", "Look into options near Sahale and Colonial Creek.", "todo", 10, "Planning", "May 12", 0, ""],
@@ -61,7 +69,7 @@ function seedIfEmpty() {
       ["Side trip: Blue Lake", "Look into adding Blue Lake as a day hike.", "someday", 10, "Ideas", "", 0, ""],
       ["New camera?", "Start saving for something lighter.", "someday", 20, "Gear", "", 0, ""],
     ];
-    cards.forEach(c => db.exec("INSERT INTO cards(title, description, status, position, tag, due_date, done, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", ...c));
+    cards.forEach(c => db.exec("INSERT INTO cards(session_id, title, description, status, position, tag, due_date, done, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", sid, ...c));
   }
 }
 
@@ -74,10 +82,12 @@ function normalizeFilters(query) {
   };
 }
 
-function listCards(filters) {
+function listCards(session, filters) {
+  const sid = sessionId(session);
+  seedIfEmpty(sid);
   filters = normalizeFilters(filters);
-  const where = [];
-  const args = [];
+  const where = ["session_id = ?"];
+  const args = [sid];
 
   if (filters.search) {
     const q = "%" + filters.search.toLowerCase() + "%";
@@ -97,41 +107,43 @@ function listCards(filters) {
   return db.query(sql, ...args);
 }
 
-function listColumn(status) {
-  return db.query("SELECT * FROM cards WHERE status = ? ORDER BY position, id", status);
+function listColumn(session, status) {
+  return db.query("SELECT * FROM cards WHERE session_id = ? AND status = ? ORDER BY position, id", sessionId(session), status);
 }
 
-function normalizeColumn(status) {
-  listColumn(status).forEach((card, index) => {
-    db.exec("UPDATE cards SET position = ? WHERE id = ?", (index + 1) * 10, card.id);
+function normalizeColumn(session, status) {
+  const sid = sessionId(session);
+  listColumn(sid, status).forEach((card, index) => {
+    db.exec("UPDATE cards SET position = ? WHERE session_id = ? AND id = ?", (index + 1) * 10, sid, card.id);
   });
 }
 
-function moveCard({ id, toStatus, toIndex }) {
+function moveCard({ session, id, toStatus, toIndex }) {
+  const sid = sessionId(session);
   id = Number(id);
   toStatus = validStatus(String(toStatus || "todo"));
   toIndex = Number.isFinite(Number(toIndex)) ? Number(toIndex) : 0;
 
-  const existing = db.query("SELECT * FROM cards WHERE id = ?", id)[0];
+  const existing = db.query("SELECT * FROM cards WHERE session_id = ? AND id = ?", sid, id)[0];
   if (!existing) throw new Error("card " + id + " not found");
 
   const fromStatus = existing.status;
   const done = toStatus === "done" ? 1 : 0;
-  const destination = db.query("SELECT * FROM cards WHERE status = ? AND id != ? ORDER BY position, id", toStatus, id);
+  const destination = db.query("SELECT * FROM cards WHERE session_id = ? AND status = ? AND id != ? ORDER BY position, id", sid, toStatus, id);
   const clamped = Math.max(0, Math.min(toIndex, destination.length));
   destination.splice(clamped, 0, { ...existing, status: toStatus, done });
 
-  db.exec("UPDATE cards SET status = ?, done = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", toStatus, done, id);
+  db.exec("UPDATE cards SET status = ?, done = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ? AND id = ?", toStatus, done, sid, id);
   destination.forEach((card, index) => {
-    db.exec("UPDATE cards SET position = ? WHERE id = ?", (index + 1) * 10, card.id);
+    db.exec("UPDATE cards SET position = ? WHERE session_id = ? AND id = ?", (index + 1) * 10, sid, card.id);
   });
-  if (fromStatus !== toStatus) normalizeColumn(fromStatus);
+  if (fromStatus !== toStatus) normalizeColumn(sid, fromStatus);
 
-  return db.query("SELECT * FROM cards WHERE id = ?", id)[0];
+  return db.query("SELECT * FROM cards WHERE session_id = ? AND id = ?", sid, id)[0];
 }
 
-function nextPosition(status) {
-  const rows = db.query("SELECT COALESCE(MAX(position), 0) AS max_position FROM cards WHERE status = ?", status);
+function nextPosition(session, status) {
+  const rows = db.query("SELECT COALESCE(MAX(position), 0) AS max_position FROM cards WHERE session_id = ? AND status = ?", sessionId(session), status);
   return Number(rows[0]?.max_position || 0) + 10;
 }
 
@@ -197,7 +209,6 @@ function searchText(card) {
 }
 
 migrate();
-seedIfEmpty();
 
 const board = kanban.board("trail-notes")
   .title("Trail Notes: Cascade Loop")
@@ -210,7 +221,7 @@ const board = kanban.board("trail-notes")
     .column("someday").title("Someday").done()
   )
   .data(data => data
-    .cards(ctx => listCards(ctx.query || {}))
+    .cards(ctx => listCards(ctx.session, ctx.query || {}))
     .id(card => String(card.id))
     .column(card => card.status)
     .position(card => Number(card.position || 0))
@@ -248,6 +259,7 @@ const board = kanban.board("trail-notes")
   .actions(actions => actions
     .cardMoved(event => {
       const moved = moveCard({
+        session: event.session,
         id: event.cardId,
         toStatus: event.to.columnId,
         toIndex: event.to.index,
@@ -259,8 +271,8 @@ const board = kanban.board("trail-notes")
 
 board.mount(app, "/_kanban");
 
-function boardPage(query) {
-  const filters = normalizeFilters(query);
+function boardPage(req) {
+  const filters = normalizeFilters(req.query);
   return ui.page({ title: "Trail Notes: Cascade Loop" },
     ui.link({ rel: "stylesheet", href: "/style.css" }),
     ui.main({ class: "page" },
@@ -284,13 +296,13 @@ function boardPage(query) {
         ui.input({ name: "tag", placeholder: "Tag", value: "Planning" }),
         ui.button({ type: "submit" }, "Add card")
       ),
-      board.render({ query: filters }),
+      board.render({ query: filters, session: req.session }),
       ui.footer({ class: "footer" }, ui.span("© 2025 Field Notes"), ui.span("Made with Microscape ◱"))
     )
   );
 }
 
-app.get("/", (req, res) => res.html(boardPage(req.query)));
+app.get("/", (req, res) => res.html(boardPage(req)));
 
 app.get("/style.css", (req, res) => {
   res.type("text/css; charset=utf-8").send(stylesheet());
@@ -301,7 +313,7 @@ app.get("/favicon.ico", (req, res) => {
 });
 
 app.get("/api/cards", (req, res) => {
-  res.json(listCards(req.query));
+  res.json(listCards(req.session, req.query));
 });
 
 app.post("/cards", (req, res) => {
@@ -309,11 +321,12 @@ app.post("/cards", (req, res) => {
   const title = String(body.title || "").trim();
   if (!title) return res.status(400).send("title is required");
   const status = validStatus(String(body.status || "todo"));
-  db.exec("INSERT INTO cards(title, description, status, position, tag, due_date, done, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+  db.exec("INSERT INTO cards(session_id, title, description, status, position, tag, due_date, done, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    sessionId(req.session),
     title,
     String(body.description || ""),
     status,
-    nextPosition(status),
+    nextPosition(req.session, status),
     String(body.tag || "Planning"),
     "",
     status === "done" ? 1 : 0,

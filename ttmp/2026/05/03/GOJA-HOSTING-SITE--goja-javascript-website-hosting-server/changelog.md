@@ -103,3 +103,16 @@ Implemented Phase 7 Kanban search, precise movement, JSON APIs, and app-specific
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Phase 7 implementation surface
 
+
+## 2026-05-03
+
+Added Go-side opaque cookie sessions, exposed req.session to JavaScript, propagated sessions through kanban.dsl, and scoped the Kanban example by session_id.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Cards are scoped by session_id
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/mount.go — Mounted Kanban routes pass session into ctx and event
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/web/request_response.go — RequestDTO now exposes req.session
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/web/session.go — New cookie-backed session manager
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/reference/01-investigation-diary.md — Recorded session implementation and validation
+

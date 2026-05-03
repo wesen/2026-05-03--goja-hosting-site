@@ -33,7 +33,7 @@ func (b *Board) Mount(app goja.Value, prefix string) error {
 	}
 	if err := callAppMethod(b.vm, app, "get", cleanJoin(cleanJoin(prefix, b.cfg.ID), "fragment"), func(req, res goja.Value) goja.Value {
 		reqObj := req.ToObject(b.vm)
-		node, err := b.Render(b.vm.ToValue(map[string]any{"query": reqObj.Get("query").Export()}))
+		node, err := b.Render(b.vm.ToValue(map[string]any{"query": reqObj.Get("query").Export(), "session": reqObj.Get("session").Export()}))
 		if err != nil {
 			panic(b.vm.NewGoError(err))
 		}
@@ -47,7 +47,12 @@ func (b *Board) Mount(app goja.Value, prefix string) error {
 		params := reqObj.Get("params").ToObject(b.vm)
 		action := params.Get("action").String()
 		body := reqObj.Get("body")
-		result, err := b.Dispatch(action, body)
+		if missingValue(body) {
+			body = b.vm.ToValue(map[string]any{})
+		}
+		bodyObj := body.ToObject(b.vm)
+		_ = bodyObj.Set("session", reqObj.Get("session"))
+		result, err := b.Dispatch(action, bodyObj)
 		if err != nil {
 			panic(b.vm.NewGoError(err))
 		}
@@ -65,7 +70,7 @@ func (b *Board) Mount(app goja.Value, prefix string) error {
 			return goja.Undefined()
 		}
 		if shouldRefresh(out["refresh"]) {
-			node, err := b.Render(b.vm.ToValue(map[string]any{"query": reqObj.Get("query").Export()}))
+			node, err := b.Render(b.vm.ToValue(map[string]any{"query": reqObj.Get("query").Export(), "session": reqObj.Get("session").Export()}))
 			if err != nil {
 				panic(b.vm.NewGoError(err))
 			}

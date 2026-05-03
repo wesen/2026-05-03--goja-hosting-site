@@ -43,7 +43,7 @@ func TestMountedBoardServesClientScriptAndActionEndpoint(t *testing.T) {
 			  .data(data => data.cards(() => cards).id(card => String(card.id)).column(card => card.status).position(card => card.position).searchText(card => card.title))
 			  .features(features => features.search().preciseMove().dragDrop())
 			  .render(render => render.card(card => ui.h3(card.title)))
-			  .actions(actions => actions.cardMoved(event => { cards[0].status = event.to.columnId; return { ok: true, refresh: true }; }))
+			  .actions(actions => actions.cardMoved(event => { cards[0].status = event.to.columnId; return { ok: true, refresh: true, sessionId: event.session.id }; }))
 			  .build();
 			board.mount(app, "/_kanban");
 			app.get("/", (req, res) => res.html(ui.page({ title: "Mounted" }, board.render({ query: req.query }))));
@@ -67,7 +67,22 @@ func TestMountedBoardServesClientScriptAndActionEndpoint(t *testing.T) {
 		t.Fatalf("client script missing expected runtime markers")
 	}
 
-	resp, err := http.Post(server.URL+"/_kanban/mounted/action/cardMoved", "application/json", bytes.NewBufferString(`{"cardId":"1","to":{"columnId":"done","index":0}}`))
+	pageResp, err := http.Get(server.URL + "/")
+	if err != nil {
+		t.Fatalf("get page for session cookie: %v", err)
+	}
+	pageResp.Body.Close()
+	cookies := pageResp.Cookies()
+	if len(cookies) == 0 {
+		t.Fatalf("expected session cookie from page request")
+	}
+	postReq, err := http.NewRequest(http.MethodPost, server.URL+"/_kanban/mounted/action/cardMoved", bytes.NewBufferString(`{"cardId":"1","to":{"columnId":"done","index":0}}`))
+	if err != nil {
+		t.Fatalf("new post request: %v", err)
+	}
+	postReq.Header.Set("Content-Type", "application/json")
+	postReq.AddCookie(cookies[0])
+	resp, err := http.DefaultClient.Do(postReq)
 	if err != nil {
 		t.Fatalf("post action: %v", err)
 	}
@@ -78,6 +93,9 @@ func TestMountedBoardServesClientScriptAndActionEndpoint(t *testing.T) {
 	}
 	if !strings.Contains(string(body), `"html"`) || !strings.Contains(string(body), `data-kb-card-column=\"done\"`) {
 		t.Fatalf("action response missing refreshed HTML: %s", body)
+	}
+	if !strings.Contains(string(body), cookies[0].Value) {
+		t.Fatalf("action response missing callback session id %q: %s", cookies[0].Value, body)
 	}
 }
 

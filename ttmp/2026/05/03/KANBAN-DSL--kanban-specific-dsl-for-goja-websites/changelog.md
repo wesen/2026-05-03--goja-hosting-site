@@ -101,3 +101,13 @@ Fixed browser drag start by rendering explicit draggable true and injecting runt
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/client_runtime.go — Inject runtime drag styles and avoid document.head-only style insertion
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/render.go — Render explicit draggable true for draggable cards
 
+
+## 2026-05-03
+
+Propagated host sessions through mounted Kanban render/action routes and session-scoped the example board.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Uses session_id for scoped card data
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/mount.go — Passes session into render contexts and action events
+
