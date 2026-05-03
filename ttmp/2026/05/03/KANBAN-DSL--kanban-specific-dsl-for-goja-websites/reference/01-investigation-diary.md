@@ -462,3 +462,95 @@ Both passed.
 
 - Add a persistent Playwright test harness if this repo adopts browser automation in CI.
 - Keep the lower-level synthetic `DragEvent` approach available because Playwright `dragTo(...)` can be unreliable for HTML5 drag/drop in headless/browser automation environments.
+
+## Step 6: Fixed real browser drag start issue
+
+The user reported that dragging a card header selected text and dragging the `...` button did nothing. The console also showed unrelated-looking `index.js` errors about Rangy and missing `document.head` / `document.body`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "i can't drag and drop though, maybe because of this:
+
+Rangy is not supported in this environment. Reason: No body element found index.js:53:169
+Error: containerNode is not set index.js:189:253
+TypeError: can't access property "appendChild", document.head is null index.js:155:11338"
+
+**User prompt (verbatim):** "when i drag on a card header it just selects the text, and when i drag on the ... nothing seems to happen"
+
+**Assistant interpretation:** The drag/drop path was still fragile in a real browser. The `index.js` errors did not point at `/_kanban/client.js`, but the text selection symptom suggested the card was not actually considered draggable by the browser.
+
+**Inferred user intent:** Make drag/drop feel like a normal Kanban card drag, without the user needing to aim at a special invisible area.
+
+### What I changed
+
+- Changed rendered card markup from a bare `draggable` attribute to `draggable="true"`.
+- Added a test assertion that rendered draggable cards include `draggable="true"`.
+- Added generic runtime-injected CSS from `/_kanban/client.js`:
+  - `cursor: grab` on draggable cards,
+  - `cursor: grabbing` while active,
+  - `user-select: none` for draggable cards and descendants,
+  - fallback drag-over / dragging styles.
+- The runtime style injection is defensive and appends to `document.head || document.body || document.documentElement` to avoid head/body timing assumptions.
+
+### Why
+
+`draggable` is an enumerated HTML attribute. A bare `draggable` attribute can be interpreted inconsistently for this use case; `draggable="true"` is the correct explicit form. The injected CSS prevents the common failure mode where dragging text inside the card selects text instead of making the card feel draggable.
+
+The `...` element is a button. Dragging from an interactive control may still be browser-dependent, but dragging from the card body/header now starts the card drag. If we want the menu button itself to drag too, we should either make it not a real button until menus are implemented or add a dedicated drag handle.
+
+### Validation
+
+I restarted the server on the same requested port, `60128`, with the new build:
+
+```bash
+lsof-who -p 60128 -k
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve \
+  --db /tmp/goja-kanban-browser-XXXX.db \
+  --scripts examples/kanban/scripts \
+  --addr 127.0.0.1:60128 \
+  --dev
+```
+
+Browser checks showed:
+
+```json
+{
+  "draggableAttribute": "true",
+  "draggableProperty": true,
+  "cursor": "grab",
+  "userSelect": "none",
+  "hasRuntimeStyles": true
+}
+```
+
+Then Playwright `dragTo(...)` succeeded against the real page:
+
+```json
+{
+  "before": "todo",
+  "after": "done",
+  "doneCount": "4",
+  "response": { "status": 200, "ok": true }
+}
+```
+
+Debug console confirmed the real path:
+
+```text
+[kanban.debug] dragstart {cardId: 1, columnId: todo, index: 0}
+[kanban.debug] drop {cardId: 1, fromColumnId: todo, fromIndex: 0, toColumnId: done, toIndex: 0}
+[kanban.debug] postAction {boardId: trail-notes, action: cardMoved, url: /_kanban/trail-notes/action/cardMoved, event: Object}
+[kanban.debug] postAction response {action: cardMoved, status: 200, hasHtml: true, payload: Object}
+[kanban] Moved card
+```
+
+Go validation:
+
+```bash
+go test ./pkg/kanbanddsl -count=1
+go test ./... -count=1
+```
+
+### Notes on the Rangy errors
+
+Those errors mention `index.js`, not `/_kanban/client.js`, and they did not appear in my current browser console after restart. They are likely from an extension, injected script, or unrelated page helper. The Kanban runtime now avoids assuming `document.head` exists when injecting its own styles.

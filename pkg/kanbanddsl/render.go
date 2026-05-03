@@ -173,7 +173,10 @@ func (b *Board) renderCard(ctx goja.Value, card renderedCard, index, columnCount
 		"data-kb-search-text": card.SearchText,
 	}
 	if b.cfg.Features.DragDrop && !b.cfg.Features.ReadOnly {
-		attrs["draggable"] = true
+		// "draggable" is an enumerated HTML attribute, not a boolean attribute.
+		// Render draggable="true" instead of bare "draggable" so browsers
+		// reliably start native HTML5 drag operations.
+		attrs["draggable"] = "true"
 	}
 	return &uidsl.Element{Tag: "article", Attrs: attrs, Children: children}
 }

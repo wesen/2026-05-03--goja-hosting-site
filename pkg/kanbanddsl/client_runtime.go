@@ -13,6 +13,27 @@ func ClientScript() string {
     } catch (_) {}
   }
 
+  function ensureRuntimeStyles() {
+    if (document.getElementById('goja-kanban-runtime-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'goja-kanban-runtime-styles';
+    style.textContent = '\n' +
+      '  [data-kb-card-id][draggable="true"] { cursor: grab; }\n' +
+      '  [data-kb-card-id][draggable="true"]:active { cursor: grabbing; }\n' +
+      '  [data-kb-card-id][draggable="true"],\n' +
+      '  [data-kb-card-id][draggable="true"] * { user-select: none; -webkit-user-select: none; }\n' +
+      '  [data-kb-card-id].kb-dragging { opacity: .45; }\n' +
+      '  [data-kb-column-id].kb-drag-over { outline: 3px dashed currentColor; outline-offset: 4px; }\n';
+    const parent = document.head || document.body || document.documentElement;
+    if (parent) parent.appendChild(style);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureRuntimeStyles, { once: true });
+  } else {
+    ensureRuntimeStyles();
+  }
+
   function boardFor(element) {
     if (!element) return null;
     const board = element.closest('[data-kb-board-id]');

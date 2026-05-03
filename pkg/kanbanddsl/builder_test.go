@@ -52,7 +52,7 @@ func TestBuilderRendersBoardAndClientScriptURL(t *testing.T) {
 		t.Fatalf("run JS: %v", err)
 	}
 	html := value.String()
-	for _, want := range []string{`data-kb-board-id="test"`, `data-kb-card-id="1"`, `To Do`, `Done`, `data-kb-move-form`} {
+	for _, want := range []string{`data-kb-board-id="test"`, `data-kb-card-id="1"`, `draggable="true"`, `To Do`, `Done`, `data-kb-move-form`} {
 		if !strings.Contains(html, want) {
 			t.Fatalf("rendered html missing %q:\n%s", want, html)
 		}

@@ -90,3 +90,14 @@ Browser-validated live search, precise move, and drag/drop; added opt-in kanban 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/client_runtime.go — Added debug logging and fixed board lookup for toolbar search
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/reference/01-investigation-diary.md — Recorded browser validation results
 
+
+## 2026-05-03
+
+Fixed browser drag start by rendering explicit draggable true and injecting runtime drag CSS; verified Playwright dragTo now moves cards.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/builder_test.go — Assert explicit draggable output
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/client_runtime.go — Inject runtime drag styles and avoid document.head-only style insertion
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/render.go — Render explicit draggable true for draggable cards
+
