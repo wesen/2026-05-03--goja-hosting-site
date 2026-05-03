@@ -137,3 +137,14 @@ Added automatic GitOps PR workflow wiring using infra-tooling and Vault-backed G
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/deploy/gitops-targets.json — goja-kanban-prod GitOps target
 - /home/manuel/code/wesen/terraform/vault/github-actions/envs/k3s/main.tf — Vault role and policy for goja hosting GitOps PR token
 
+
+## 2026-05-03
+
+Validated automatic app publish to K3s GitOps PR workflow; GitHub Actions opened K3s PR #70.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/.github/workflows/publish-image.yaml — Reusable workflow opened GitOps PR
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/deploy/gitops-targets.json — Target used for K3s PR
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded PR #70 validation
+

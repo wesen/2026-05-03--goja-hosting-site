@@ -576,3 +576,45 @@ go test ./... -count=1
 ```
 
 Next validation is the real workflow test after pushing this commit: it should publish the new image and open/update a PR in `wesen/2026-03-27--hetzner-k3s`.
+
+## Step 16: Tested automatic publish-image to K3s PR workflow
+
+Pushed app repo commit:
+
+```text
+6e17b34 Open GitOps PRs from image publish workflow
+```
+
+GitHub Actions run:
+
+```text
+Run: 25292143161
+Workflow: publish-image
+Result: success
+```
+
+The reusable workflow completed both jobs:
+
+- `release / publish`: built and published `ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-6e17b34`,
+- `release / Open GitOps PR`: authenticated to Vault through GitHub Actions OIDC, read the GitOps PR token, patched the K3s manifest on a branch, and opened a PR.
+
+Opened K3s PR:
+
+```text
+PR: https://github.com/wesen/2026-03-27--hetzner-k3s/pull/70
+Title: Deploy goja-kanban-prod using ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-6e17b34
+Branch: automation/2026-05-03--goja-hosting-site-goja-kanban-prod-sha-6e17b34
+```
+
+This validates the desired flow:
+
+```text
+push/merge to app repo main
+  -> publish GHCR image
+  -> Vault-backed CI gets GitOps PR token
+  -> opens K3s GitOps PR
+  -> human can review/merge
+  -> Argo CD deploys after merge
+```
+
+Note: GitHub emitted a warning that `hashicorp/vault-action@v3` runs on Node.js 20, which GitHub is deprecating. The workflow succeeded, but we should eventually bump the reusable workflow/tooling action when a Node 24 compatible Vault action path is available.

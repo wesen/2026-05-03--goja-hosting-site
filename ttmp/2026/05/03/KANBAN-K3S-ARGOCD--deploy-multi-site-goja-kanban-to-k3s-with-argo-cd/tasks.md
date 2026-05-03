@@ -67,3 +67,14 @@
 - [x] Publish updated image through GitHub Actions.
 - [x] Update K3s GitOps image tag to the published SHA.
 - [x] Validate updated production GET and HEAD behavior.
+
+
+## Automatic GitOps PR workflow
+
+- [x] Add Vault GitHub Actions OIDC role for goja-site app repo.
+- [x] Seed repo-specific GitOps PR token in Vault.
+- [x] Add `deploy/gitops-targets.json`.
+- [x] Switch `publish-image` to reusable infra-tooling workflow.
+- [x] Add path filters to avoid doc-only image builds.
+- [x] Push to `main` and verify workflow opens K3s PR.
+- [ ] Review and optionally merge K3s PR #70.
