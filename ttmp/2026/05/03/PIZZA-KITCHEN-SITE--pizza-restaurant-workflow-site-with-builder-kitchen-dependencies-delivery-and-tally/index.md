@@ -20,16 +20,22 @@ RelatedFiles:
       Note: Runnable README for the Pizza Ops example
     - Path: sites/pizza/scripts/00_domain.js
       Note: Pizza menu
-    - Path: sites/pizza/scripts/02_store.js
-      Note: SQLite model
-    - Path: sites/pizza/scripts/03_views.js
+    - Path: sites/pizza/scripts/02_repository.js
+      Note: SQLite schema and low-level query/mutation layer
+    - Path: sites/pizza/scripts/03_workflow.js
+      Note: Business workflow layer for dependencies
+    - Path: sites/pizza/scripts/04_views.js
       Note: UI DSL rendering and Kanban board builders
+    - Path: sites/pizza/scripts/05_routes.js
+      Note: HTTP routes and board mounting
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-05-03T19:11:42.264149304-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
+
 
 
 # Pizza restaurant workflow site with builder, kitchen dependencies, delivery, and tally

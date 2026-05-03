@@ -55,9 +55,10 @@ The site has four script layers loaded in lexical order:
 ```text
 00_domain.js   shared menu data, columns, task templates, utility functions
 01_styles.js   readable CSS string for the page
-02_store.js    SQLite schema, order creation, dependency checks, move rules, tally
-03_views.js    ui.dsl rendering and Kanban board builders
-04_routes.js   Express routes and board mounting
+02_repository.js  low-level SQLite schema and query helpers
+03_workflow.js    order creation, dependency checks, automatic delivery transitions, move rules, tally
+04_views.js       ui.dsl rendering and Kanban board builders
+05_routes.js      Express routes and board mounting
 ```
 
 Each file attaches its portion to `globalThis.Pizza`. This keeps the example readable without requiring local CommonJS file resolution. It also makes the load order explicit, which matches the current `goja-site` script loader.

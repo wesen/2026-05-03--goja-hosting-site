@@ -38,9 +38,10 @@ The scripts are intentionally split for readability. `goja-site` loads all `.js`
 sites/pizza/scripts/
   00_domain.js   menu data, columns, task template, small utility functions
   01_styles.js   readable CSS for the page and boards
-  02_store.js    SQLite schema, order creation, dependency checks, move rules, tally
-  03_views.js    ui.dsl page rendering and Kanban board builders
-  04_routes.js   Express-style routes and board mounting
+  02_repository.js  low-level SQLite schema and query helpers
+  03_workflow.js    order creation, dependency checks, automatic delivery transitions, move rules, tally
+  04_views.js       ui.dsl page rendering and Kanban board builders
+  05_routes.js      Express-style routes and board mounting
 ```
 
 This is the preferred style for larger examples: domain logic and rendering are named, formatted, and easy to inspect.

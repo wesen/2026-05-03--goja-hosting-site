@@ -26,9 +26,10 @@ The app was split into readable scripts instead of one dense `app.js`:
 ```text
 sites/pizza/scripts/00_domain.js
 sites/pizza/scripts/01_styles.js
-sites/pizza/scripts/02_store.js
-sites/pizza/scripts/03_views.js
-sites/pizza/scripts/04_routes.js
+sites/pizza/scripts/02_repository.js
+sites/pizza/scripts/03_workflow.js
+sites/pizza/scripts/04_views.js
+sites/pizza/scripts/05_routes.js
 ```
 
 ## Step 2: Local Pizza Ops refinement and done-column grouping
@@ -61,4 +62,31 @@ HEAD / with pizza Host      -> HTTP/1.1 200 OK
 GET  /api/tally             -> {"delivered":0,"orders":2,"paid":0,"revenueCents":0,"tipCents":0}
 Rendered HTML               -> no generated "Move" controls
 Rendered HTML               -> contains "Completed kitchen work" grouped Done cards
+```
+
+## Step 3: Repository/workflow split and automatic delivery transitions
+
+The pizza app was refactored so the growing workflow logic has clearer boundaries:
+
+```text
+02_repository.js  owns SQLite schema and low-level queries/mutations
+03_workflow.js    owns business rules, dependency refresh, Kanban moves, payment, and tally
+04_views.js       owns rendering and board builders
+05_routes.js      owns HTTP routes and board mounting
+```
+
+This separates persistence from domain transitions. `Pizza.repo` does not decide whether an order should be cooking or quality; it only reads and writes rows. `Pizza.store` is the workflow facade used by views and routes.
+
+The automatic delivery transitions were tightened:
+
+- When any task for a pizza leaves the initial ready/not-started flow and becomes `working` or `done`, the order is moved to `cooking` automatically if it is still waiting.
+- When all tasks for a pizza are `done`, the order is moved to `quality` automatically if it is still before quality.
+- `listOrders()` and `listTasks()` both refresh order transitions before returning data, so JSON APIs and rendered boards agree.
+
+Validation used a cookie jar to keep one session stable:
+
+```text
+Move Ken/stretch -> working  => Ken delivery_status becomes cooking
+Move all Ken tasks -> done   => Ken delivery_status becomes quality
+Rendered page Done column    => two "Completed kitchen work" grouped cards
 ```
