@@ -27,6 +27,12 @@ topics:
       description: kanban topic
     - slug: kubernetes
       description: kubernetes topic
+    - slug: documentation
+      description: Documentation, guides, references, help entries, and writing plans.
+    - slug: developer-guide
+      description: Contributor-oriented architecture and implementation guidance.
+    - slug: goja-site
+      description: The goja-site trusted JavaScript website hosting project.
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
