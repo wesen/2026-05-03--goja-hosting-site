@@ -78,3 +78,15 @@
 - [x] Add path filters to avoid doc-only image builds.
 - [x] Push to `main` and verify workflow opens K3s PR.
 - [ ] Review and optionally merge K3s PR #70.
+
+
+## Diverse production examples
+
+- [x] Redesign Editorial app as a newsroom/story workflow.
+- [x] Add Editorial-specific schema fields, metrics, card layout, and `/api/summary`.
+- [x] Redesign CRM app as a revenue/deal workflow.
+- [x] Add CRM-specific schema fields, weighted pipeline metrics, deal card layout, and `/api/summary`.
+- [x] Validate diverse sites locally with GET, HEAD, and summary API checks.
+- [ ] Publish diverse examples and open GitOps PR.
+- [ ] Merge/deploy diverse examples to production.
+- [ ] Validate diverse production sites.

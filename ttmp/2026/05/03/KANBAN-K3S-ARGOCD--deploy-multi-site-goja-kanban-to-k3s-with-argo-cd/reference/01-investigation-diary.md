@@ -618,3 +618,87 @@ push/merge to app repo main
 ```
 
 Note: GitHub emitted a warning that `hashicorp/vault-action@v3` runs on Node.js 20, which GitHub is deprecating. The workflow succeeded, but we should eventually bump the reusable workflow/tooling action when a Node 24 compatible Vault action path is available.
+
+## Step 17: Diversified editorial and CRM example sites
+
+The user pointed out that the production example sites still looked too similar. I redesigned the editorial and CRM apps to demonstrate why server-side JavaScript render callbacks are useful: each board can keep the same Go-owned Kanban behavior while expressing very different domain-specific cards, dashboards, schema, metrics, and routes.
+
+### Editorial Desk changes
+
+`sites/editorial/scripts/app.js` now shows a newsroom/editorial workflow rather than a generic board:
+
+- columns: Pitch, Outline, Draft, Copy Edit, Published,
+- card fields:
+  - format,
+  - channel,
+  - priority,
+  - deadline,
+  - checklist progress,
+  - owner,
+- custom card rendering:
+  - newspaper/story header strip,
+  - owner/priority/deadline pills,
+  - visual checklist progress bar,
+  - urgent styling,
+- page-level metrics:
+  - total stories,
+  - published count,
+  - urgent count,
+  - average checklist completion,
+- new API route:
+  - `GET /api/summary`.
+
+### CRM Pipeline changes
+
+`sites/crm/scripts/app.js` now shows a revenue/deal workflow:
+
+- columns: Lead, Qualified, Demo, Proposal, Won,
+- card fields:
+  - amount,
+  - probability,
+  - contact,
+  - source,
+  - next step,
+- custom card rendering:
+  - large deal value,
+  - probability progress bar,
+  - contact/source/probability chips,
+  - next-step row,
+- page-level metrics:
+  - deal count,
+  - raw pipeline,
+  - weighted pipeline,
+  - won count,
+- new API route:
+  - `GET /api/summary`.
+
+### Backward-compatible DB migration
+
+Both apps use `ALTER TABLE ... ADD COLUMN` wrapped in `ignoreDuplicateColumn(...)`, so existing production SQLite files can migrate forward without failing when columns already exist or when older DBs only have the previous schema.
+
+### Validation
+
+```bash
+node -c sites/editorial/scripts/app.js
+node -c sites/crm/scripts/app.js
+go test ./... -count=1
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve-multi --config deploy/sites.local.yaml
+```
+
+Local host checks:
+
+```text
+GET  trail      -> Trail Notes
+HEAD trail      -> HTTP/1.1 200 OK
+GET  editorial  -> Editorial Desk, story-top cards, avg done metrics
+HEAD editorial  -> HTTP/1.1 200 OK
+GET  crm        -> Sales Room, deal-top cards, weighted metrics
+HEAD crm        -> HTTP/1.1 200 OK
+```
+
+API checks:
+
+```text
+GET editorial /api/summary -> {"avgProgress":65,"published":1,"total":5,"urgent":1}
+GET crm /api/summary       -> {"deals":5,"pipeline":68000,"weighted":37200,"won":1}
+```

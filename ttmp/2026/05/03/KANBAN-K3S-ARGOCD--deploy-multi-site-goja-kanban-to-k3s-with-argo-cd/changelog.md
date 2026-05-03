@@ -148,3 +148,14 @@ Validated automatic app publish to K3s GitOps PR workflow; GitHub Actions opened
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/deploy/gitops-targets.json — Target used for K3s PR
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded PR #70 validation
 
+
+## 2026-05-03
+
+Diversified editorial and CRM production example apps with domain-specific schemas, dashboards, card layouts, and summary APIs.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/crm/scripts/app.js — Revenue-oriented CRM Pipeline app
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/app.js — Newsroom-style Editorial Desk app
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded diversified site validation
+
