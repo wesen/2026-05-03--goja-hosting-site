@@ -702,3 +702,45 @@ API checks:
 GET editorial /api/summary -> {"avgProgress":65,"published":1,"total":5,"urgent":1}
 GET crm /api/summary       -> {"deals":5,"pipeline":68000,"weighted":37200,"won":1}
 ```
+
+## Step 18: Confirmed diverse examples deployed in production
+
+After the diversified example-site commit, GitHub Actions completed successfully:
+
+```text
+Run: 25292305879
+Commit: 33f560a Diversify production kanban example sites
+Result: success
+```
+
+The automatic GitOps PR/deploy path has now updated production to:
+
+```text
+ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-33f560a
+```
+
+Live K3s status:
+
+```text
+goja-kanban   Synced   Healthy
+```
+
+Public validation:
+
+```text
+GET  trail      -> Trail Notes
+HEAD trail      -> HTTP/2 200
+GET  editorial  -> Editorial Desk, avg done metrics
+HEAD editorial  -> HTTP/2 200
+GET  crm        -> Sales Room, weighted metrics
+HEAD crm        -> HTTP/2 200
+```
+
+Summary APIs:
+
+```text
+GET editorial /api/summary -> {"avgProgress":65,"published":1,"total":5,"urgent":1}
+GET crm /api/summary       -> {"deals":5,"pipeline":68000,"weighted":37200,"won":1}
+```
+
+At this point the requested deployment is live: Terraform DNS, K3s GitOps, Argo CD, GHCR image publishing, automatic GitOps PR wiring, HEAD fallback, and three distinct production sites are all working.

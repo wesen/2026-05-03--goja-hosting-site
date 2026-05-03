@@ -159,3 +159,13 @@ Diversified editorial and CRM production example apps with domain-specific schem
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/app.js — Newsroom-style Editorial Desk app
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded diversified site validation
 
+
+## 2026-05-03
+
+Confirmed diversified examples are deployed in production on image sha-33f560a with GET/HEAD and summary API validation.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Final production validation note
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/tasks.md — Marked diverse production deployment complete
+
