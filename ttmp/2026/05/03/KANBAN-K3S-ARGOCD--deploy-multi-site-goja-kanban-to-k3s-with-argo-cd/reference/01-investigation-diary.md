@@ -344,3 +344,34 @@ Committed in K3s repo:
 ```text
 3b260e5 Add goja kanban Argo CD deployment
 ```
+
+## Step 10: Fixed CI packaging for local go-go-goja replace
+
+The first GitHub Actions image workflow failed before building the image.
+
+Failure:
+
+```text
+github.com/go-go-golems/go-go-goja@v0.0.0: replacement directory ../corporate-headquarters/go-go-goja does not exist
+```
+
+Cause:
+
+- local development uses this `go.mod` replace:
+
+```go
+replace github.com/go-go-golems/go-go-goja => ../corporate-headquarters/go-go-goja
+```
+
+- GitHub Actions checks out only the app repo, so the adjacent replacement directory is missing.
+
+Fix:
+
+- Updated `.github/workflows/publish-image.yaml` to clone `https://github.com/go-go-golems/go-go-goja` into `../corporate-headquarters/go-go-goja` before `go test ./...`.
+- Updated `Dockerfile` to clone the same repository into `/corporate-headquarters/go-go-goja`, which matches the container build's `/src/../corporate-headquarters/go-go-goja` replace path.
+
+Validation:
+
+```bash
+go test ./... -count=1
+```

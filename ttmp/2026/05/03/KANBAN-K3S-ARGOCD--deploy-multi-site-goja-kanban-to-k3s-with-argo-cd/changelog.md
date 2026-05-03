@@ -71,3 +71,13 @@ Added K3s GitOps manifests for goja-kanban Argo CD deployment and validated kust
 - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban — Kustomize package for namespace
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded GitOps implementation
 
+
+## 2026-05-03
+
+Fixed GHCR workflow and Dockerfile to satisfy the local go-go-goja replace path in CI/container builds.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/.github/workflows/publish-image.yaml — Clones go-go-goja before tests
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/Dockerfile — Clones go-go-goja before go mod download
+
