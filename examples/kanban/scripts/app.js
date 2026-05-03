@@ -1,6 +1,7 @@
 const db = require("database");
 const express = require("express");
 const ui = require("ui.dsl");
+const kanban = require("kanban.dsl");
 
 const app = express.app();
 app.static("/assets", "examples/kanban/assets");
@@ -195,63 +196,73 @@ function searchText(card) {
   return `${card.title || ""} ${card.description || ""} ${card.tag || ""} ${columnLabel(card.status)}`.toLowerCase();
 }
 
-function positionOptions(total, selectedIndex) {
-  const count = Math.max(total, 1);
-  const options = [];
-  for (let i = 0; i < count; i++) {
-    options.push(ui.option({ value: i, selected: i === selectedIndex }, `#${i + 1}`));
-  }
-  return options;
-}
+migrate();
+seedIfEmpty();
 
-function statusOptions(selected) {
-  return columns.map(([value, label]) => ui.option({ value, selected: value === selected }, label));
-}
+const board = kanban.board("trail-notes")
+  .title("Trail Notes: Cascade Loop")
+  .theme("field-notes")
+  .className("board")
+  .columns(cols => cols
+    .column("todo").title("To Do").done()
+    .column("progress").title("In Progress").done()
+    .column("done").title("Done").terminal(true).done()
+    .column("someday").title("Someday").done()
+  )
+  .data(data => data
+    .cards(ctx => listCards(ctx.query || {}))
+    .id(card => String(card.id))
+    .column(card => card.status)
+    .position(card => Number(card.position || 0))
+    .searchText(card => searchText(card))
+  )
+  .features(features => features
+    .search({ mode: "client" })
+    .preciseMove()
+    .dragDrop()
+  )
+  .render(render => render
+    .toolbar(ctx => ui.form({ class: "search-form", method: "get", action: "/" },
+      ui.input({ id: "search", name: "search", placeholder: "Search notes...", value: String(ctx.query?.search || ""), "data-kb-search": true, autocomplete: "off" }),
+      ui.select({ name: "status", "aria-label": "Filter status" },
+        ui.option({ value: "", selected: String(ctx.query?.status || "") === "" }, "All columns"),
+        columns.map(([value, label]) => ui.option({ value, selected: value === String(ctx.query?.status || "") }, label))
+      ),
+      ui.button({ type: "submit" }, "Search")
+    ))
+    .card((card, ctx) => ui.fragment(
+      ui.div({ class: "card-top" },
+        ui.span({ class: "check", "aria-hidden": "true" }, Number(card.done) ? "✓" : ""),
+        ui.h3(card.title),
+        ui.button({ class: "card-menu", "aria-label": "Card menu" }, "...")
+      ),
+      ui.p({ class: "desc" }, card.description),
+      card.image ? ui.img({ class: "card-image", src: card.image, alt: "Trail map sketch" }) : null,
+      ui.div({ class: "card-meta" },
+        ui.span({ class: "tag" }, card.tag || "Planning"),
+        card.due_date ? ui.time({ datetime: card.due_date }, card.due_date) : ui.span("")
+      )
+    ))
+    .emptyColumn(column => ui.div({ class: "empty" }, "No visible cards"))
+  )
+  .actions(actions => actions
+    .cardMoved(event => {
+      const moved = moveCard({
+        id: event.cardId,
+        toStatus: event.to.columnId,
+        toIndex: event.to.index,
+      });
+      return { ok: true, refresh: true, card: moved, toast: "Moved card" };
+    })
+  )
+  .build();
 
-function cardView(card, index, columnCount) {
-  return ui.article({
-    class: "kanban-card",
-    draggable: true,
-    "data-card-id": card.id,
-    "data-card-status": card.status,
-    "data-search-text": searchText(card),
-  },
-    ui.div({ class: "card-top" },
-      ui.span({ class: "check", "aria-hidden": "true" }, Number(card.done) ? "✓" : ""),
-      ui.h3(card.title),
-      ui.button({ class: "card-menu", "aria-label": "Card menu" }, "...")
-    ),
-    ui.p({ class: "desc" }, card.description),
-    card.image ? ui.img({ class: "card-image", src: card.image, alt: "Trail map sketch" }) : null,
-    ui.form({ class: "move-form", method: "post", action: `/cards/${card.id}/move`, "data-move-form": true },
-      ui.select({ name: "toStatus", "aria-label": "Destination column" }, statusOptions(card.status)),
-      ui.select({ name: "toIndex", "aria-label": "Destination position" }, positionOptions(columnCount, index)),
-      ui.button({ type: "submit" }, "Move")
-    ),
-    ui.div({ class: "card-meta" },
-      ui.span({ class: "tag" }, card.tag || "Planning"),
-      card.due_date ? ui.time({ datetime: card.due_date }, card.due_date) : ui.span("")
-    )
-  );
-}
-
-function columnView(cards, status, label) {
-  const filtered = cards.filter(card => card.status === status);
-  return ui.section({ class: "column", "data-status": status },
-    ui.div({ class: "column-header" }, ui.h2(label), ui.span({ class: "count", "data-count": status }, filtered.length)),
-    ui.div({ class: "card-list", "data-drop-status": status },
-      filtered.length ? filtered.map((card, index) => cardView(card, index, filtered.length)) : ui.div({ class: "empty" }, "No visible cards"),
-      ui.button({ class: "add-card" }, "+ Add a card")
-    )
-  );
-}
+board.mount(app, "/_kanban");
 
 function boardPage(query) {
   const filters = normalizeFilters(query);
-  const cards = listCards(filters);
   return ui.page({ title: "Trail Notes: Cascade Loop" },
     ui.link({ rel: "stylesheet", href: "/style.css" }),
-    ui.script({ src: "/app.js", defer: true }),
     ui.main({ class: "page" },
       ui.header({ class: "hero" },
         ui.div({ class: "brand" }, ui.div({ class: "mascot" }, "☻"), ui.div(ui.h1("Field Notes"), ui.p("Observations from the trail."))),
@@ -266,14 +277,6 @@ function boardPage(query) {
           ui.button({ class: "icon-button", "aria-label": "More options" }, "...")
         )
       ),
-      ui.form({ class: "search-form", method: "get", action: "/" },
-        ui.input({ id: "search", name: "search", placeholder: "Search notes...", value: filters.search, "data-live-search": true, autocomplete: "off" }),
-        ui.select({ name: "status", "aria-label": "Filter status" },
-          ui.option({ value: "", selected: filters.status === "" }, "All columns"),
-          columns.map(([value, label]) => ui.option({ value, selected: value === filters.status }, label))
-        ),
-        ui.button({ type: "submit" }, "Search")
-      ),
       ui.form({ class: "new-card", method: "post", action: "/cards" },
         ui.input({ name: "title", placeholder: "Card title", required: true }),
         ui.input({ name: "description", placeholder: "Description" }),
@@ -281,114 +284,16 @@ function boardPage(query) {
         ui.input({ name: "tag", placeholder: "Tag", value: "Planning" }),
         ui.button({ type: "submit" }, "Add card")
       ),
-      ui.div({ class: "board", id: "board" }, columns.map(([status, label]) => columnView(cards, status, label))),
+      board.render({ query: filters }),
       ui.footer({ class: "footer" }, ui.span("© 2025 Field Notes"), ui.span("Made with Microscape ◱"))
     )
   );
 }
 
-function clientScript() {
-  return `
-(() => {
-  function updateCounts() {
-    document.querySelectorAll('[data-status]').forEach(column => {
-      const status = column.dataset.status;
-      const count = column.querySelectorAll('[data-card-id]:not([hidden])').length;
-      const badge = column.querySelector('[data-count="' + status + '"]');
-      if (badge) badge.textContent = String(count);
-    });
-  }
-
-  function applySearch(query) {
-    query = String(query || '').trim().toLowerCase();
-    document.querySelectorAll('[data-card-id]').forEach(card => {
-      const text = card.dataset.searchText || '';
-      card.hidden = !!query && !text.includes(query);
-    });
-    updateCounts();
-  }
-
-  const search = document.querySelector('[data-live-search]');
-  if (search) {
-    search.addEventListener('input', () => applySearch(search.value));
-    applySearch(search.value);
-  }
-
-  let dragged = null;
-  document.addEventListener('dragstart', event => {
-    const card = event.target.closest('[data-card-id]');
-    if (!card) return;
-    dragged = card;
-    card.classList.add('dragging');
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', card.dataset.cardId);
-  });
-  document.addEventListener('dragend', () => {
-    if (dragged) dragged.classList.remove('dragging');
-    document.querySelectorAll('.column.drag-over').forEach(c => c.classList.remove('drag-over'));
-    dragged = null;
-  });
-
-  function cardAfterPointer(list, y) {
-    const cards = [...list.querySelectorAll('[data-card-id]:not(.dragging)')];
-    return cards.reduce((closest, child) => {
-      const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
-      if (offset < 0 && offset > closest.offset) return { offset, element: child };
-      return closest;
-    }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
-  }
-
-  document.addEventListener('dragover', event => {
-    const list = event.target.closest('[data-drop-status]');
-    if (!list || !dragged) return;
-    event.preventDefault();
-    list.closest('.column')?.classList.add('drag-over');
-    const before = cardAfterPointer(list, event.clientY);
-    if (before) list.insertBefore(dragged, before);
-    else list.insertBefore(dragged, list.querySelector('.add-card'));
-  });
-  document.addEventListener('dragleave', event => {
-    const column = event.target.closest('.column');
-    if (column && !column.contains(event.relatedTarget)) column.classList.remove('drag-over');
-  });
-  document.addEventListener('drop', async event => {
-    const list = event.target.closest('[data-drop-status]');
-    if (!list || !dragged) return;
-    event.preventDefault();
-    const id = dragged.dataset.cardId;
-    const toStatus = list.dataset.dropStatus;
-    const cards = [...list.querySelectorAll('[data-card-id]')];
-    const toIndex = Math.max(0, cards.indexOf(dragged));
-    updateCounts();
-    try {
-      const response = await fetch('/api/cards/' + encodeURIComponent(id) + '/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ toStatus, toIndex })
-      });
-      if (!response.ok) throw new Error(await response.text());
-      window.location.reload();
-    } catch (error) {
-      console.error('move failed', error);
-      window.location.reload();
-    }
-  });
-})();
-  `;
-}
-
-migrate();
-seedIfEmpty();
-
 app.get("/", (req, res) => res.html(boardPage(req.query)));
 
 app.get("/style.css", (req, res) => {
   res.type("text/css; charset=utf-8").send(stylesheet());
-});
-
-app.get("/app.js", (req, res) => {
-  res.type("application/javascript; charset=utf-8").send(clientScript());
 });
 
 app.get("/favicon.ico", (req, res) => {
@@ -416,21 +321,3 @@ app.post("/cards", (req, res) => {
   );
   res.redirect("/");
 });
-
-function handleMove(req, res, json) {
-  try {
-    const moved = moveCard({
-      id: req.params.id,
-      toStatus: req.body?.toStatus || req.body?.status,
-      toIndex: req.body?.toIndex,
-    });
-    if (json) return res.json({ ok: true, card: moved, cards: listCards({}) });
-    return res.redirect("/");
-  } catch (error) {
-    if (json) return res.status(400).json({ ok: false, error: String(error.message || error) });
-    return res.status(400).send(String(error.message || error));
-  }
-}
-
-app.post("/cards/:id/move", (req, res) => handleMove(req, res, false));
-app.post("/api/cards/:id/move", (req, res) => handleMove(req, res, true));

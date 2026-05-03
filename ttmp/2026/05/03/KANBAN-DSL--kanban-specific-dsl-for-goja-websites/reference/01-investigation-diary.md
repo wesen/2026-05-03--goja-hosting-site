@@ -270,3 +270,195 @@ Both pass after the missing-value fix.
 - Commit this foundation.
 - Migrate `examples/kanban/scripts/app.js` to use the builder and remove app-owned `/app.js` Kanban runtime code.
 - Add an HTTP integration test proving `/_kanban/client.js` is served through the mounted Express app.
+
+## Step 4: Migrated the example app to `kanban.dsl`
+
+I migrated `examples/kanban/scripts/app.js` away from its hand-written Kanban client runtime. The app now imports `require("kanban.dsl")`, creates a `trail-notes` board with the fluid builder API, registers a server-side `cardMoved` callback, and calls `board.mount(app, "/_kanban")`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "importing the dsl also means that the go side can inject / serve custom frontend JS that the app itself doesn't need to write"
+
+**Assistant interpretation:** The existing example must demonstrate this property, not just the package internals.
+
+**Inferred user intent:** The example app should stop defining its own `/app.js` for normal Kanban interactions. It should rely on the DSL-mounted script route.
+
+**Commit (code):** pending at time of writing this diary step.
+
+### What I did
+
+- Added `const kanban = require("kanban.dsl")` to the example.
+- Replaced manual board rendering functions with `kanban.board("trail-notes")...build()`.
+- Kept domain code intact:
+  - migrations,
+  - seed data,
+  - `listCards`,
+  - `moveCard`,
+  - new-card form handling,
+  - Field Notes CSS.
+- Moved card markup into `.render(render => render.card(...))`.
+- Moved search form into `.render(render => render.toolbar(...))`.
+- Moved movement behavior into `.actions(actions => actions.cardMoved(...))`.
+- Removed the app-owned `/app.js` route and app-owned `clientScript()` function.
+- Updated the example README to explain that `board.mount(app, "/_kanban")` serves the frontend runtime.
+- Added an HTTP integration test that proves a mounted board serves `/_kanban/client.js` and handles `POST /_kanban/<board>/action/cardMoved` with refreshed HTML.
+
+### Validation
+
+```bash
+node -c examples/kanban/scripts/app.js
+go test ./... -count=1
+```
+
+I also ran a live server smoke test with a temporary SQLite database:
+
+```bash
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve \
+  --db /tmp/goja-kanban-XXXX.db \
+  --scripts examples/kanban/scripts \
+  --addr 127.0.0.1:60125 \
+  --dev
+
+curl http://127.0.0.1:60125/
+curl http://127.0.0.1:60125/_kanban/client.js
+curl -X POST http://127.0.0.1:60125/_kanban/trail-notes/action/cardMoved \
+  -H 'Content-Type: application/json' \
+  -d '{"cardId":"1","to":{"columnId":"done","index":0}}'
+```
+
+The page included `/_kanban/client.js`, the client script contained the generic Kanban runtime markers, and the action endpoint returned JSON with refreshed server-rendered HTML.
+
+### What didn't work
+
+The first live action POST returned HTTP 500 with a nil pointer panic. I reproduced it with a small direct `board.dispatch(...)` program and found that `normalizeEvent` called `.String()` / `.ToInteger()` on missing Goja values while constructing the fallback `from` object. The fix was to use `firstString(...)` and `firstInt(...)`, both of which treat nil/undefined/null values as absent.
+
+### What was tricky
+
+The example still uses a normal server-rendered search form for progressive enhancement, but the mounted client script also sees `data-kb-search` and handles live filtering. This is the intended split: no custom browser JavaScript in the app, but accessible server behavior remains available.
+
+### What should be done next
+
+- Run a browser-level validation of live search and precise move form behavior.
+- Consider styling `.kb-root` if the extra wrapper ever affects layout.
+
+## Step 5: Browser-validated search, precise move, and drag/drop
+
+I ran browser validation against the migrated Kanban example and specifically tested drag/drop behavior.
+
+### Prompt Context
+
+**User prompt (verbatim):** "make sure to test drag drop too"
+
+**User prompt (verbatim):** "feel free to add logging if necessary
+
+continue"
+
+**Assistant interpretation:** Do not stop at unit tests or endpoint curl checks. Verify the browser runtime path, including the HTML5 drag/drop event handlers, and add debug logging if it helps confirm the path.
+
+**Inferred user intent:** The key promise of `kanban.dsl` is that app authors do not write client-side Kanban JavaScript, so the DSL-owned browser runtime must actually handle real interactions.
+
+**Commit (code):** pending at time of writing this diary step.
+
+### What I changed
+
+- Fixed `boardFor(element)` in the browser runtime so toolbar elements inside the `data-kb-root` wrapper can find the board even when they are not descendants of the `data-kb-board-id` element.
+- Added opt-in client runtime debug logging controlled by:
+
+```javascript
+localStorage.setItem("gojaKanbanDebug", "1")
+```
+
+- The runtime now emits debug logs for:
+  - `dragstart`,
+  - `drop`,
+  - `postAction`,
+  - `postAction response`.
+
+Logging is silent by default.
+
+### Browser validation performed
+
+I started the example with a fresh temporary SQLite database:
+
+```bash
+GOTOOLCHAIN=go1.26.2 go run ./cmd/goja-site serve \
+  --db /tmp/goja-kanban-browser-XXXX.db \
+  --scripts examples/kanban/scripts \
+  --addr 127.0.0.1:60128 \
+  --dev
+```
+
+Then I used Playwright to validate the following.
+
+#### Live search
+
+- Initial visible cards: `10`.
+- Filled search with `weather`.
+- Visible cards after filtering: `1`.
+- Hidden cards after filtering: `9`.
+- To Do count after filtering: `1`.
+- Clearing the search restored `10` visible cards.
+
+This verified that the generic `data-kb-search` path works after the `boardFor(...)` fix.
+
+#### Precise move form
+
+- Selected card `2`.
+- Changed destination column to `done`.
+- Changed destination index to `0`.
+- Submitted the generated `data-kb-move-form`.
+- Observed `POST /_kanban/trail-notes/action/cardMoved`.
+- Response status: `200`.
+- Response included refreshed HTML.
+- Card `2` moved from `todo` to `done`.
+- Done count became `5` in that validation run.
+
+#### Drag/drop
+
+Playwright's high-level `locator.dragTo(...)` did not trigger the HTML5 drag/drop path reliably in this environment, so I validated the browser runtime by dispatching real browser `DragEvent` objects with a `DataTransfer` object from inside the page. This exercised the same document-level handlers installed by `/_kanban/client.js`:
+
+```javascript
+const source = document.querySelector('[data-kb-card-id="1"]');
+const list = document.querySelector('[data-kb-drop-column="done"]');
+const dt = new DataTransfer();
+const rect = list.getBoundingClientRect();
+source.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt }));
+list.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt, clientX: rect.left + 20, clientY: rect.top + 20 }));
+list.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt, clientX: rect.left + 20, clientY: rect.top + 20 }));
+source.dispatchEvent(new DragEvent('dragend', { bubbles: true, cancelable: true, dataTransfer: dt }));
+```
+
+Observed result:
+
+```json
+{
+  "eventResult": { "movedInDom": "done" },
+  "response": { "status": 200, "ok": true, "hasHtml": true },
+  "after": "done",
+  "doneCount": "4"
+}
+```
+
+Debug console confirmed the exact drag/drop path:
+
+```text
+[kanban.debug] dragstart {cardId: 1, columnId: todo, index: 0}
+[kanban.debug] drop {cardId: 1, fromColumnId: todo, fromIndex: 0, toColumnId: done, toIndex: 0}
+[kanban.debug] postAction {boardId: trail-notes, action: cardMoved, url: /_kanban/trail-notes/action/cardMoved, event: Object}
+[kanban.debug] postAction response {action: cardMoved, status: 200, hasHtml: true, payload: Object}
+[kanban] Moved card
+```
+
+### Validation commands
+
+```bash
+go test ./pkg/kanbanddsl -count=1
+go test ./... -count=1
+```
+
+Both passed.
+
+### What still deserves future attention
+
+- Add a persistent Playwright test harness if this repo adopts browser automation in CI.
+- Keep the lower-level synthetic `DragEvent` approach available because Playwright `dragTo(...)` can be unreliable for HTML5 drag/drop in headless/browser automation environments.

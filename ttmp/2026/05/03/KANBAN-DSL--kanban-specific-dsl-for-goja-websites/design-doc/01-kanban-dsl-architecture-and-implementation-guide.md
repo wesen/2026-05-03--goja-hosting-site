@@ -12,10 +12,30 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: examples/kanban/README.md
+      Note: Explains DSL-owned frontend runtime in the example
     - Path: examples/kanban/scripts/app.js
-      Note: Current hand-written Kanban logic that kanban.dsl should replace
+      Note: |-
+        Current hand-written Kanban logic that kanban.dsl should replace
+        Example migrated to kanban.dsl builder
     - Path: pkg/app/server.go
       Note: Runtime composition point for adding kanban.dsl registrar
+    - Path: pkg/kanbanddsl/builder.go
+      Note: Fluid builder API and Go-side validation implementation
+    - Path: pkg/kanbanddsl/builder_test.go
+      Note: Builder and dispatch runtime tests
+    - Path: pkg/kanbanddsl/client_runtime.go
+      Note: Generic frontend runtime injected by kanban.dsl
+    - Path: pkg/kanbanddsl/dispatch.go
+      Note: Server-side callback dispatch and event normalization
+    - Path: pkg/kanbanddsl/mount.go
+      Note: board.mount route registration and DSL-owned client script serving
+    - Path: pkg/kanbanddsl/mount_test.go
+      Note: Mounted client/action HTTP integration tests
+    - Path: pkg/kanbanddsl/registrar.go
+      Note: kanban.dsl runtime registrar implementation
+    - Path: pkg/kanbanddsl/render.go
+      Note: Kanban board column and card rendering to ui.dsl node structs
     - Path: pkg/uidsl/module.go
       Note: Current ui.dsl module pattern and tag constructors that kanban.dsl should reuse
     - Path: pkg/uidsl/render.go
@@ -32,6 +52,8 @@ LastUpdated: 2026-05-03T15:15:00-04:00
 WhatFor: Guide an intern through implementing a Kanban-specific DSL for goja-site with server-side callbacks and client-managed interactions.
 WhenToUse: Use before implementing kanban.dsl, callback dispatch, the Kanban browser runtime, board rendering helpers, or Kanban examples.
 ---
+
+
 
 
 # Kanban DSL Architecture and Implementation Guide

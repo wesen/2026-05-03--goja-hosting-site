@@ -10,4 +10,28 @@ go run ./cmd/goja-site serve \
   --dev
 ```
 
-Open <http://localhost:8080/>. The entire page is registered from JavaScript, persisted in SQLite through `require("database")`, routed through `require("express")`, and rendered as HTML through `require("ui.dsl")`.
+Open <http://localhost:8080/>.
+
+The page is registered from server-side JavaScript, persisted in SQLite through
+`require("database")`, routed through `require("express")`, rendered as HTML
+through `require("ui.dsl")`, and now uses `require("kanban.dsl")` for standard
+Kanban behavior.
+
+The app still owns the domain-specific pieces:
+
+- the SQLite schema and queries,
+- the Field Notes card rendering,
+- the `cardMoved` server-side callback,
+- the page chrome around the board.
+
+The app no longer serves its own browser Kanban runtime. Calling
+`board.mount(app, "/_kanban")` registers the generic DSL-owned frontend script at
+`/_kanban/client.js` plus board fragment/action routes such as:
+
+- `GET /_kanban/client.js`
+- `GET /_kanban/trail-notes/fragment`
+- `POST /_kanban/trail-notes/action/cardMoved`
+
+That script provides live search, precise move form submission, drag/drop wiring,
+action dispatch, and server-rendered fragment replacement without app-specific
+client-side JavaScript.

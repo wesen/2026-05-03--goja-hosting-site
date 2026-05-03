@@ -59,8 +59,8 @@ func (b *Board) normalizeEvent(action string, event goja.Value) goja.Value {
 		}
 		if missingValue(obj.Get("from")) {
 			_ = obj.Set("from", map[string]any{
-				"columnId": obj.Get("fromColumnId").String(),
-				"index":    obj.Get("fromIndex").ToInteger(),
+				"columnId": firstString(obj.Get("fromColumnId")),
+				"index":    firstInt(obj.Get("fromIndex")),
 			})
 		}
 		if missingValue(obj.Get("to")) {

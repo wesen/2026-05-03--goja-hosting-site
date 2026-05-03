@@ -60,3 +60,33 @@ Implemented initial pkg/kanbanddsl native module with fluid builder, Go-owned cl
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl — Initial kanban.dsl implementation
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/reference/01-investigation-diary.md — Recorded implementation step
 
+
+## 2026-05-03
+
+Migrated the Kanban example to use kanban.dsl and removed app-owned browser Kanban runtime.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/README.md — Documented DSL-owned frontend runtime
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Now uses fluid kanban.dsl builder and board.mount
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/mount_test.go — Added mounted client/action HTTP integration coverage
+
+
+## 2026-05-03
+
+Updated task checklist to mark implemented kanban.dsl builder, mount, runtime, callback, and example migration work.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/tasks.md — Marked implementation tasks complete
+
+
+## 2026-05-03
+
+Browser-validated live search, precise move, and drag/drop; added opt-in kanban client debug logging.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/client_runtime.go — Added debug logging and fixed board lookup for toolbar search
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/reference/01-investigation-diary.md — Recorded browser validation results
+

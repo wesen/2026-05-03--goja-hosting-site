@@ -5,8 +5,20 @@ func ClientScript() string {
   if (window.__gojaKanbanRuntimeLoaded) return;
   window.__gojaKanbanRuntimeLoaded = true;
 
+  function debug(...args) {
+    try {
+      if (window.localStorage && window.localStorage.getItem('gojaKanbanDebug') === '1') {
+        console.debug('[kanban.debug]', ...args);
+      }
+    } catch (_) {}
+  }
+
   function boardFor(element) {
-    return element && element.closest('[data-kb-board-id]');
+    if (!element) return null;
+    const board = element.closest('[data-kb-board-id]');
+    if (board) return board;
+    const root = element.closest('[data-kb-root]');
+    return root ? root.querySelector('[data-kb-board-id]') : null;
   }
 
   function actionBase(board) {
@@ -39,13 +51,16 @@ func ClientScript() string {
   });
 
   async function postAction(board, action, event) {
-    const response = await fetch(actionBase(board) + '/' + encodeURIComponent(action), {
+    const url = actionBase(board) + '/' + encodeURIComponent(action);
+    debug('postAction', { boardId: board && board.dataset.kbBoardId, action, url, event });
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(event || {})
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || payload.ok === false) throw new Error(payload.error || response.statusText || 'Kanban action failed');
+    debug('postAction response', { action, status: response.status, hasHtml: !!payload.html, payload });
     if (payload.html) {
       const root = board.closest('[data-kb-root]') || board;
       const template = document.createElement('template');
@@ -89,6 +104,7 @@ func ClientScript() string {
     const card = event.target.closest('[data-kb-card-id]');
     if (!card) return;
     dragged = card;
+    debug('dragstart', { cardId: card.dataset.kbCardId, columnId: card.dataset.kbCardColumn, index: card.dataset.kbCardIndex });
     card.classList.add('kb-dragging', 'dragging');
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', card.dataset.kbCardId || '');
@@ -134,6 +150,7 @@ func ClientScript() string {
     const toCards = [...list.querySelectorAll('[data-kb-card-id]')];
     const toIndex = Math.max(0, toCards.indexOf(card));
     const visibleCardIds = toCards.map(el => el.dataset.kbCardId || '');
+    debug('drop', { cardId: card.dataset.kbCardId, fromColumnId, fromIndex, toColumnId, toIndex, visibleCardIds });
     try {
       await postAction(board, 'cardMoved', {
         cardId: card.dataset.kbCardId || '',
