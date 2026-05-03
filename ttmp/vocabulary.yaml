@@ -17,6 +17,16 @@ topics:
       description: Glazed command framework and CLI commands
     - slug: sqlite
       description: SQLite database storage, querying, sizing, and maintenance topics
+    - slug: argocd
+      description: argocd topic
+    - slug: deployment
+      description: deployment topic
+    - slug: dns
+      description: dns topic
+    - slug: kanban
+      description: kanban topic
+    - slug: kubernetes
+      description: kubernetes topic
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
