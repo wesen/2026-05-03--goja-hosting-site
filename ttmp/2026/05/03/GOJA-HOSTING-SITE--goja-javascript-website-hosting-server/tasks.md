@@ -97,3 +97,16 @@
 - [ ] Add file-watch reload mode.
 - [ ] Add TypeScript declarations for `express` and `ui.dsl` modules.
 - [ ] Add production security review before running untrusted scripts.
+
+## Phase 7 — Planned client interactivity redesign
+
+- [x] Write design guide for search, precise movement, and UI DSL client behavior support.
+- [ ] Add server-rendered search form and query handling.
+- [ ] Add precise move form with destination column and target position.
+- [ ] Implement `moveCard({ id, toStatus, toIndex })` with position normalization.
+- [ ] Add `GET /api/cards?search=&status=&tag=`.
+- [ ] Add JSON move endpoint `POST /api/cards/:id/move`.
+- [ ] Add app-specific `/app.js` route for live search and drag/drop.
+- [ ] Add declarative `data-*` behavior attributes to cards and columns.
+- [ ] Add Playwright tests for search, drag/drop/move, reload persistence, and console cleanliness.
+- [ ] Extract reusable `ui.clientScript`, `ui.clientState`, and `ui.behavior` helpers after app-specific behavior is proven.

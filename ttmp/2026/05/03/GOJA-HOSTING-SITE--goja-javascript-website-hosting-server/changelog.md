@@ -67,3 +67,30 @@ Restyled Kanban to Field Notes visual design, added static asset serving, and ex
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/examples/kanban/scripts/app.js — Field Notes Kanban redesign
 
+
+## 2026-05-03
+
+Added client interactivity and UI DSL redesign guide covering search, precise card movement, JSON APIs, and browser-side behavior helpers.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/design-doc/02-client-interactivity-and-ui-dsl-redesign-guide.md — New design guide for client-side interactions and UI DSL redesign
+
+
+## 2026-05-03
+
+Updated tasks and diary with Phase 7 client interactivity redesign plan.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/tasks.md — Added Phase 7 task plan
+
+
+## 2026-05-03
+
+Uploaded client interactivity guide bundle to reMarkable at /ai/2026/05/03/GOJA-HOSTING-SITE.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/design-doc/02-client-interactivity-and-ui-dsl-redesign-guide.md — Included in reMarkable client interactivity guide bundle
+

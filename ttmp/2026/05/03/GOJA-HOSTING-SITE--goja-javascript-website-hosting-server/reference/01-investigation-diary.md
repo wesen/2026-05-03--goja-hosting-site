@@ -411,3 +411,79 @@ Playwright checks:
 - verified `/assets/trail-map.png` returns `200 image/png`,
 - captured screenshots `goja-kanban-field-notes.png` and `goja-kanban-field-notes-wide.png`,
 - verified zero current console errors/warnings.
+
+## Step 4: Designed client-side interactivity and UI DSL evolution
+
+The current Kanban board is visually close to the Field Notes reference, but the interaction model is too limited. Search is missing, and the card move control only advances cards through a hard-coded `nextStatus()` cycle. I wrote a second design document that explains how to evolve the app and DSL without turning `ui.dsl` into a full client framework.
+
+The recommended direction is progressive enhancement: keep `ui.dsl` as a pure server-side HTML AST, add JSON endpoints for search and precise movement, add app-specific browser JavaScript first, and only then extract reusable helpers such as `ui.clientScript`, `ui.clientState`, and `ui.behavior`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, the app doesn't seem to actually work though, or rather, i'd like search and also be able to move cards to a specific location to work. 
+
+I know we might want to have some client JS side additions, how would you redesign the UI DSL around that?"
+
+**Assistant interpretation:** Analyze the functional gaps and produce an implementation-ready design for search, precise card movement, and browser-side behavior support.
+
+**Inferred user intent:** The user wants a clear plan before implementation so the next step improves actual usability rather than only visual fidelity.
+
+**Commit (code):** N/A — documentation-only design step.
+
+### What I did
+
+- Inspected the current UI DSL, renderer, Express module, host dispatch, request/response API, and Kanban app.
+- Created `design-doc/02-client-interactivity-and-ui-dsl-redesign-guide.md`.
+- Related the new document to key source files.
+- Added Phase 7 tasks for search, precise movement, JSON APIs, app-specific browser JS, and future reusable client helpers.
+
+### Why
+
+- Search and precise movement require both server API design and browser behavior design.
+- The current UI DSL is intentionally safe and server-side. Expanding it directly into a framework would be premature.
+- The intern needs a phased plan that starts with server-rendered correctness and then progressively adds client-side behavior.
+
+### What worked
+
+- The current code already has enough Express-style request/response support for JSON APIs.
+- Static file serving is already available through `app.static`, so app-specific browser JS can be served immediately.
+- The UI DSL already renders arbitrary `data-*`, `draggable`, and `aria-*` attributes, so the first interactivity pass does not require invasive Go changes.
+
+### What didn't work
+
+- No implementation was attempted in this step. The current app still lacks search and precise positioning until Phase 7 is implemented.
+
+### What I learned
+
+- The correct split is: `ui.dsl` for HTML, app JSON endpoints for state changes, and browser JS for event handling and DOM updates.
+- Reusable DSL helpers should be extracted only after the Kanban app-specific behavior proves the right attribute and API shape.
+
+### What was tricky to build
+
+- The design must balance two competing goals: keep the DSL simple enough for small JS websites, but support enough browser behavior for direct manipulation. The phased plan avoids committing to a framework too early.
+
+### What warrants a second pair of eyes
+
+- Review the proposed `moveCard({ id, toStatus, toIndex })` algorithm before implementation.
+- Review the `ui.clientState` JSON escaping design before adding inline state support.
+- Review static path resolution, because current `app.static` paths are process-relative.
+
+### What should be done in the future
+
+- Implement Phase 7 from `tasks.md`.
+- Add Playwright tests for live search and precise card movement.
+- Consider a built-in `/goja-site/client.js` only after app-specific client behavior is proven.
+
+### Code review instructions
+
+- Start with `design-doc/02-client-interactivity-and-ui-dsl-redesign-guide.md`.
+- Then inspect `examples/kanban/scripts/app.js` around the current `nextStatus`, `cardView`, and move endpoint.
+- Then inspect `pkg/uidsl/module.go`, `pkg/web/express_module.go`, and `pkg/web/request_response.go` for the host/API surfaces that the design builds on.
+
+### Technical details
+
+The new design guide is stored at:
+
+```text
+ttmp/2026/05/03/GOJA-HOSTING-SITE--goja-javascript-website-hosting-server/design-doc/02-client-interactivity-and-ui-dsl-redesign-guide.md
+```
