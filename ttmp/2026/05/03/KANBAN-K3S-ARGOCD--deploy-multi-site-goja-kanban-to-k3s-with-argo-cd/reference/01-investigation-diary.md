@@ -484,3 +484,54 @@ HEAD trail     -> HTTP/1.1 200 OK
 HEAD editorial -> HTTP/1.1 200 OK
 HEAD crm       -> HTTP/1.1 200 OK
 ```
+
+
+## Step 14: Published image and deployed production site content
+
+Tested the image publication and K3s GitOps update path after adding the real editorial/CRM apps and HEAD fallback.
+
+App repo commit:
+
+```text
+5fdc211 Add production kanban sites and HEAD fallback
+```
+
+GitHub Actions publish workflow:
+
+```text
+Run: 25291891086
+Workflow: publish-image
+Result: success
+Image tag: ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-5fdc211
+```
+
+K3s GitOps update:
+
+- updated `gitops/kustomize/goja-kanban/deployment.yaml` from the previous image tag to `sha-5fdc211`,
+- rendered Kustomize successfully,
+- committed and pushed K3s repo commit:
+
+```text
+2bf159e Deploy goja kanban production sites
+```
+
+Argo CD result:
+
+```text
+goja-kanban   Synced   Healthy
+image=ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-5fdc211
+pod/goja-kanban-... 1/1 Running
+```
+
+Public validation:
+
+```text
+GET  https://trail.kanban.yolo.scapegoat.dev/      -> Trail Notes
+HEAD https://trail.kanban.yolo.scapegoat.dev/      -> HTTP/2 200
+GET  https://editorial.kanban.yolo.scapegoat.dev/  -> Editorial Desk
+HEAD https://editorial.kanban.yolo.scapegoat.dev/  -> HTTP/2 200
+GET  https://crm.kanban.yolo.scapegoat.dev/        -> Sales Room
+HEAD https://crm.kanban.yolo.scapegoat.dev/        -> HTTP/2 200
+```
+
+Note: this tested the current publish-image and direct GitOps image-bump path. A separate automated source-repo-to-K3s PR workflow has not been implemented in this app repo yet.

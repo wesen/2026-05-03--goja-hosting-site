@@ -64,6 +64,6 @@
 - [x] Add a real Editorial Pipeline Kanban app.
 - [x] Add a real CRM Pipeline Kanban app.
 - [x] Validate GET and HEAD locally for trail, editorial, and CRM hosts.
-- [ ] Publish updated image through GitHub Actions.
-- [ ] Update K3s GitOps image tag to the published SHA.
-- [ ] Validate updated production GET and HEAD behavior.
+- [x] Publish updated image through GitHub Actions.
+- [x] Update K3s GitOps image tag to the published SHA.
+- [x] Validate updated production GET and HEAD behavior.
