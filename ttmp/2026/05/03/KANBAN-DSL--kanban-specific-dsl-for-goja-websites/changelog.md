@@ -31,3 +31,21 @@ Added builder-style Kanban app examples for trail planning, editorial, and sales
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/design-doc/01-kanban-dsl-architecture-and-implementation-guide.md — Builder-style examples added
 
+
+## 2026-05-03
+
+Updated tasks and diary for the fluid builder API design.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/tasks.md — Builder implementation phases added
+
+
+## 2026-05-03
+
+Uploaded updated KANBAN-DSL Architecture Guide bundle to reMarkable at /ai/2026/05/03/KANBAN-DSL.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-DSL--kanban-specific-dsl-for-goja-websites/tasks.md — Marked reMarkable upload complete
+

@@ -11,13 +11,28 @@ Topics:
 DocType: design-doc
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: examples/kanban/scripts/app.js
+      Note: Current hand-written Kanban logic that kanban.dsl should replace
+    - Path: pkg/app/server.go
+      Note: Runtime composition point for adding kanban.dsl registrar
+    - Path: pkg/uidsl/module.go
+      Note: Current ui.dsl module pattern and tag constructors that kanban.dsl should reuse
+    - Path: pkg/uidsl/render.go
+      Note: Safe HTML renderer that kanban.dsl should delegate to
+    - Path: pkg/web/express_module.go
+      Note: Express app object that board.mount(app
+    - Path: pkg/web/host.go
+      Note: Runtime-owner request dispatch and static mounting behavior
+    - Path: pkg/web/request_response.go
+      Note: JavaScript request/response API used for callback action routes
 ExternalSources: []
-Summary: "Design for a kanban.dsl module that renders flexible Kanban boards, mixes with ui.dsl, ships a client runtime, and calls server-side Goja callbacks for actions such as cardMoved."
+Summary: Design for a kanban.dsl module that renders flexible Kanban boards, mixes with ui.dsl, ships a client runtime, and calls server-side Goja callbacks for actions such as cardMoved.
 LastUpdated: 2026-05-03T15:15:00-04:00
-WhatFor: "Guide an intern through implementing a Kanban-specific DSL for goja-site with server-side callbacks and client-managed interactions."
-WhenToUse: "Use before implementing kanban.dsl, callback dispatch, the Kanban browser runtime, board rendering helpers, or Kanban examples."
+WhatFor: Guide an intern through implementing a Kanban-specific DSL for goja-site with server-side callbacks and client-managed interactions.
+WhenToUse: Use before implementing kanban.dsl, callback dispatch, the Kanban browser runtime, board rendering helpers, or Kanban examples.
 ---
+
 
 # Kanban DSL Architecture and Implementation Guide
 
