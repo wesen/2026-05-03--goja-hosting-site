@@ -92,3 +92,14 @@ Resolved Argo CD PVC sync-wave deadlock and validated goja-kanban as Synced/Heal
 - /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/service.yaml — Service moved to same sync wave
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded deployment hang root cause and validation
 
+
+## 2026-05-03
+
+Updated Hetzner K3s runbooks to document the local-path PVC WaitForFirstConsumer sync-wave trap.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/app-packaging-and-gitops-pr-standard.md — Added single-writer PVC app category and same-wave rule
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/operator-troubleshooting-faq.md — Added troubleshooting entry for Pending PVC with no Deployment
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/KANBAN-K3S-ARGOCD--deploy-multi-site-goja-kanban-to-k3s-with-argo-cd/reference/01-investigation-diary.md — Recorded runbook update
+

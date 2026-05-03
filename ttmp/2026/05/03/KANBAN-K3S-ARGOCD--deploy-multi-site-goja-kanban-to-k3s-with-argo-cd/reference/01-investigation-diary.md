@@ -414,3 +414,24 @@ curl -k -fsS https://crm.kanban.yolo.scapegoat.dev/ | grep 'CRM Kanban'
 ```
 
 All three public hostnames returned the expected site content. `curl -I` currently returns 404 because the JS apps define GET routes, not HEAD routes; GET works.
+
+## Step 12: Updated Hetzner K3s runbooks for the PVC sync-wave trap
+
+The user asked whether this should be documented in the Hetzner K3s runbooks. Yes: this is a reusable operator failure mode, not just a `goja-kanban` detail.
+
+Updated K3s repo docs:
+
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/app-packaging-and-gitops-pr-standard.md`
+  - added `Category 1b: Public single-writer app with a PVC`,
+  - documented the `local-path` / `WaitForFirstConsumer` / Argo sync-wave deadlock,
+  - documented the safe same-wave PVC+Deployment pattern,
+  - documented `replicas: 1` and `strategy: Recreate` for SQLite/single-writer apps.
+- `/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/operator-troubleshooting-faq.md`
+  - added FAQ entry: `Argo CD waits forever on a Pending PVC and never creates the Deployment`,
+  - included symptoms, cause, safe fix, commands, and the goja-kanban incident as concrete evidence.
+
+Committed and pushed in K3s repo:
+
+```text
+a8db0b3 Document local-path PVC sync wave trap
+```
