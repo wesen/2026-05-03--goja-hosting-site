@@ -37,7 +37,14 @@ Herald.views = {
         ui.div({ class: "nav-title" }, "Desks"),
         ui.nav(
           { class: "nav-group" },
-          desks.map((desk) => this.navItem("☞", `${desk.nav} · ${desk.total}`)),
+          desks.map((desk) =>
+            this.navItem(
+              "☞",
+              `${desk.nav} · ${desk.total}`,
+              false,
+              "/?desk=" + desk.id,
+            ),
+          ),
         ),
       ),
       ui.div(
@@ -52,9 +59,9 @@ Herald.views = {
     );
   },
 
-  navItem(icon, label, active) {
+  navItem(icon, label, active, href) {
     return ui.a(
-      { class: active ? "nav-item active" : "nav-item", href: "#" },
+      { class: active ? "nav-item active" : "nav-item", href: href || "#" },
       ui.span({ "aria-hidden": "true" }, icon),
       ui.span(label),
     );
@@ -88,24 +95,64 @@ Herald.views = {
       { class: "content" },
       ui.div(
         { class: "workflow-head" },
-        ui.div(
-          ui.h2("Editorial Workflow"),
-          ui.div(
-            { class: "tabs" },
-            ui.span({ class: "tab active" }, "▣", "Board"),
-            ui.span({ class: "tab" }, "▦", "Table"),
-          ),
-        ),
-        ui.div(
-          { class: "board-tools" },
-          ui.span("Filter⌄"),
-          ui.span("Sort: Priority⌄"),
-          ui.a({ class: "new-story", href: "#new-story" }, "+ New Story"),
-        ),
+        ui.div(ui.h2("Editorial Workflow"), this.tabs(req.query || {})),
       ),
+      this.activeFilter(req.query || {}),
       this.newStoryForm(),
-      Herald.board.render({ session: req.session, query: req.query }),
+      this.currentView(req),
     );
+  },
+
+  tabs(query) {
+    const isTable = query.view === "table";
+    const boardURL = this.urlWithQuery(query, { view: "" });
+    const tableURL = this.urlWithQuery(query, { view: "table" });
+    return ui.div(
+      { class: "tabs" },
+      ui.a(
+        { class: isTable ? "tab" : "tab active", href: boardURL },
+        "▣",
+        "Board",
+      ),
+      ui.a(
+        { class: isTable ? "tab active" : "tab", href: tableURL },
+        "▦",
+        "Table",
+      ),
+    );
+  },
+
+  currentView(req) {
+    if ((req.query || {}).view === "table") return this.tableView(req);
+    return Herald.board.render({ session: req.session, query: req.query });
+  },
+
+  activeFilter(query) {
+    const tag = String(query.tag || "").trim();
+    const desk = String(query.desk || "").trim();
+    if (!tag && !desk) return null;
+    const label = tag ? `Tag: ${tag}` : `Desk: ${Herald.util.deskLabel(desk)}`;
+    return ui.a(
+      {
+        class: "active-filter",
+        href: this.urlWithQuery(query, { tag: "", desk: "" }),
+      },
+      label,
+      "×",
+    );
+  },
+
+  urlWithQuery(query, changes) {
+    const params = [];
+    const next = { ...(query || {}), ...(changes || {}) };
+    Object.keys(next).forEach((key) => {
+      const value = next[key];
+      if (value === undefined || value === null || value === "") return;
+      params.push(
+        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+      );
+    });
+    return params.length ? "/?" + params.join("&") : "/";
   },
 
   newStoryForm() {
@@ -194,7 +241,12 @@ Herald.views = {
           { class: "tags" },
           Herald.util
             .splitTags(story.tags)
-            .map((tag) => ui.span({ class: "tag" }, tag)),
+            .map((tag) =>
+              ui.a(
+                { class: "tag", href: "/?tag=" + encodeURIComponent(tag) },
+                tag,
+              ),
+            ),
           ui.span({ class: "tag" }, "+"),
         ),
       ),
@@ -224,6 +276,60 @@ Herald.views = {
       ui.a(
         { class: "open-full", href: "/stories/" + story.id },
         "Open full view ↗",
+      ),
+    );
+  },
+
+  tableView(req) {
+    const stories = Herald.workflow.listStories(req.session, req.query || {});
+    return ui.div(
+      { class: "table-wrap" },
+      ui.table(
+        { class: "story-table" },
+        ui.thead(
+          ui.tr(
+            ui.th("Headline"),
+            ui.th("Desk"),
+            ui.th("Author"),
+            ui.th("Status"),
+            ui.th("Due"),
+            ui.th("Checklist"),
+            ui.th("Tags"),
+          ),
+        ),
+        ui.tbody(
+          stories.map((story) =>
+            ui.tr(
+              ui.td(
+                ui.a(
+                  {
+                    href: "/?story=" + story.id,
+                    "data-herald-story-link": "true",
+                    "data-herald-panel-url": "/stories/" + story.id + "/panel",
+                  },
+                  story.title,
+                ),
+                ui.div({ class: "story-meta" }, story.description),
+              ),
+              ui.td(story.desk_label),
+              ui.td(story.author_name || story.author_key),
+              ui.td(Herald.util.statusLabel(story.workflow_status)),
+              ui.td(story.due_date),
+              ui.td(story.progress_label),
+              ui.td(
+                Herald.util.splitTags(story.tags).map((tag) =>
+                  ui.a(
+                    {
+                      class: "tag",
+                      href: "/?tag=" + encodeURIComponent(tag) + "&view=table",
+                    },
+                    tag,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   },
@@ -272,7 +378,7 @@ Herald.board = kanban
   )
   .data((data) =>
     data
-      .cards((ctx) => Herald.workflow.listStories(ctx.session))
+      .cards((ctx) => Herald.workflow.listStories(ctx.session, ctx.query || {}))
       .id((story) => String(story.id))
       .column((story) => story.workflow_status)
       .position((story) => Number(story.position || 0))

@@ -71,6 +71,13 @@ a { color: inherit; text-decoration: none; }
 .description { font-size: 17px; line-height: 1.55; }
 .tags { display: flex; gap: 10px; flex-wrap: wrap; }
 .tag { border: 1px solid var(--line); border-radius: 7px; background: #eee6dc; padding: 9px 13px; }
+a.tag:hover { background: #ded1c0; }
+.active-filter { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 999px; background: #fffaf4; padding: 8px 13px; color: var(--muted); }
+.table-wrap { border: 1px solid var(--line); background: rgba(255,250,244,.65); overflow: auto; }
+.story-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.story-table th { text-align: left; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; color: var(--muted); background: #eee6dc; }
+.story-table th, .story-table td { border-bottom: 1px solid var(--line); padding: 13px 14px; vertical-align: top; }
+.story-table tr:hover td { background: #fffaf4; }
 .checklist { display: grid; gap: 13px; }
 .check-item { display: flex; gap: 11px; align-items: center; border: 0; background: transparent; font: 15px Georgia, serif; text-align: left; padding: 0; }
 .box { width: 18px; height: 18px; border: 1px solid #9d927f; display: inline-grid; place-items: center; border-radius: 3px; }

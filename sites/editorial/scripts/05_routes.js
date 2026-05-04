@@ -80,7 +80,7 @@ app.get("/stories/:id", (req, res) => {
 });
 
 app.get("/api/stories", (req, res) => {
-  res.json(Herald.workflow.listStories(req.session));
+  res.json(Herald.workflow.listStories(req.session, req.query || {}));
 });
 
 app.get("/api/stories/:id", (req, res) => {
@@ -92,7 +92,7 @@ app.get("/api/stories/:id", (req, res) => {
 
 app.get("/api/assignments", (req, res) => {
   res.json(
-    Herald.workflow.listStories(req.session).map((story) => ({
+    Herald.workflow.listStories(req.session, req.query || {}).map((story) => ({
       id: story.id,
       title: story.title,
       author: story.author_name,

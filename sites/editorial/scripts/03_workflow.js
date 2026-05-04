@@ -197,21 +197,43 @@ Herald.workflow = {
     });
   },
 
-  listStories(session) {
+  listStories(session, query) {
     const sid = Herald.util.sessionId(session);
     this.seedIfEmpty(sid);
     return Herald.repo
       .listStories(sid)
-      .map((story) => this.decorateStory(sid, story));
+      .map((story) => this.decorateStory(sid, story))
+      .filter((story) => this.matchesQuery(story, query || {}));
+  },
+
+  matchesQuery(story, query) {
+    const tag = String(query.tag || "")
+      .trim()
+      .toLowerCase();
+    if (tag) {
+      const tags = Herald.util
+        .splitTags(story.tags)
+        .map((item) => item.toLowerCase());
+      if (!tags.includes(tag)) return false;
+    }
+
+    const desk = String(query.desk || "").trim();
+    if (desk && story.desk !== desk) return false;
+
+    return true;
   },
 
   activeStory(session, query) {
     const sid = Herald.util.sessionId(session);
     this.seedIfEmpty(sid);
     const id = query && query.story ? Number(query.story) : 0;
-    const row = id
-      ? Herald.repo.getStory(sid, id)
-      : Herald.repo.firstStory(sid);
+    if (id) {
+      const row = Herald.repo.getStory(sid, id);
+      return row ? this.decorateStory(sid, row) : null;
+    }
+    const filtered = this.listStories(sid, query || {});
+    if (filtered.length > 0) return filtered[0];
+    const row = Herald.repo.firstStory(sid);
     return row ? this.decorateStory(sid, row) : null;
   },
 
@@ -265,7 +287,7 @@ Herald.workflow = {
   },
 
   deskSummary(session) {
-    const stories = this.listStories(session);
+    const stories = this.listStories(session, {});
     return Herald.desks.map((desk) => ({
       ...desk,
       total: stories.filter((story) => story.desk === desk.id).length,
@@ -276,7 +298,7 @@ Herald.workflow = {
   },
 
   metrics(session) {
-    const stories = this.listStories(session);
+    const stories = this.listStories(session, {});
     const checklistDone = stories.reduce(
       (sum, story) => sum + story.checklist_done,
       0,
