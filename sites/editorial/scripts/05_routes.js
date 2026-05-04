@@ -4,6 +4,19 @@ const app = express.app();
 
 Herald.board.mount(app, "/_kanban");
 
+function wantsPanel(req) {
+  return String((req.headers && req.headers["X-Herald-Panel"]) || "") === "1";
+}
+
+function renderPanel(req, res, storyId) {
+  const story = Herald.workflow.activeStory(req.session, { story: storyId });
+  res.html(Herald.views.dossier(story));
+}
+
+app.get("/assets/herald.js", (req, res) => {
+  res.type("application/javascript; charset=utf-8").send(Herald.clientScript);
+});
+
 app.get("/", (req, res) => {
   res.html(Herald.views.page(req));
 });
@@ -48,7 +61,15 @@ app.post("/stories/:id/checklist/:itemId/toggle", (req, res) => {
     req.params.id,
     req.params.itemId,
   );
+  if (wantsPanel(req)) {
+    renderPanel(req, res, req.params.id);
+    return;
+  }
   res.redirect("/?story=" + req.params.id);
+});
+
+app.get("/stories/:id/panel", (req, res) => {
+  renderPanel(req, res, req.params.id);
 });
 
 app.get("/stories/:id", (req, res) => {

@@ -9,6 +9,7 @@ Herald.views = {
     return ui.page(
       { title: "The Daily Herald" },
       ui.style(Herald.styles),
+      ui.script({ src: "/assets/herald.js", defer: true }),
       ui.main(
         { class: "page" },
         this.sidebar(req),
@@ -133,7 +134,12 @@ Herald.views = {
 
   storyCard(story) {
     return ui.a(
-      { class: "story-card", href: "/?story=" + story.id },
+      {
+        class: "story-card",
+        href: "/?story=" + story.id,
+        "data-herald-story-link": "true",
+        "data-herald-panel-url": "/stories/" + story.id + "/panel",
+      },
       ui.h3(story.title),
       ui.div(
         { class: "story-meta" },
@@ -227,6 +233,7 @@ Herald.views = {
       {
         method: "post",
         action: `/stories/${story.id}/checklist/${item.id}/toggle`,
+        "data-herald-panel-form": "true",
       },
       ui.button(
         { class: "check-item", type: "submit" },

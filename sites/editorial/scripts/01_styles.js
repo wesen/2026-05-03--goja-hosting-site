@@ -59,7 +59,8 @@ a { color: inherit; text-decoration: none; }
 .ready-mark { width: 18px; height: 18px; border: 1px solid #9d927f; border-radius: 50%; display: inline-grid; place-items: center; }
 .add-story-link { color: var(--muted); text-align: center; padding: 16px; }
 .empty { color: var(--muted); padding: 12px; }
-.dossier { border-left: 1px solid var(--line); padding: 34px 32px; background: rgba(250,246,238,.82); }
+.dossier { border-left: 1px solid var(--line); padding: 34px 32px; background: rgba(250,246,238,.82); transition: opacity .12s ease; }
+.dossier[aria-busy="true"] { opacity: .58; }
 .close { float: right; font-size: 28px; color: var(--muted); }
 .status-label { color: var(--muted); letter-spacing: .18em; text-transform: uppercase; font-size: 13px; }
 .dossier h2 { font-size: 27px; line-height: 1.35; margin: 16px 0 8px; font-weight: 500; }
