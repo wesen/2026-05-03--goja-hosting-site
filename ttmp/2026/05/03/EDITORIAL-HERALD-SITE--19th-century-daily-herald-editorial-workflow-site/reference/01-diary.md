@@ -15,15 +15,23 @@ RelatedFiles:
     - Path: sites/editorial/scripts/00_domain.js
       Note: Daily Herald domain constants and helpers (commit bbef48b)
     - Path: sites/editorial/scripts/01_styles.js
-      Note: Broadsheet visual style for the reference-inspired UI (commit bbef48b)
+      Note: |-
+        Broadsheet visual style for the reference-inspired UI (commit bbef48b)
+        Dossier busy-state styling for fragment requests (commit 8c6630a)
     - Path: sites/editorial/scripts/02_repository.js
       Note: SQLite schema and persistence layer for staff
     - Path: sites/editorial/scripts/03_workflow.js
       Note: Seed data
     - Path: sites/editorial/scripts/04_views.js
-      Note: Server-rendered shell
+      Note: |-
+        Server-rendered shell
+        Story link and checklist form data attributes for progressive enhancement (commit 8c6630a)
     - Path: sites/editorial/scripts/05_routes.js
-      Note: HTTP routes
+      Note: |-
+        HTTP routes
+        Panel fragment route and enhanced checklist response path (commit 8c6630a)
+    - Path: sites/editorial/scripts/06_client.js
+      Note: Progressive enhancement script for no-flash dossier fragment replacement (commit 8c6630a)
     - Path: ttmp/2026/05/03/EDITORIAL-HERALD-SITE--19th-century-daily-herald-editorial-workflow-site/design-doc/01-daily-herald-editorial-workflow-architecture.md
       Note: Architecture plan derived from reference images
     - Path: ttmp/2026/05/03/EDITORIAL-HERALD-SITE--19th-century-daily-herald-editorial-workflow-site/sources/images/01-full-editorial-workflow-reference.png
@@ -34,6 +42,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 # Diary
@@ -188,4 +197,148 @@ Known next UI issue:
 
 ```text
 http://localhost:60133/?story=33 reloads the entire page when story links are clicked.
+```
+
+## Step 2: Add progressive dossier updates to avoid full-page flashes
+
+The second milestone added progressive enhancement for story selection and checklist toggles. The app still renders ordinary links and forms for accessibility and fallback, but browsers with JavaScript now fetch a server-rendered dossier fragment, replace only `.dossier`, and update the URL with `history.pushState`.
+
+This preserves the server-rendered architecture while removing the visual flash caused by full page reloads. It also gives the Daily Herald app a practical pattern for rich interactions without introducing a large browser framework.
+
+### Prompt Context
+
+**User prompt (verbatim):** "how can we avoid a flash when clicking on things on http://localhost:60133/?story=33, since it seems to reload the whole page?"
+
+**Assistant interpretation:** Explain and then implement a way to avoid full-page reloads for story-card and dossier interactions.
+
+**Inferred user intent:** Keep the application feeling responsive and polished while preserving the server-rendered Goja model.
+
+**Commit (code):** `8c6630a8d2dd405c8be896f99a9031e06273007d` — "Add progressive dossier updates to Editorial Herald"
+
+### What I did
+
+- Added `sites/editorial/scripts/06_client.js` defining `Herald.clientScript`.
+- Served the browser enhancement at `GET /assets/herald.js`.
+- Added `GET /stories/:id/panel`, which returns only `Herald.views.dossier(story)` as HTML.
+- Added a tiny request helper in routes:
+  - `wantsPanel(req)` checks `X-Herald-Panel: 1`.
+  - `renderPanel(req, res, storyId)` renders the selected dossier fragment.
+- Updated story-card links in `Herald.views.storyCard(story)` with:
+  - `data-herald-story-link="true"`
+  - `data-herald-panel-url="/stories/<id>/panel"`
+- Updated checklist forms in `Herald.views.checkItem(story, item)` with:
+  - `data-herald-panel-form="true"`
+- Added the browser script to the page with:
+  - `ui.script({ src: "/assets/herald.js", defer: true })`
+- Added an opacity transition for `.dossier[aria-busy="true"]` while fragment requests are in flight.
+- Validated with Playwright that selecting a story and toggling checklist items do not trigger `beforeunload`.
+
+### Why
+
+- Full-page navigation caused a visible flash when selecting stories like `/?story=33`.
+- The right dossier is a self-contained server-rendered fragment, so replacing only that region is a low-risk progressive enhancement.
+- Keeping normal `href` and `form` behavior means the app still works if JavaScript fails.
+
+### What worked
+
+- `GET /assets/herald.js` returns the enhancement script after restarting the local server.
+- `GET /stories/1/panel` returns standalone dossier HTML.
+- `POST /stories/:id/checklist/:itemId/toggle` returns panel HTML when called with `X-Herald-Panel: 1`.
+- Playwright story-selection validation returned:
+
+```json
+{
+  "url": "http://127.0.0.1:60133/?story=36",
+  "beforeUnload": 0,
+  "dossierTitle": "City Council debates new housing plan"
+}
+```
+
+- Playwright checklist-toggle validation returned:
+
+```json
+{
+  "url": "http://127.0.0.1:60133/?story=36",
+  "beforeUnload": 0,
+  "before": 1,
+  "after": 0,
+  "title": "City Council debates new housing plan"
+}
+```
+
+- Validation commands passed:
+
+```bash
+node -c sites/editorial/scripts/*.js
+go test ./... -count=1
+```
+
+### What didn't work
+
+- Before restarting the local server, the new routes returned 404:
+
+```text
+curl: (22) The requested URL returned error: 404
+```
+
+- Root cause: the running server had been started before `06_client.js` and the new routes existed, so the process needed to be restarted to load the new script file.
+- Fix: stopped the process on port `60133`, removed `tmp/editorial-herald` while the process was stopped, and restarted the local server.
+
+### What I learned
+
+- `--dev` is useful, but adding an entirely new script file still warrants a clean restart when validating route availability.
+- The route-level fragment approach is enough to remove the flash without modifying `kanban.dsl`.
+- Checklist state can be updated in the panel without page reload; the board card progress is not yet refreshed, which is acceptable for the first enhancement but worth improving.
+
+### What was tricky to build
+
+- The enhancement needed to avoid interfering with normal browser affordances. The click handler skips modified clicks (`meta`, `ctrl`, `shift`, `alt`) so users can still open links in new tabs.
+- The panel replacement uses a `<template>` element and replaces only the first element in the returned fragment. This expects `Herald.views.dossier(story)` to render exactly one root element with class `dossier`.
+- The checklist fallback path still redirects, while enhanced requests return HTML. That split is controlled by `X-Herald-Panel: 1` and should be kept consistent if more panel forms are added.
+
+### What warrants a second pair of eyes
+
+- Review whether checklist toggles should also refresh the Kanban board fragment so card progress updates immediately.
+- Review whether `popstate` should support returning to the no-story URL by clearing or resetting the dossier; currently it only fetches a panel if `story` is present.
+- Review whether this pattern should be generalized into `kanban.dsl` as a first-class detail-panel feature.
+
+### What should be done in the future
+
+- Add optional board-fragment refresh after checklist toggles if stale card progress feels confusing.
+- Consider moving this progressive panel pattern into a reusable helper for example sites.
+- Consider making `kanban.dsl` support card-selected panels declaratively.
+
+### Code review instructions
+
+- Start with `sites/editorial/scripts/06_client.js` to understand the progressive enhancement contract.
+- Then read the new helper routes in `sites/editorial/scripts/05_routes.js`.
+- Then review the data attributes added in `sites/editorial/scripts/04_views.js`.
+- Validate no-reload behavior manually by opening `http://127.0.0.1:60133/?story=33`, clicking another story, and watching that only the right dossier changes.
+- Automated/browser validation can use Playwright-style checks for `beforeunload === 0` after story clicks and checklist toggles.
+
+### Technical details
+
+Server route contract:
+
+```text
+GET  /assets/herald.js
+GET  /stories/:id/panel
+POST /stories/:id/checklist/:itemId/toggle
+     Header: X-Herald-Panel: 1 -> returns dossier HTML
+     No header                  -> redirects to /?story=:id
+```
+
+Browser behavior:
+
+```text
+click [data-herald-story-link]
+→ prevent full navigation
+→ fetch /stories/:id/panel
+→ replace .dossier
+→ history.pushState({}, "", /?story=:id)
+
+submit [data-herald-panel-form]
+→ prevent full form submission
+→ POST with FormData and X-Herald-Panel: 1
+→ replace .dossier
 ```
