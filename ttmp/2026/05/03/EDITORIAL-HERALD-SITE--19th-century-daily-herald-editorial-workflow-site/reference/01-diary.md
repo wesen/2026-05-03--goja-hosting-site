@@ -19,24 +19,32 @@ RelatedFiles:
         Broadsheet visual style for the reference-inspired UI (commit bbef48b)
         Dossier busy-state styling for fragment requests (commit 8c6630a)
         Styles for active filters and story table (commit e820e72)
+        Removed top search styling and polished Kanban search/full story styles (commit 7264fdb)
     - Path: sites/editorial/scripts/02_repository.js
-      Note: SQLite schema and persistence layer for staff
+      Note: |-
+        SQLite schema and persistence layer for staff
+        Persistence helpers for adding checklist items and updating tags (commit 7264fdb)
     - Path: sites/editorial/scripts/03_workflow.js
       Note: |-
         Seed data
         Tag and desk filtering plus filtered active-story selection (commit e820e72)
+        Workflow helpers for tag and checklist mutations (commit 7264fdb)
     - Path: sites/editorial/scripts/04_views.js
       Note: |-
         Server-rendered shell
         Story link and checklist form data attributes for progressive enhancement (commit 8c6630a)
         Functional tag links
+        Working tag/checklist forms and full story HTML page (commit 7264fdb)
     - Path: sites/editorial/scripts/05_routes.js
       Note: |-
         HTTP routes
         Panel fragment route and enhanced checklist response path (commit 8c6630a)
         Filtered stories and assignments APIs (commit e820e72)
+        Tag/checklist POST routes and HTML story route (commit 7264fdb)
     - Path: sites/editorial/scripts/06_client.js
-      Note: Progressive enhancement script for no-flash dossier fragment replacement (commit 8c6630a)
+      Note: |-
+        Progressive enhancement script for no-flash dossier fragment replacement (commit 8c6630a)
+        URL-encoded progressive form submissions for panel updates (commit 7264fdb)
     - Path: ttmp/2026/05/03/EDITORIAL-HERALD-SITE--19th-century-daily-herald-editorial-workflow-site/design-doc/01-daily-herald-editorial-workflow-architecture.md
       Note: Architecture plan derived from reference images
     - Path: ttmp/2026/05/03/EDITORIAL-HERALD-SITE--19th-century-daily-herald-editorial-workflow-site/sources/images/01-full-editorial-workflow-reference.png
@@ -47,6 +55,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -505,4 +514,163 @@ The filter function combines filters with AND semantics:
 ```text
 tag filter must match one split story tag exactly, case-insensitively
 desk filter must match story.desk exactly
+```
+
+## Step 4: Polish dossier actions, full story view, and search styling
+
+The fourth milestone turned the remaining decorative dossier controls into working forms. The tag `+` control is now an inline add-tag form, `+ Add item` is now an inline checklist-item form, and both use the existing progressive panel update path so they update the dossier without a full page flash.
+
+This milestone also removed the top search field from the header, restyled the Kanban search field so it matches the newspaper UI, and changed `Open full view` from a JSON endpoint into a proper server-rendered story page.
+
+### Prompt Context
+
+**User prompt (verbatim):** "tags + does not work, +Add item does not work. Open full view only shows the json. the top search can go. The search cards is badly styled."
+
+**Assistant interpretation:** Replace non-functional visual placeholders with working server-backed interactions, make the full view human-readable HTML, remove the global top search, and improve the Kanban search input styling.
+
+**Inferred user intent:** Bring the Editorial Herald UI closer to production quality by removing mock controls and making every visible control behave as expected.
+
+**Commit (code):** `7264fdb` — "Polish Editorial Herald dossier actions"
+
+### What I did
+
+- Added repository helpers in `sites/editorial/scripts/02_repository.js`:
+  - `addChecklistItem(sid, storyId, label)`
+  - `setStoryTags(sid, storyId, tags)`
+- Added workflow helpers in `sites/editorial/scripts/03_workflow.js`:
+  - `addChecklistItem(session, storyId, label)`
+  - `addTag(session, storyId, tag)`
+  - `removeTag(session, storyId, tag)` for future use
+- Replaced the decorative `+` tag chip in `sites/editorial/scripts/04_views.js` with `addTagForm(story)`.
+- Replaced decorative `+ Add item` with `addChecklistForm(story)`.
+- Added `fullStoryPage(story)` to render a newspaper-style full story view.
+- Changed `GET /stories/:id` in `sites/editorial/scripts/05_routes.js` to render HTML instead of JSON.
+- Kept JSON detail data available at `GET /api/stories/:id`.
+- Added `POST /stories/:id/tags`.
+- Added `POST /stories/:id/checklist`.
+- Updated `sites/editorial/scripts/06_client.js` so progressive panel forms submit as `application/x-www-form-urlencoded` instead of `FormData` multipart. This makes parsed form fields reliable for add-tag and add-checklist actions.
+- Removed the topbar search input from `topbar()`.
+- Styled the `kanban.dsl` default search toolbar:
+  - `.kb-toolbar`
+  - `.kb-toolbar input[type=search]`
+  - `.kb-toolbar input[type=search]::placeholder`
+
+### Why
+
+- The `+` tag and `+ Add item` controls looked actionable but were static text, which made the app feel unfinished.
+- A link labeled `Open full view` should not return raw JSON. JSON belongs under `/api/...`, while `/stories/:id` should be a page.
+- The top search duplicated the Kanban card search and did not yet have behavior, so removing it simplified the UI.
+- The default Kanban search was visually inconsistent with the broadsheet theme.
+
+### What worked
+
+- `node -c sites/editorial/scripts/*.js` passed.
+- `go test ./... -count=1` passed.
+- Browser validation confirmed:
+
+```json
+{
+  "topSearch": 0,
+  "boardSearchBox": {
+    "width": 420.0000305175781,
+    "height": 43.993072509765625
+  },
+  "computed": {
+    "height": "43.9931px",
+    "minHeight": "44px",
+    "borderRadius": "999px",
+    "font": "16px Georgia, \"Times New Roman\", serif"
+  },
+  "hasScoop": 1,
+  "hasItem": 1,
+  "fullStatus": 200,
+  "fullIsJson": false,
+  "fullHasBrief": true
+}
+```
+
+- The full story page now contains `Assignment brief` and is not JSON.
+- The add-tag and add-checklist flows update the dossier through the progressive enhancement path.
+
+### What didn't work
+
+- Before restarting the local server, the Kanban search styling still appeared unstyled in Playwright because the old script/CSS string was still loaded in the running process.
+- The first CSS selector used quoted attribute selectors inside a string rendered by `ui.style`; the rendered HTML escaped quotes in CSS as `&#34;`, so the browser did not apply the selector:
+
+```css
+.kb-toolbar input[type=&#34;search&#34;]
+```
+
+- Fix: changed the CSS selector to avoid quotes:
+
+```css
+.kb-toolbar input[type=search]
+```
+
+- After restarting the server, Playwright confirmed the search box computed styles were applied.
+
+### What I learned
+
+- CSS strings rendered through `ui.style` are HTML-escaped. Attribute selectors should avoid quoted values when possible, or `ui.style` should eventually treat CSS content differently.
+- `FormData` requests can be inconvenient with the current body parser path. Sending `URLSearchParams` with `application/x-www-form-urlencoded` is simpler and reliable for progressive-enhancement forms.
+- Keeping `/stories/:id` as HTML and `/api/stories/:id` as JSON makes the route model much clearer.
+
+### What was tricky to build
+
+- The progressive form helper needed to preserve the `X-Herald-Panel: 1` header while also setting `Content-Type`. Because `fetchPanel` merges options shallowly, the form submit path now supplies both headers explicitly.
+- Full-story validation with raw `curl /stories/1` can show `Story not found` if it uses a fresh cookie session that seeded stories with different IDs. Browser validation through an actual page link is a better check because the link belongs to the active session.
+- Styling the Kanban search required understanding that `ui.style` escaped quotes and that the old running process needed a restart before Playwright could observe the new CSS string.
+
+### What warrants a second pair of eyes
+
+- Review whether the add-tag form should reject punctuation or normalize tag capitalization.
+- Review whether the add-checklist form should refresh the Kanban card progress immediately. The dossier updates now; the board card progress may remain stale until the board refreshes.
+- Review whether `removeTag` should be surfaced as an explicit UI action or removed until needed.
+
+### What should be done in the future
+
+- Add delete/remove controls for tags and checklist items if the app should support editing mistakes.
+- Add a board fragment refresh after checklist mutations if stale progress on cards is noticeable.
+- Consider changing `ui.style` rendering so CSS content is not over-escaped.
+
+### Code review instructions
+
+- Start with `sites/editorial/scripts/04_views.js` and review `addTagForm`, `addChecklistForm`, and `fullStoryPage`.
+- Review `sites/editorial/scripts/05_routes.js` for the new POST routes and changed `/stories/:id` HTML route.
+- Review `sites/editorial/scripts/06_client.js` to confirm enhanced forms submit as URL-encoded data.
+- Review `sites/editorial/scripts/01_styles.js` for the top-search removal aftermath and Kanban search styling.
+- Validate locally:
+
+```bash
+node -c sites/editorial/scripts/*.js
+go test ./... -count=1
+```
+
+Then test in the browser:
+
+```text
+http://localhost:60133/
+```
+
+- Add a tag in the dossier and confirm it appears without a full-page reload.
+- Add a checklist item and confirm it appears without a full-page reload.
+- Click `Open full view ↗` and confirm it renders HTML rather than JSON.
+- Confirm the top search is gone and the remaining `Search cards...` input is styled.
+
+### Technical details
+
+New routes:
+
+```text
+POST /stories/:id/tags       body: tag=<name>
+POST /stories/:id/checklist  body: label=<checklist item>
+GET  /stories/:id            HTML full story view
+GET  /api/stories/:id        JSON story detail
+```
+
+Progressive form submission now sends:
+
+```http
+X-Herald-Panel: 1
+Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 ```

@@ -31,3 +31,12 @@ Step 3: made tag filters and table view functional, and removed redundant workfl
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/04_views.js — Board/table tabs
 
+
+## 2026-05-03
+
+Step 4: made dossier add-tag/add-checklist actions work, converted full story view to HTML, removed top search, and styled Kanban search (commit 7264fdb).
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/04_views.js — Dossier forms and full story page
+
