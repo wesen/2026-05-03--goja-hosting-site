@@ -159,6 +159,30 @@ Herald.repo = {
     );
   },
 
+  addChecklistItem(sid, storyId, label) {
+    const row = db.query(
+      "SELECT COALESCE(MAX(position), 0) AS maxPosition FROM herald_checklist WHERE session_id = ? AND story_id = ?",
+      sid,
+      Number(storyId),
+    )[0];
+    db.exec(
+      "INSERT INTO herald_checklist(session_id, story_id, label, done, position) VALUES (?, ?, ?, 0, ?)",
+      sid,
+      Number(storyId),
+      label,
+      Number((row && row.maxPosition) || 0) + 10,
+    );
+  },
+
+  setStoryTags(sid, storyId, tags) {
+    db.exec(
+      "UPDATE herald_stories SET tags = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ? AND id = ?",
+      tags,
+      sid,
+      Number(storyId),
+    );
+  },
+
   toggleChecklist(sid, storyId, itemId) {
     const row = db.query(
       "SELECT done FROM herald_checklist WHERE session_id = ? AND story_id = ? AND id = ?",

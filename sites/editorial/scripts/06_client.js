@@ -58,7 +58,11 @@ Herald.clientScript = `
     event.preventDefault();
     fetchPanel(form.action, {
       method: form.method || "POST",
-      body: new FormData(form)
+      headers: {
+        "X-Herald-Panel": "1",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+      },
+      body: new URLSearchParams(new FormData(form)).toString()
     }).catch(function (error) {
       console.error(error);
       form.submit();

@@ -55,6 +55,26 @@ app.post("/stories", (req, res) => {
   res.redirect("/?story=" + story.id);
 });
 
+app.post("/stories/:id/tags", (req, res) => {
+  const body = req.body || {};
+  Herald.workflow.addTag(req.session, req.params.id, body.tag);
+  if (wantsPanel(req)) {
+    renderPanel(req, res, req.params.id);
+    return;
+  }
+  res.redirect("/?story=" + req.params.id);
+});
+
+app.post("/stories/:id/checklist", (req, res) => {
+  const body = req.body || {};
+  Herald.workflow.addChecklistItem(req.session, req.params.id, body.label);
+  if (wantsPanel(req)) {
+    renderPanel(req, res, req.params.id);
+    return;
+  }
+  res.redirect("/?story=" + req.params.id);
+});
+
 app.post("/stories/:id/checklist/:itemId/toggle", (req, res) => {
   Herald.workflow.toggleChecklist(
     req.session,
@@ -76,7 +96,7 @@ app.get("/stories/:id", (req, res) => {
   const story = Herald.workflow.activeStory(req.session, {
     story: req.params.id,
   });
-  res.json(story || {});
+  res.html(Herald.views.fullStoryPage(story));
 });
 
 app.get("/api/stories", (req, res) => {

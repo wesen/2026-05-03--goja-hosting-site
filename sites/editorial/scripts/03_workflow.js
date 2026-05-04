@@ -286,6 +286,40 @@ Herald.workflow = {
     Herald.repo.toggleChecklist(sid, storyId, itemId);
   },
 
+  addChecklistItem(session, storyId, label) {
+    const sid = Herald.util.sessionId(session);
+    const clean = String(label || "").trim();
+    if (!clean) return;
+    Herald.repo.addChecklistItem(sid, storyId, clean);
+  },
+
+  addTag(session, storyId, tag) {
+    const sid = Herald.util.sessionId(session);
+    const story = Herald.repo.getStory(sid, storyId);
+    if (!story) return;
+    const clean = String(tag || "").trim();
+    if (!clean) return;
+    const tags = Herald.util.splitTags(story.tags);
+    const exists = tags.some(
+      (item) => item.toLowerCase() === clean.toLowerCase(),
+    );
+    if (!exists) tags.push(clean);
+    Herald.repo.setStoryTags(sid, storyId, tags.join(","));
+  },
+
+  removeTag(session, storyId, tag) {
+    const sid = Herald.util.sessionId(session);
+    const story = Herald.repo.getStory(sid, storyId);
+    if (!story) return;
+    const clean = String(tag || "")
+      .trim()
+      .toLowerCase();
+    const tags = Herald.util
+      .splitTags(story.tags)
+      .filter((item) => item.toLowerCase() !== clean);
+    Herald.repo.setStoryTags(sid, storyId, tags.join(","));
+  },
+
   deskSummary(session) {
     const stories = this.listStories(session, {});
     return Herald.desks.map((desk) => ({

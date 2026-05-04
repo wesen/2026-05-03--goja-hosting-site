@@ -77,13 +77,6 @@ Herald.views = {
       ),
       ui.div(
         { class: "global-actions" },
-        ui.label(
-          { class: "search-wrap" },
-          ui.input({
-            class: "search",
-            placeholder: "Search stories, people...",
-          }),
-        ),
         ui.button({ class: "icon-button", "aria-label": "Notifications" }, "♧"),
         ui.span({ class: "avatar" }, "EB"),
       ),
@@ -247,7 +240,7 @@ Herald.views = {
                 tag,
               ),
             ),
-          ui.span({ class: "tag" }, "+"),
+          this.addTagForm(story),
         ),
       ),
       ui.section(
@@ -256,7 +249,7 @@ Herald.views = {
         ui.div(
           { class: "checklist" },
           story.checklist.map((item) => this.checkItem(story, item)),
-          ui.span({ class: "check-item" }, "+", "Add item"),
+          this.addChecklistForm(story),
         ),
       ),
       ui.section(
@@ -276,6 +269,89 @@ Herald.views = {
       ui.a(
         { class: "open-full", href: "/stories/" + story.id },
         "Open full view ↗",
+      ),
+    );
+  },
+
+  addTagForm(story) {
+    return ui.form(
+      {
+        class: "inline-add",
+        method: "post",
+        action: `/stories/${story.id}/tags`,
+        "data-herald-panel-form": "true",
+      },
+      ui.input({ name: "tag", placeholder: "New tag" }),
+      ui.button({ type: "submit" }, "+ Tag"),
+    );
+  },
+
+  addChecklistForm(story) {
+    return ui.form(
+      {
+        class: "inline-add",
+        method: "post",
+        action: `/stories/${story.id}/checklist`,
+        "data-herald-panel-form": "true",
+      },
+      ui.input({ name: "label", placeholder: "New checklist item" }),
+      ui.button({ type: "submit" }, "+ Item"),
+    );
+  },
+
+  fullStoryPage(story) {
+    return ui.page(
+      { title: story ? story.title : "Story not found" },
+      ui.style(Herald.styles),
+      ui.main(
+        { class: "full-story" },
+        !story
+          ? ui.h1("Story not found")
+          : ui.fragment(
+              ui.a({ href: "/?story=" + story.id }, "← Back to Editorial Room"),
+              ui.p(
+                { class: "status-label" },
+                Herald.util.statusLabel(story.workflow_status),
+              ),
+              ui.h1(story.title),
+              ui.p({ class: "lead" }, story.description),
+              ui.div(
+                { class: "full-story-grid" },
+                ui.article(
+                  { class: "full-story-card" },
+                  ui.h2("Assignment brief"),
+                  ui.p(story.source_notes),
+                  ui.h2("Checklist"),
+                  ui.ul(
+                    story.checklist.map((item) =>
+                      ui.li(
+                        (Number(item.done || 0) ? "✓ " : "□ ") + item.label,
+                      ),
+                    ),
+                  ),
+                ),
+                ui.section(
+                  { class: "full-story-card" },
+                  ui.p(ui.strong("Desk"), ": " + story.desk_label),
+                  ui.p(
+                    ui.strong("Author"),
+                    ": " + (story.author_name || story.author_key),
+                  ),
+                  ui.p(ui.strong("Due"), ": " + story.due_date),
+                  ui.p(ui.strong("Priority"), ": " + story.priority),
+                  ui.p(
+                    ui.strong("Words"),
+                    `: ${story.word_count}/${story.word_target}`,
+                  ),
+                  ui.div(
+                    { class: "tags" },
+                    Herald.util
+                      .splitTags(story.tags)
+                      .map((tag) => ui.span({ class: "tag" }, tag)),
+                  ),
+                ),
+              ),
+            ),
       ),
     );
   },
