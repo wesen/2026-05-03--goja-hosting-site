@@ -674,3 +674,171 @@ Progressive form submission now sends:
 X-Herald-Panel: 1
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 ```
+
+## Step 5: Deploy Daily Herald Editorial to production
+
+The fifth milestone deployed the completed Daily Herald editorial redesign to the production `goja-kanban` K3s application. The app repository push published image `ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-a6379c7`, the automated workflow opened the K3s GitOps pull request, and that pull request was merged to let Argo CD reconcile the new image.
+
+Production validation confirmed that the editorial host serves the redesigned Daily Herald UI, the new HTML full-story view, the filtered stories API, and the polished search/add controls. Argo CD returned to `Synced Healthy` with the expected immutable image tag.
+
+### Prompt Context
+
+**User prompt (verbatim):** "alright good enough, deploy."
+
+**Assistant interpretation:** Push the current app commits, let the image/GitOps automation run, merge the generated K3s PR, wait for Argo CD, and validate the public Editorial host.
+
+**Inferred user intent:** Ship the Daily Herald redesign to the public `editorial.kanban.yolo.scapegoat.dev` production site.
+
+**Commit (code):** `a6379c7` — "Diary: record Editorial Herald dossier polish" was the pushed app commit and image source.
+
+### What I did
+
+- Verified local git status before deployment. Only `tmp/` was untracked from the local SQLite server.
+- Pushed app repo `main`:
+
+```bash
+git push origin main
+```
+
+- Monitored GitHub Actions run:
+  - Run: `25295444096`
+  - URL: `https://github.com/wesen/2026-05-03--goja-hosting-site/actions/runs/25295444096`
+  - Result: `completed/success`
+  - Jobs:
+    - `release / publish`
+    - `release / Open GitOps PR`
+- Confirmed generated K3s PR:
+  - PR: `https://github.com/wesen/2026-03-27--hetzner-k3s/pull/74`
+  - Title: `Deploy goja-kanban-prod using ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-a6379c7`
+  - Head: `automation/2026-05-03--goja-hosting-site-goja-kanban-prod-sha-a6379c7`
+  - Mergeable: `MERGEABLE`
+- Merged PR #74:
+  - Merge commit: `cecc102ce156bd791421bb16044e600265038d08`
+- Waited for Argo CD / Kubernetes rollout:
+  - image changed from `sha-7c9289f` to `sha-a6379c7`
+  - deployment reached `ready=1/1`
+  - Argo CD returned to `Synced Healthy`
+
+### Why
+
+- The user explicitly approved the redesigned Editorial site for deployment.
+- The repository already has a validated GHCR publish + GitOps PR workflow, so the deployment should use that path rather than manual cluster edits.
+- Argo CD should reconcile an immutable image tag from the K3s GitOps repo.
+
+### What worked
+
+- App workflow succeeded:
+
+```text
+25295444096 publish-image completed success a6379c7
+```
+
+- K3s PR was opened automatically:
+
+```text
+https://github.com/wesen/2026-03-27--hetzner-k3s/pull/74
+```
+
+- K3s PR merged successfully:
+
+```text
+mergeCommit: cecc102ce156bd791421bb16044e600265038d08
+```
+
+- Argo CD rollout completed:
+
+```text
+app=Synced Healthy ready=1/1 image=ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-a6379c7
+```
+
+- Production smoke tests passed:
+
+```bash
+curl -k -fsSI https://editorial.kanban.yolo.scapegoat.dev/ | head -1
+# HTTP/2 200
+```
+
+The production page contained:
+
+```text
+The Daily Herald
+Editorial Workflow
+Search cards
+New tag
+New checklist item
+Open full view
+```
+
+and did not contain the removed top-search placeholder `Search stories`.
+
+- Production full story view returned HTML content:
+
+```text
+Back to Editorial Room
+Assignment brief
+```
+
+- Production filtered API worked:
+
+```bash
+curl -k -fsS 'https://editorial.kanban.yolo.scapegoat.dev/api/stories?tag=Society' | jq '[.[].title]'
+```
+
+returned:
+
+```json
+[
+  "The rise of women in medicine",
+  "Summer fashion arrives in the city"
+]
+```
+
+### What didn't work
+
+- No deployment blockers occurred.
+- The known non-blocking local state remains: `tmp/` is untracked because the local dev server uses `tmp/editorial-herald/app.db`.
+
+### What I learned
+
+- The automatic publish-image to K3s PR flow remains healthy after the Editorial redesign.
+- Argo CD took roughly a minute after PR merge to observe the GitOps change and roll the Deployment.
+- Production validation should use a cookie jar for routes like `/stories/:id` because story IDs are session-scoped seed data.
+
+### What was tricky to build
+
+- There is a short delay where Argo CD reports `Synced Healthy` for the old image before observing the merged GitOps change. Polling both the Argo app state and the Deployment image avoids mistaking the old healthy state for the completed deployment.
+- Full-story validation needs to fetch a story ID from the same session that rendered the page. Directly requesting `/stories/1` in a fresh session may not find a story because IDs depend on existing DB rows and session-scoped seeding.
+
+### What warrants a second pair of eyes
+
+- Review the production UI manually to ensure the 19th-century layout looks acceptable at real browser widths.
+- Review whether the public production database now contains multiple session-seeded story sets from smoke testing. This is expected for the example app but may matter if demo data should stay very small.
+
+### What should be done in the future
+
+- If production smoke tests should avoid growing the SQLite database, add a dedicated read-only demo session or cleanup path.
+- Optionally deploy a follow-up that refreshes board card checklist progress after dossier mutations.
+
+### Code review instructions
+
+- Deployment source commit: `a6379c7` in `wesen/2026-05-03--goja-hosting-site`.
+- Deployed image: `ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-a6379c7`.
+- GitOps PR: `https://github.com/wesen/2026-03-27--hetzner-k3s/pull/74`.
+- Validate production:
+
+```bash
+curl -k -fsSI https://editorial.kanban.yolo.scapegoat.dev/ | head -1
+curl -k -fsS https://editorial.kanban.yolo.scapegoat.dev/ | grep 'The Daily Herald'
+curl -k -fsS 'https://editorial.kanban.yolo.scapegoat.dev/api/stories?tag=Society' | jq '[.[].title]'
+```
+
+### Technical details
+
+Final rollout evidence:
+
+```text
+goja-kanban Argo CD: Synced Healthy
+Deployment image: ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-a6379c7
+Deployment ready: 1/1
+Pod: goja-kanban-55c54f85f9-knnt7 Running
+```

@@ -40,3 +40,12 @@ Step 4: made dossier add-tag/add-checklist actions work, converted full story vi
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/04_views.js — Dossier forms and full story page
 
+
+## 2026-05-03
+
+Step 5: deployed Daily Herald Editorial to production via image sha-a6379c7 and K3s PR #74; Argo CD is Synced Healthy.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/EDITORIAL-HERALD-SITE--19th-century-daily-herald-editorial-workflow-site/reference/01-diary.md — Production deployment evidence and validation notes
+
