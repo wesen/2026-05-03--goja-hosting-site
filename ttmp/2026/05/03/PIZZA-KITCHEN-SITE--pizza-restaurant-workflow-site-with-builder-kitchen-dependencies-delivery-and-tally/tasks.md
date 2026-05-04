@@ -18,9 +18,12 @@
 - [x] Stack kitchen and delivery boards vertically.
 - [x] Collapse Done kitchen tasks by pizza order into summary cards.
 - [x] Validate locally with single-site and multi-site servers.
-- [ ] Deploy to `pizza.kanban.yolo.scapegoat.dev`.
+- [x] Deploy to `pizza.kanban.yolo.scapegoat.dev`.
 
 - [x] Split persistence into `Pizza.repo` and workflow rules into `Pizza.store`.
 - [x] Automatically move orders to cooking when kitchen work starts.
 - [x] Automatically move orders to quality when all kitchen tasks are done.
 - [x] Validate automatic delivery transitions locally with a stable cookie jar.
+- [x] Publish image `sha-7c9289f`.
+- [x] Add Pizza site to K3s ConfigMap and Ingress.
+- [x] Validate DNS, TLS certificate, Argo CD health, and public Pizza URL.

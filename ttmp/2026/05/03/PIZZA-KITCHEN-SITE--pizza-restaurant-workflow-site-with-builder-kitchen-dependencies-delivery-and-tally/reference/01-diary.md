@@ -90,3 +90,58 @@ Move Ken/stretch -> working  => Ken delivery_status becomes cooking
 Move all Ken tasks -> done   => Ken delivery_status becomes quality
 Rendered page Done column    => two "Completed kitchen work" grouped cards
 ```
+
+## Step 4: Production deployment to pizza.kanban.yolo.scapegoat.dev
+
+Pushed app commit `7c9289f` to `main`, which published image:
+
+```text
+ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-7c9289f
+```
+
+Updated the K3s GitOps repo to add the Pizza site to the multi-site ConfigMap, add `pizza.kanban.yolo.scapegoat.dev` to the Ingress/TLS hosts, and deploy the image tag above:
+
+```text
+/home/manuel/code/wesen/2026-03-27--hetzner-k3s
+commit 5ff6410 Deploy Pizza Ops goja kanban site
+```
+
+The automatic image PR also merged:
+
+```text
+PR #73 Deploy goja-kanban-prod using ghcr.io/wesen/2026-05-03--goja-hosting-site:sha-7c9289f
+merge commit 313580e
+```
+
+DNS validation:
+
+```text
+pizza.kanban.yolo.scapegoat.dev -> 91.98.46.169
+```
+
+Argo CD / cert-manager validation:
+
+```text
+goja-kanban   Synced   Healthy
+certificate/goja-kanban-tls Ready=True
+ACME order valid
+```
+
+Public validation:
+
+```text
+GET  https://pizza.kanban.yolo.scapegoat.dev/      -> Pizza Ops, Build a pizza
+HEAD https://pizza.kanban.yolo.scapegoat.dev/      -> HTTP/2 200
+GET  https://pizza.kanban.yolo.scapegoat.dev/api/tally
+     -> {"delivered":0,"orders":2,"paid":0,"revenueCents":0,"tipCents":0}
+GET  https://pizza.kanban.yolo.scapegoat.dev/api/orders
+     -> Mara cooking, Ken waiting
+```
+
+Existing public sites were also smoke-checked after the deployment:
+
+```text
+trail      -> HTTP/2 200, Trail Notes
+editorial  -> HTTP/2 200, Editorial Desk
+crm        -> HTTP/2 200, Sales Room
+```

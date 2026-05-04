@@ -27,3 +27,14 @@ Refactored Pizza Ops into repository/workflow/view/route layers and validated au
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/pizza/scripts/03_workflow.js — New workflow layer and automatic delivery transitions
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/pizza/scripts/04_views.js — Views now use workflow facade
 
+
+## 2026-05-03
+
+Deployed Pizza Ops to pizza.kanban.yolo.scapegoat.dev on image sha-7c9289f and validated DNS, TLS, Argo CD health, public page, and APIs.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/configmap.yaml — Pizza site added to multi-site config
+- /home/manuel/code/wesen/2026-03-27--hetzner-k3s/gitops/kustomize/goja-kanban/ingress.yaml — Pizza host added to public ingress and TLS
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/03/PIZZA-KITCHEN-SITE--pizza-restaurant-workflow-site-with-builder-kitchen-dependencies-delivery-and-tally/reference/01-diary.md — Production deployment evidence
+
