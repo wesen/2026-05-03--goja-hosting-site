@@ -22,3 +22,12 @@ Step 2: added progressive dossier updates so story selection and checklist toggl
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/06_client.js — No-flash progressive enhancement script
 
+
+## 2026-05-03
+
+Step 3: made tag filters and table view functional, and removed redundant workflow header controls (commit e820e72).
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/sites/editorial/scripts/04_views.js — Board/table tabs
+

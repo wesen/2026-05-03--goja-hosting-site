@@ -18,18 +18,23 @@ RelatedFiles:
       Note: |-
         Broadsheet visual style for the reference-inspired UI (commit bbef48b)
         Dossier busy-state styling for fragment requests (commit 8c6630a)
+        Styles for active filters and story table (commit e820e72)
     - Path: sites/editorial/scripts/02_repository.js
       Note: SQLite schema and persistence layer for staff
     - Path: sites/editorial/scripts/03_workflow.js
-      Note: Seed data
+      Note: |-
+        Seed data
+        Tag and desk filtering plus filtered active-story selection (commit e820e72)
     - Path: sites/editorial/scripts/04_views.js
       Note: |-
         Server-rendered shell
         Story link and checklist form data attributes for progressive enhancement (commit 8c6630a)
+        Functional tag links
     - Path: sites/editorial/scripts/05_routes.js
       Note: |-
         HTTP routes
         Panel fragment route and enhanced checklist response path (commit 8c6630a)
+        Filtered stories and assignments APIs (commit e820e72)
     - Path: sites/editorial/scripts/06_client.js
       Note: Progressive enhancement script for no-flash dossier fragment replacement (commit 8c6630a)
     - Path: ttmp/2026/05/03/EDITORIAL-HERALD-SITE--19th-century-daily-herald-editorial-workflow-site/design-doc/01-daily-herald-editorial-workflow-architecture.md
@@ -42,6 +47,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -341,4 +347,162 @@ submit [data-herald-panel-form]
 → prevent full form submission
 → POST with FormData and X-Herald-Panel: 1
 → replace .dossier
+```
+
+## Step 3: Make tags and table view functional
+
+The third milestone turned the visual placeholders for tags and the Board/Table tabs into working application behavior. Tag chips now link to filtered board/table views, desk sidebar entries filter stories by desk, and the Table tab renders the same filtered story set as a real table rather than acting as a decorative tab.
+
+This milestone also removed the redundant top-right Filter, Sort, and New Story toolbar from the workflow header. The board already provides its own search affordance, and the story form remains directly below the header where it is easier to understand as a server-backed action.
+
+### Prompt Context
+
+**User prompt (verbatim):** "then, make tags work, table view work, remove filter / sort / new story since they are already in the kanban."
+
+**Assistant interpretation:** Wire tag chips and the table tab to real filtered server-rendered behavior, and remove redundant header controls.
+
+**Inferred user intent:** Make the UI honest: visible controls should do something, and redundant placeholder controls should disappear.
+
+**Commit (code):** `e820e72` — "Make Editorial Herald tags and table view functional"
+
+### What I did
+
+- Updated `Herald.workflow.listStories(session, query)` to accept query filters.
+- Added `Herald.workflow.matchesQuery(story, query)` with support for:
+  - `?tag=<tag>` exact tag matching against comma-separated story tags;
+  - `?desk=<desk>` exact desk matching against story desk IDs.
+- Updated `Herald.workflow.activeStory(session, query)` so filtered pages select the first matching story for the dossier when no explicit `story` query parameter is present.
+- Updated `Herald.board` data loading to pass `ctx.query` into `listStories`.
+- Made sidebar desk entries link to `/?desk=<desk>`.
+- Made dossier tag chips link to `/?tag=<tag>`.
+- Added an active filter chip with a clear link.
+- Replaced decorative Board/Table spans with real links that preserve existing filters.
+- Added `Herald.views.tableView(req)` to render a proper story table with headline, desk, author, status, due date, checklist progress, and tags.
+- Updated `GET /api/stories` and `GET /api/assignments` to honor query filters.
+- Removed the top-right workflow header controls:
+  - `Filter⌄`
+  - `Sort: Priority⌄`
+  - `+ New Story`
+
+### Why
+
+- Tag chips and the Table tab looked interactive but did not previously change the application state.
+- The redundant top-right controls made the UI feel like a mockup rather than a working app.
+- Query-driven filters keep the site server-rendered, bookmarkable, and easy to inspect with `curl`.
+
+### What worked
+
+- Local filtered board validation:
+
+```bash
+curl -fsS 'http://127.0.0.1:60133/?tag=Society' \
+  | grep -Eo 'Tag: Society|The rise of women|Summer fashion|City Council debates' \
+  | sort | uniq -c
+```
+
+After restarting the server, this showed the Society filter and Society stories without the unrelated City Council dossier content.
+
+- Local table validation:
+
+```bash
+curl -fsS 'http://127.0.0.1:60133/?view=table&tag=Society' \
+  | grep -Eo 'The rise of women|Summer fashion|City Council debates' \
+  | sort | uniq -c
+```
+
+This showed the filtered table content.
+
+- API filter validation:
+
+```bash
+curl -fsS 'http://127.0.0.1:60133/api/stories?tag=Society' | jq '[.[].title]'
+```
+
+Returned:
+
+```json
+[
+  "The rise of women in medicine",
+  "Summer fashion arrives in the city"
+]
+```
+
+- Browser validation with Playwright on `/?view=table&tag=Society` returned:
+
+```json
+{
+  "tableRows": 2,
+  "hasTopFilter": 0,
+  "hasTopSort": 0,
+  "hasNewStoryButton": 0,
+  "activeFilter": "Tag: Society×",
+  "firstDossier": "The rise of women in medicine"
+}
+```
+
+- Validation commands passed:
+
+```bash
+node -c sites/editorial/scripts/*.js
+go test ./... -count=1
+```
+
+### What didn't work
+
+- The first filtered-page `curl` check still showed `City Council debates` because the running local process had not reloaded the edited `activeStory` behavior.
+- Fix: restarted the local server on port `60133` after stopping the old process, then repeated the checks.
+
+### What I learned
+
+- Filtered pages need both the main view and the dossier to honor the same query semantics, otherwise the page feels internally inconsistent.
+- The table view is easiest to keep correct when it reads from the same `Herald.workflow.listStories(session, query)` method as the board.
+- Query-string filters are a good fit for this app because they work for links, tables, APIs, and future deployment smoke tests.
+
+### What was tricky to build
+
+- Preserving query parameters across Board/Table tabs required a small `urlWithQuery(query, changes)` helper. Without that, changing views would clear the active tag or desk filter.
+- `activeStory` could not simply use `repo.firstStory` anymore. When a tag or desk filter is active, the right dossier should show the first matching story unless the URL explicitly selects `?story=<id>`.
+- Tag matching is exact and case-insensitive against split tags. This is clearer than substring matching, but it means tag spelling in seed data matters.
+
+### What warrants a second pair of eyes
+
+- Review whether active explicit `?story=<id>` should be forced to match the active filter or whether explicit story selection should continue to win.
+- Review whether the story creation form should also inherit the current tag/desk filter or remain global.
+- Review whether API filtering should support combined `tag` + `desk` filters in production examples; the implementation already combines them with AND semantics.
+
+### What should be done in the future
+
+- Add visual empty states for filters that return zero rows.
+- Consider making tag and desk filters progressive/no-flash as a future enhancement if full-page filter changes feel too heavy.
+- Consider adding tag counts to the sidebar or dossier.
+
+### Code review instructions
+
+- Start in `sites/editorial/scripts/03_workflow.js` with `listStories`, `matchesQuery`, and `activeStory`.
+- Then review `sites/editorial/scripts/04_views.js` for `tabs`, `activeFilter`, `urlWithQuery`, `tableView`, and tag links.
+- Check `sites/editorial/scripts/05_routes.js` to confirm filtered APIs use `req.query`.
+- Validate manually:
+
+```bash
+curl -fsS 'http://127.0.0.1:60133/?tag=Society' | grep 'Tag: Society'
+curl -fsS 'http://127.0.0.1:60133/?view=table&tag=Society' | grep 'story-table'
+curl -fsS 'http://127.0.0.1:60133/api/stories?tag=Society' | jq '[.[].title]'
+```
+
+### Technical details
+
+New query contract:
+
+```text
+/?tag=Society              -> board filtered to stories with exact tag Society
+/?desk=city                -> board filtered to City Hall desk stories
+/?view=table               -> table view instead of board
+/?view=table&tag=Society   -> filtered table view
+```
+
+The filter function combines filters with AND semantics:
+
+```text
+tag filter must match one split story tag exactly, case-insensitively
+desk filter must match story.desk exactly
 ```
