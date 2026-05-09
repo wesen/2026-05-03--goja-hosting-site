@@ -114,4 +114,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/go-go-golems/go-go-goja => ../corporate-headquarters/go-go-goja
+replace github.com/go-go-golems/go-go-goja => ../go-go-goja

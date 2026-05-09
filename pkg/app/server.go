@@ -15,10 +15,11 @@ import (
 	"github.com/dop251/goja"
 	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
+	expressmod "github.com/go-go-golems/go-go-goja/modules/express"
+	"github.com/go-go-golems/go-go-goja/modules/uidsl"
+	"github.com/go-go-golems/go-go-goja/pkg/gojahttp"
 	"github.com/go-go-golems/goja-site/pkg/dbguard"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
-	"github.com/go-go-golems/goja-site/pkg/uidsl"
-	"github.com/go-go-golems/goja-site/pkg/web"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -27,7 +28,7 @@ type Server struct {
 	cfg     Config
 	db      *sql.DB
 	runtime *engine.Runtime
-	host    *web.Host
+	host    *gojahttp.Host
 	httpSrv *http.Server
 }
 
@@ -54,7 +55,7 @@ func NewServer(cfg Config) (*Server, error) {
 		return nil, fmt.Errorf("ping sqlite database: %w", err)
 	}
 
-	host := web.NewHost(web.HostOptions{Dev: cfg.Dev, Renderer: uidsl.RenderAny})
+	host := gojahttp.NewHost(gojahttp.HostOptions{Dev: cfg.Dev, Renderer: uidsl.RenderAny})
 	guard := dbguard.New(db, cfg.DBPath)
 	meteredDB := dbguard.NewMeteredDB(db, guard)
 	databaseModule := databasemod.New(
@@ -73,7 +74,7 @@ func NewServer(cfg Config) (*Server, error) {
 			engine.NativeModuleSpec{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
 		).
 		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer")).
-		WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(), dbguard.NewRegistrar(guard)).
+		WithRuntimeModuleRegistrars(expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(), dbguard.NewRegistrar(guard)).
 		Build()
 	if err != nil {
 		_ = db.Close()

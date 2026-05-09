@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/go-go-golems/go-go-goja/engine"
+	"github.com/go-go-golems/go-go-goja/modules/uidsl"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
-	"github.com/go-go-golems/goja-site/pkg/uidsl"
 )
 
 func newRuntime(t *testing.T) *engine.Runtime {

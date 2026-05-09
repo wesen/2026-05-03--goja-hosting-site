@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/dop251/goja"
-	"github.com/go-go-golems/goja-site/pkg/uidsl"
+	"github.com/go-go-golems/go-go-goja/modules/uidsl"
 )
 
 func (b *Board) JSObject() *goja.Object {
