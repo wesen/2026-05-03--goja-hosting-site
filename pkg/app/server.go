@@ -65,7 +65,7 @@ func NewServer(cfg Config) (*Server, error) {
 
 	factory, err := engine.NewBuilder().
 		WithModules(dbRuntime.moduleSpecs...).
-		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer")).
+		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer", "yaml")).
 		WithRuntimeModuleRegistrars(registrars...).
 		Build()
 	if err != nil {

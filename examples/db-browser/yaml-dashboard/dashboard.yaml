@@ -1,0 +1,22 @@
+title: YAML Dashboard
+metrics:
+  - label: Tables
+    group: Schema
+    tone: neutral
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM sqlite_schema
+      WHERE type = 'table'
+        AND name NOT LIKE 'sqlite_%'
+  - label: People
+    group: Rows
+    tone: good
+    sql: |
+      SELECT COUNT(*) AS value
+      FROM people
+  - label: Earliest Person ID
+    group: Rows
+    tone: muted
+    sql: |
+      SELECT COALESCE(MIN(id), 0) AS value
+      FROM people
