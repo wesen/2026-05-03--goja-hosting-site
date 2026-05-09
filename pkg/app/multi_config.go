@@ -24,10 +24,10 @@ type MultiConfig struct {
 // SiteConfig describes one hosted site. If Host or DBPath are omitted, they are
 // derived from Name plus MultiConfig.BaseDomain/DataDir.
 type SiteConfig struct {
-	Name       string `json:"name" yaml:"name"`
-	Host       string `json:"host" yaml:"host"`
-	ScriptsDir string `json:"scriptsDir" yaml:"scriptsDir"`
-	DBPath     string `json:"dbPath" yaml:"dbPath"`
+	Name       string   `json:"name" yaml:"name"`
+	Host       string   `json:"host" yaml:"host"`
+	ScriptDirs []string `json:"scripts" yaml:"scripts"`
+	DBPath     string   `json:"dbPath" yaml:"dbPath"`
 }
 
 func LoadMultiConfig(path string) (MultiConfig, error) {
@@ -77,8 +77,8 @@ func (cfg *MultiConfig) Normalize() error {
 			return fmt.Errorf("duplicate site name %q", site.Name)
 		}
 		seenNames[site.Name] = struct{}{}
-		if site.ScriptsDir == "" {
-			return fmt.Errorf("site %q: scriptsDir is required", site.Name)
+		if len(site.ScriptDirs) == 0 {
+			return fmt.Errorf("site %q: scripts is required", site.Name)
 		}
 		if site.Host == "" {
 			if cfg.BaseDomain == "" {

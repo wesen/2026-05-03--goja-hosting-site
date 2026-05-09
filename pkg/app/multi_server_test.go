@@ -24,16 +24,16 @@ func writeSiteScript(t *testing.T, dir, body string) string {
 
 func TestMultiConfigNormalizeRejectsDuplicates(t *testing.T) {
 	cfg := MultiConfig{DataDir: t.TempDir(), BaseDomain: "kanban.example.test", Sites: []SiteConfig{
-		{Name: "trail", ScriptsDir: "./a"},
-		{Name: "trail", ScriptsDir: "./b"},
+		{Name: "trail", ScriptDirs: []string{"./a"}},
+		{Name: "trail", ScriptDirs: []string{"./b"}},
 	}}
 	if err := cfg.Normalize(); err == nil || !strings.Contains(err.Error(), "duplicate site name") {
 		t.Fatalf("expected duplicate site name error, got %v", err)
 	}
 
 	cfg = MultiConfig{DataDir: t.TempDir(), Sites: []SiteConfig{
-		{Name: "trail", Host: "same.example.test", ScriptsDir: "./a"},
-		{Name: "crm", Host: "same.example.test", ScriptsDir: "./b"},
+		{Name: "trail", Host: "same.example.test", ScriptDirs: []string{"./a"}},
+		{Name: "crm", Host: "same.example.test", ScriptDirs: []string{"./b"}},
 	}}
 	if err := cfg.Normalize(); err == nil || !strings.Contains(err.Error(), "duplicate site host") {
 		t.Fatalf("expected duplicate site host error, got %v", err)
@@ -56,8 +56,8 @@ func TestMultiServerRoutesByHostAndIsolatesDBs(t *testing.T) {
 	trailScripts := writeSiteScript(t, filepath.Join(root, "trail"), script)
 	crmScripts := writeSiteScript(t, filepath.Join(root, "crm"), script)
 	cfg := MultiConfig{Addr: ":0", DataDir: filepath.Join(root, "data"), Sites: []SiteConfig{
-		{Name: "trail", Host: "trail.kanban.example.test", ScriptsDir: trailScripts},
-		{Name: "crm", Host: "crm.kanban.example.test", ScriptsDir: crmScripts},
+		{Name: "trail", Host: "trail.kanban.example.test", ScriptDirs: []string{trailScripts}},
+		{Name: "crm", Host: "crm.kanban.example.test", ScriptDirs: []string{crmScripts}},
 	}}
 	srv, err := NewMultiServer(cfg)
 	if err != nil {

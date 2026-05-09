@@ -4,10 +4,14 @@ baseDomain: "kanban.yolo.scapegoat.dev"
 dev: true
 sites:
   - name: trail
-    scriptsDir: ./sites/trail/scripts
+    scripts:
+      - ./sites/trail/scripts
   - name: editorial
-    scriptsDir: ./sites/editorial/scripts
+    scripts:
+      - ./sites/editorial/scripts
   - name: crm
-    scriptsDir: ./sites/crm/scripts
+    scripts:
+      - ./sites/crm/scripts
   - name: pizza
-    scriptsDir: ./sites/pizza/scripts
+    scripts:
+      - ./sites/pizza/scripts

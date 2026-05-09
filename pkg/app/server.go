@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/dop251/goja"
@@ -39,8 +37,8 @@ func NewServer(cfg Config) (*Server, error) {
 	if cfg.DBPath == "" {
 		cfg.DBPath = "./app.db"
 	}
-	if cfg.ScriptsDir == "" {
-		cfg.ScriptsDir = "./scripts"
+	if len(cfg.ScriptDirs) == 0 {
+		cfg.ScriptDirs = []string{"./scripts"}
 	}
 
 	if err := os.MkdirAll(filepath.Dir(cfg.DBPath), 0o755); err != nil && filepath.Dir(cfg.DBPath) != "." {
@@ -147,7 +145,7 @@ func (s *Server) Close(ctx context.Context) error {
 }
 
 func (s *Server) LoadScripts(ctx context.Context) error {
-	files, err := scriptFiles(s.cfg.ScriptsDir)
+	files, err := scriptFiles(s.cfg.ScriptDirs)
 	if err != nil {
 		return err
 	}
@@ -166,31 +164,4 @@ func (s *Server) LoadScripts(ctx context.Context) error {
 		}
 	}
 	return nil
-}
-
-func scriptFiles(dir string) ([]string, error) {
-	info, err := os.Stat(dir)
-	if err != nil {
-		return nil, fmt.Errorf("stat scripts directory: %w", err)
-	}
-	if !info.IsDir() {
-		return nil, fmt.Errorf("scripts path %s is not a directory", dir)
-	}
-	var files []string
-	if err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if strings.HasSuffix(path, ".js") {
-			files = append(files, path)
-		}
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("walk scripts directory: %w", err)
-	}
-	sort.Strings(files)
-	return files, nil
 }

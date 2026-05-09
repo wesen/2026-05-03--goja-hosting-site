@@ -18,10 +18,10 @@ type serveCommand struct{ *cmds.CommandDescription }
 var _ cmds.BareCommand = (*serveCommand)(nil)
 
 type serveSettings struct {
-	Addr       string `glazed:"addr"`
-	DBPath     string `glazed:"db"`
-	ScriptsDir string `glazed:"scripts"`
-	Dev        bool   `glazed:"dev"`
+	Addr       string   `glazed:"addr"`
+	DBPath     string   `glazed:"db"`
+	ScriptDirs []string `glazed:"scripts"`
+	Dev        bool     `glazed:"dev"`
 }
 
 func newServeCommand() (*serveCommand, error) {
@@ -40,7 +40,7 @@ Example:
 		cmds.WithFlags(
 			fields.New("addr", fields.TypeString, fields.WithDefault(":8080"), fields.WithHelp("HTTP bind address")),
 			fields.New("db", fields.TypeString, fields.WithDefault("./app.db"), fields.WithHelp("SQLite database path")),
-			fields.New("scripts", fields.TypeString, fields.WithDefault("./scripts"), fields.WithHelp("Directory containing JavaScript files to load")),
+			fields.New("scripts", fields.TypeStringList, fields.WithHelp("Directory containing JavaScript files to load (repeatable; defaults to ./scripts)")),
 			fields.New("dev", fields.TypeBool, fields.WithDefault(false), fields.WithHelp("Show detailed development errors in HTTP responses")),
 		),
 	)
@@ -58,19 +58,19 @@ func (c *serveCommand) Run(ctx context.Context, vals *values.Values) error {
 	if settings.DBPath == "" {
 		settings.DBPath = "./app.db"
 	}
-	if settings.ScriptsDir == "" {
-		settings.ScriptsDir = "./scripts"
+	if len(settings.ScriptDirs) == 0 {
+		settings.ScriptDirs = []string{"./scripts"}
 	}
 
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	srv, err := app.NewServer(app.Config{Addr: settings.Addr, DBPath: settings.DBPath, ScriptsDir: settings.ScriptsDir, Dev: settings.Dev})
+	srv, err := app.NewServer(app.Config{Addr: settings.Addr, DBPath: settings.DBPath, ScriptDirs: settings.ScriptDirs, Dev: settings.Dev})
 	if err != nil {
 		return err
 	}
 	defer func() { _ = srv.Close(context.Background()) }()
 
-	fmt.Printf("goja-site serving addr=%s db=%s scripts=%s\n", settings.Addr, settings.DBPath, settings.ScriptsDir)
+	fmt.Printf("goja-site serving addr=%s db=%s scripts=%v\n", settings.Addr, settings.DBPath, settings.ScriptDirs)
 	return srv.Run(ctx)
 }

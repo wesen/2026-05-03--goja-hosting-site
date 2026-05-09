@@ -4,6 +4,6 @@ package app
 type Config struct {
 	Addr       string
 	DBPath     string
-	ScriptsDir string
+	ScriptDirs []string
 	Dev        bool
 }
