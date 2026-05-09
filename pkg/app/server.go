@@ -12,11 +12,9 @@ import (
 
 	"github.com/dop251/goja"
 	"github.com/go-go-golems/go-go-goja/engine"
-	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
 	expressmod "github.com/go-go-golems/go-go-goja/modules/express"
 	"github.com/go-go-golems/go-go-goja/modules/uidsl"
 	"github.com/go-go-golems/go-go-goja/pkg/gojahttp"
-	"github.com/go-go-golems/goja-site/pkg/dbguard"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -40,6 +38,9 @@ func NewServer(cfg Config) (*Server, error) {
 	if len(cfg.ScriptDirs) == 0 {
 		cfg.ScriptDirs = []string{"./scripts"}
 	}
+	if err := normalizeDBPolicyConfig(&cfg); err != nil {
+		return nil, err
+	}
 
 	if err := os.MkdirAll(filepath.Dir(cfg.DBPath), 0o755); err != nil && filepath.Dir(cfg.DBPath) != "." {
 		return nil, fmt.Errorf("create db directory: %w", err)
@@ -54,25 +55,18 @@ func NewServer(cfg Config) (*Server, error) {
 	}
 
 	host := gojahttp.NewHost(gojahttp.HostOptions{Dev: cfg.Dev, Renderer: uidsl.RenderAny})
-	guard := dbguard.New(db, cfg.DBPath)
-	meteredDB := dbguard.NewMeteredDB(db, guard)
-	databaseModule := databasemod.New(
-		databasemod.WithPreconfiguredDB(meteredDB),
-		databasemod.WithConfigureEnabled(false),
-	)
-	dbAliasModule := databasemod.New(
-		databasemod.WithName("db"),
-		databasemod.WithPreconfiguredDB(meteredDB),
-		databasemod.WithConfigureEnabled(false),
-	)
+	dbRuntime, err := buildDatabaseRuntimeConfig(cfg, db)
+	if err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+	registrars := []engine.RuntimeModuleRegistrar{expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()}
+	registrars = append(registrars, dbRuntime.registrars...)
 
 	factory, err := engine.NewBuilder().
-		WithModules(
-			engine.NativeModuleSpec{ModuleID: "database:app", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader},
-			engine.NativeModuleSpec{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
-		).
+		WithModules(dbRuntime.moduleSpecs...).
 		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer")).
-		WithRuntimeModuleRegistrars(expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(), dbguard.NewRegistrar(guard)).
+		WithRuntimeModuleRegistrars(registrars...).
 		Build()
 	if err != nil {
 		_ = db.Close()

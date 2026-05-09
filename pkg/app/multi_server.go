@@ -22,7 +22,7 @@ func NewMultiServer(cfg MultiConfig) (*MultiServer, error) {
 	}
 	m := &MultiServer{cfg: cfg, sites: map[string]*Server{}}
 	for _, site := range cfg.Sites {
-		srv, err := NewServer(Config{DBPath: site.DBPath, ScriptDirs: site.ScriptDirs, Dev: cfg.Dev})
+		srv, err := NewServer(Config{DBPath: site.DBPath, ScriptDirs: site.ScriptDirs, Dev: cfg.Dev, DBPolicy: site.DBPolicy, ReadOnly: site.ReadOnly, AllowWrites: site.AllowWrites})
 		if err != nil {
 			_ = m.Close(context.Background())
 			return nil, fmt.Errorf("create site %s (%s): %w", site.Name, site.Host, err)

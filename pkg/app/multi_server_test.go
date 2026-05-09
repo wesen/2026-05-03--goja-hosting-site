@@ -40,6 +40,28 @@ func TestMultiConfigNormalizeRejectsDuplicates(t *testing.T) {
 	}
 }
 
+func TestMultiConfigNormalizeDatabasePolicy(t *testing.T) {
+	cfg := MultiConfig{DataDir: t.TempDir(), BaseDomain: "kanban.example.test", Sites: []SiteConfig{
+		{Name: "browser", ScriptDirs: []string{"./scripts"}, DBPolicy: DBPolicySimple},
+	}}
+	if err := cfg.Normalize(); err != nil {
+		t.Fatalf("Normalize() error = %v", err)
+	}
+	if cfg.Sites[0].DBPolicy != DBPolicySimple {
+		t.Fatalf("site policy = %q, want %q", cfg.Sites[0].DBPolicy, DBPolicySimple)
+	}
+	if !cfg.Sites[0].ReadOnly {
+		t.Fatalf("simple site without allowWrites should normalize to readonly")
+	}
+
+	cfg = MultiConfig{DataDir: t.TempDir(), BaseDomain: "kanban.example.test", Sites: []SiteConfig{
+		{Name: "bad", ScriptDirs: []string{"./scripts"}, DBPolicy: DBPolicy("invalid")},
+	}}
+	if err := cfg.Normalize(); err == nil || !strings.Contains(err.Error(), "unsupported database policy") {
+		t.Fatalf("expected invalid policy error, got %v", err)
+	}
+}
+
 func TestMultiServerRoutesByHostAndIsolatesDBs(t *testing.T) {
 	root := t.TempDir()
 	script := `
@@ -63,7 +85,7 @@ func TestMultiServerRoutesByHostAndIsolatesDBs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new multi server: %v", err)
 	}
-	defer srv.Close(context.Background())
+	defer func() { _ = srv.Close(context.Background()) }()
 
 	request := func(host string) string {
 		t.Helper()

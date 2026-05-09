@@ -4,14 +4,18 @@ baseDomain: "kanban.yolo.scapegoat.dev"
 dev: true
 sites:
   - name: trail
+    dbPolicy: guarded
     scripts:
       - ./sites/trail/scripts
   - name: editorial
+    dbPolicy: guarded
     scripts:
       - ./sites/editorial/scripts
   - name: crm
+    dbPolicy: guarded
     scripts:
       - ./sites/crm/scripts
   - name: pizza
+    dbPolicy: guarded
     scripts:
       - ./sites/pizza/scripts

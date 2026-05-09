@@ -24,10 +24,13 @@ type MultiConfig struct {
 // SiteConfig describes one hosted site. If Host or DBPath are omitted, they are
 // derived from Name plus MultiConfig.BaseDomain/DataDir.
 type SiteConfig struct {
-	Name       string   `json:"name" yaml:"name"`
-	Host       string   `json:"host" yaml:"host"`
-	ScriptDirs []string `json:"scripts" yaml:"scripts"`
-	DBPath     string   `json:"dbPath" yaml:"dbPath"`
+	Name        string   `json:"name" yaml:"name"`
+	Host        string   `json:"host" yaml:"host"`
+	ScriptDirs  []string `json:"scripts" yaml:"scripts"`
+	DBPath      string   `json:"dbPath" yaml:"dbPath"`
+	DBPolicy    DBPolicy `json:"dbPolicy" yaml:"dbPolicy"`
+	ReadOnly    bool     `json:"readonly" yaml:"readonly"`
+	AllowWrites bool     `json:"allowWrites" yaml:"allowWrites"`
 }
 
 func LoadMultiConfig(path string) (MultiConfig, error) {
@@ -94,6 +97,13 @@ func (cfg *MultiConfig) Normalize() error {
 		if site.DBPath == "" {
 			site.DBPath = filepath.Join(cfg.DataDir, site.Name, "app.db")
 		}
+		siteCfg := Config{DBPolicy: site.DBPolicy, ReadOnly: site.ReadOnly, AllowWrites: site.AllowWrites}
+		if err := normalizeDBPolicyConfig(&siteCfg); err != nil {
+			return fmt.Errorf("site %q: %w", site.Name, err)
+		}
+		site.DBPolicy = siteCfg.DBPolicy
+		site.ReadOnly = siteCfg.ReadOnly
+		site.AllowWrites = siteCfg.AllowWrites
 	}
 	return nil
 }
