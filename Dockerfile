@@ -1,7 +1,5 @@
 FROM golang:1.26-bookworm AS build
 WORKDIR /src
-RUN mkdir -p /corporate-headquarters \
- && git clone --depth 1 https://github.com/go-go-golems/go-go-goja /corporate-headquarters/go-go-goja
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .

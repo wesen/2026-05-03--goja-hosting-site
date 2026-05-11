@@ -9,6 +9,7 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/schema"
 	"github.com/go-go-golems/glazed/pkg/help"
 	help_cmd "github.com/go-go-golems/glazed/pkg/help/cmd"
+	"github.com/go-go-golems/go-go-goja/pkg/jsverbscli"
 	"github.com/go-go-golems/goja-site/pkg/doc"
 	"github.com/spf13/cobra"
 )
@@ -67,6 +68,7 @@ func main() {
 		os.Exit(1)
 	}
 	root.AddCommand(serveMultiCobra)
+	root.AddCommand(jsverbscli.NewLazyCommand())
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

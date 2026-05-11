@@ -8,17 +8,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/dop251/goja"
 	"github.com/go-go-golems/go-go-goja/engine"
-	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
-	"github.com/go-go-golems/goja-site/pkg/dbguard"
+	expressmod "github.com/go-go-golems/go-go-goja/modules/express"
+	"github.com/go-go-golems/go-go-goja/modules/uidsl"
+	"github.com/go-go-golems/go-go-goja/pkg/gojahttp"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
-	"github.com/go-go-golems/goja-site/pkg/uidsl"
-	"github.com/go-go-golems/goja-site/pkg/web"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -27,7 +24,7 @@ type Server struct {
 	cfg     Config
 	db      *sql.DB
 	runtime *engine.Runtime
-	host    *web.Host
+	host    *gojahttp.Host
 	httpSrv *http.Server
 }
 
@@ -38,8 +35,11 @@ func NewServer(cfg Config) (*Server, error) {
 	if cfg.DBPath == "" {
 		cfg.DBPath = "./app.db"
 	}
-	if cfg.ScriptsDir == "" {
-		cfg.ScriptsDir = "./scripts"
+	if len(cfg.ScriptDirs) == 0 {
+		cfg.ScriptDirs = []string{"./scripts"}
+	}
+	if err := normalizeDBPolicyConfig(&cfg); err != nil {
+		return nil, err
 	}
 
 	if err := os.MkdirAll(filepath.Dir(cfg.DBPath), 0o755); err != nil && filepath.Dir(cfg.DBPath) != "." {
@@ -54,26 +54,19 @@ func NewServer(cfg Config) (*Server, error) {
 		return nil, fmt.Errorf("ping sqlite database: %w", err)
 	}
 
-	host := web.NewHost(web.HostOptions{Dev: cfg.Dev, Renderer: uidsl.RenderAny})
-	guard := dbguard.New(db, cfg.DBPath)
-	meteredDB := dbguard.NewMeteredDB(db, guard)
-	databaseModule := databasemod.New(
-		databasemod.WithPreconfiguredDB(meteredDB),
-		databasemod.WithConfigureEnabled(false),
-	)
-	dbAliasModule := databasemod.New(
-		databasemod.WithName("db"),
-		databasemod.WithPreconfiguredDB(meteredDB),
-		databasemod.WithConfigureEnabled(false),
-	)
+	host := gojahttp.NewHost(gojahttp.HostOptions{Dev: cfg.Dev, Renderer: uidsl.RenderAny})
+	dbRuntime, err := buildDatabaseRuntimeConfig(cfg, db)
+	if err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+	registrars := []engine.RuntimeModuleRegistrar{expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()}
+	registrars = append(registrars, dbRuntime.registrars...)
 
 	factory, err := engine.NewBuilder().
-		WithModules(
-			engine.NativeModuleSpec{ModuleID: "database:app", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader},
-			engine.NativeModuleSpec{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
-		).
-		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer")).
-		WithRuntimeModuleRegistrars(web.NewExpressRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(), dbguard.NewRegistrar(guard)).
+		WithModules(dbRuntime.moduleSpecs...).
+		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer", "yaml")).
+		WithRuntimeModuleRegistrars(registrars...).
 		Build()
 	if err != nil {
 		_ = db.Close()
@@ -146,7 +139,7 @@ func (s *Server) Close(ctx context.Context) error {
 }
 
 func (s *Server) LoadScripts(ctx context.Context) error {
-	files, err := scriptFiles(s.cfg.ScriptsDir)
+	files, err := scriptFiles(s.cfg.ScriptDirs)
 	if err != nil {
 		return err
 	}
@@ -165,31 +158,4 @@ func (s *Server) LoadScripts(ctx context.Context) error {
 		}
 	}
 	return nil
-}
-
-func scriptFiles(dir string) ([]string, error) {
-	info, err := os.Stat(dir)
-	if err != nil {
-		return nil, fmt.Errorf("stat scripts directory: %w", err)
-	}
-	if !info.IsDir() {
-		return nil, fmt.Errorf("scripts path %s is not a directory", dir)
-	}
-	var files []string
-	if err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if strings.HasSuffix(path, ".js") {
-			files = append(files, path)
-		}
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("walk scripts directory: %w", err)
-	}
-	sort.Strings(files)
-	return files, nil
 }

@@ -12,6 +12,17 @@ go run ./cmd/goja-site serve \
 
 Open <http://localhost:8080/>.
 
+Run the browser smoke test:
+
+```bash
+./scripts/playwright-kanban-smoke.sh
+```
+
+The script starts `goja-site serve` on `:19111`, drives Chromium through
+Playwright, verifies seeded board counts, adds a card, searches for it, and moves
+it to Done through the precise-move UI. It installs Playwright into a temporary
+npm workspace so the repository does not need a committed `node_modules` tree.
+
 The page is registered from server-side JavaScript, persisted in SQLite through
 `require("database")`, routed through `require("express")`, rendered as HTML
 through `require("ui.dsl")`, and now uses `require("kanban.dsl")` for standard
