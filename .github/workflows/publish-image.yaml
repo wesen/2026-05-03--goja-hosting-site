@@ -43,8 +43,6 @@ jobs:
       dockerfile: ./Dockerfile
       build_context: .
       test_command: |
-        mkdir -p ../corporate-headquarters
-        git clone --depth 1 https://github.com/go-go-golems/go-go-goja ../corporate-headquarters/go-go-goja
         go test ./...
       go_version_file: go.mod
       gitops_target_config: deploy/gitops-targets.json

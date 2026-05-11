@@ -45,6 +45,58 @@ func TestSimplePolicyReadOnlyRejectsWrites(t *testing.T) {
 	}
 }
 
+func TestSimplePolicyReadOnlyQueryRejectsMutatingPragmaAndWith(t *testing.T) {
+	root := t.TempDir()
+	dbPath := filepath.Join(root, "app.db")
+	seedSQLite(t, dbPath, `CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT); INSERT INTO items(name) VALUES ('seed');`)
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("open sqlite db: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	readOnly := &simpleDB{db: db}
+	for _, query := range []string{
+		"PRAGMA user_version=123",
+		"WITH doomed AS (SELECT id FROM items) DELETE FROM items WHERE id IN (SELECT id FROM doomed) RETURNING id",
+	} {
+		if rows, err := readOnly.Query(query); err == nil {
+			_ = rows.Close()
+			t.Fatalf("Query(%q) unexpectedly succeeded", query)
+		} else if !strings.Contains(err.Error(), "database writes are disabled") {
+			t.Fatalf("Query(%q) error = %v, want writes disabled", query, err)
+		}
+	}
+
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM items").Scan(&count); err != nil {
+		t.Fatalf("count items: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("item count after rejected queries = %d, want 1", count)
+	}
+}
+
+func TestSimplePolicyReadOnlyQueryAllowsReadPragma(t *testing.T) {
+	root := t.TempDir()
+	dbPath := filepath.Join(root, "app.db")
+	seedSQLite(t, dbPath, `CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT);`)
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("open sqlite db: %v", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	rows, err := (&simpleDB{db: db}).Query("PRAGMA table_info(items)")
+	if err != nil {
+		t.Fatalf("read pragma rejected: %v", err)
+	}
+	defer func() { _ = rows.Close() }()
+	if !rows.Next() {
+		t.Fatalf("expected table_info rows")
+	}
+}
+
 func TestSimplePolicyAllowWrites(t *testing.T) {
 	root := t.TempDir()
 	scripts := writeSiteScript(t, root, `

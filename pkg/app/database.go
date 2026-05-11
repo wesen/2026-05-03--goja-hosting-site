@@ -83,44 +83,112 @@ func writesDisabledError() error {
 }
 
 func isReadOnlySQL(query string) bool {
-	switch firstSQLToken(query) {
-	case "SELECT", "WITH", "PRAGMA", "EXPLAIN":
+	tokens := sqlTokens(query)
+	if len(tokens) == 0 {
+		return false
+	}
+	switch tokens[0] {
+	case "SELECT", "EXPLAIN":
+		return !containsSQLWriteToken(tokens)
+	case "WITH":
+		return !containsSQLWriteToken(tokens)
+	case "PRAGMA":
+		return isReadOnlyPragma(tokens)
+	default:
+		return false
+	}
+}
+
+func containsSQLWriteToken(tokens []string) bool {
+	for _, token := range tokens {
+		switch token {
+		case "INSERT", "UPDATE", "DELETE", "REPLACE", "CREATE", "ALTER", "DROP", "TRUNCATE", "VACUUM", "ANALYZE", "REINDEX", "ATTACH", "DETACH":
+			return true
+		}
+	}
+	return false
+}
+
+func isReadOnlyPragma(tokens []string) bool {
+	if len(tokens) < 2 {
+		return false
+	}
+	for _, token := range tokens {
+		if token == "=" {
+			return false
+		}
+	}
+	switch tokens[1] {
+	case "APPLICATION_ID", "DATABASE_LIST", "FOREIGN_KEY_LIST", "FREELIST_COUNT", "INDEX_INFO", "INDEX_LIST", "INDEX_XINFO", "PAGE_COUNT", "PAGE_SIZE", "QUICK_CHECK", "SCHEMA_VERSION", "TABLE_INFO", "TABLE_LIST", "TABLE_XINFO", "USER_VERSION":
 		return true
 	default:
 		return false
 	}
 }
 
-func firstSQLToken(query string) string {
-	s := strings.TrimSpace(query)
-	for {
+func sqlTokens(query string) []string {
+	var tokens []string
+	for i := 0; i < len(query); {
+		ch := query[i]
 		switch {
-		case strings.HasPrefix(s, "--"):
-			idx := strings.IndexByte(s, '\n')
-			if idx < 0 {
-				return ""
+		case isSQLSpace(ch):
+			i++
+		case ch == '-' && i+1 < len(query) && query[i+1] == '-':
+			i += 2
+			for i < len(query) && query[i] != '\n' {
+				i++
 			}
-			s = strings.TrimSpace(s[idx+1:])
-		case strings.HasPrefix(s, "/*"):
-			idx := strings.Index(s, "*/")
-			if idx < 0 {
-				return ""
+		case ch == '/' && i+1 < len(query) && query[i+1] == '*':
+			i += 2
+			for i+1 < len(query) && (query[i] != '*' || query[i+1] != '/') {
+				i++
 			}
-			s = strings.TrimSpace(s[idx+2:])
+			if i+1 < len(query) {
+				i += 2
+			}
+		case ch == '\'' || ch == '"' || ch == '`':
+			i = skipSQLQuoted(query, i, ch)
+		case ch == '[':
+			i++
+			for i < len(query) && query[i] != ']' {
+				i++
+			}
+			if i < len(query) {
+				i++
+			}
+		case isSQLTokenByte(ch):
+			start := i
+			i++
+			for i < len(query) && isSQLTokenByte(query[i]) {
+				i++
+			}
+			tokens = append(tokens, strings.ToUpper(query[start:i]))
 		default:
-			if s == "" {
-				return ""
-			}
-			for i, r := range s {
-				if !isSQLTokenChar(r) {
-					return strings.ToUpper(s[:i])
-				}
-			}
-			return strings.ToUpper(s)
+			tokens = append(tokens, string(ch))
+			i++
 		}
 	}
+	return tokens
 }
 
-func isSQLTokenChar(r rune) bool {
-	return r == '_' || r == '-' || r >= '0' && r <= '9' || r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z'
+func skipSQLQuoted(query string, start int, quote byte) int {
+	for i := start + 1; i < len(query); i++ {
+		if query[i] != quote {
+			continue
+		}
+		if i+1 < len(query) && query[i+1] == quote {
+			i++
+			continue
+		}
+		return i + 1
+	}
+	return len(query)
+}
+
+func isSQLSpace(ch byte) bool {
+	return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || ch == '\f'
+}
+
+func isSQLTokenByte(ch byte) bool {
+	return ch == '_' || ch >= '0' && ch <= '9' || ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z'
 }
