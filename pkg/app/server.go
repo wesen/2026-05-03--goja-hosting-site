@@ -16,6 +16,7 @@ import (
 	"github.com/go-go-golems/go-go-goja/modules/uidsl"
 	"github.com/go-go-golems/go-go-goja/pkg/gojahttp"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
+	"github.com/go-go-golems/goja-site/pkg/observability"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -60,7 +61,11 @@ func NewServer(cfg Config) (*Server, error) {
 		_ = db.Close()
 		return nil, err
 	}
-	registrars := []engine.RuntimeModuleRegistrar{expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()}
+	var kanbanObserver kanbanddsl.Observer
+	if cfg.Observability != nil && cfg.Observability.Kanban != nil {
+		kanbanObserver = observability.NewKanbanObserver(cfg.SiteName, cfg.Observability.Kanban)
+	}
+	registrars := []engine.RuntimeModuleRegistrar{expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(kanbanObserver)}
 	registrars = append(registrars, dbRuntime.registrars...)
 
 	factory, err := engine.NewBuilder().

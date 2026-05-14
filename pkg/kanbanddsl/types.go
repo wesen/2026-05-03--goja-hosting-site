@@ -6,6 +6,7 @@ type Runtime struct {
 	vm             *goja.Runtime
 	boards         map[string]*Board
 	clientPrefixes map[string]bool
+	observer       Observer
 }
 
 type ColumnSpec struct {

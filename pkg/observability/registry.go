@@ -13,6 +13,7 @@ type Observability struct {
 	Multi    *MultiMetrics
 	DB       *DBMetrics
 	Guard    *GuardMetrics
+	Kanban   *KanbanMetrics
 }
 
 // New creates an isolated registry so tests and embedded servers do not contend
@@ -26,6 +27,7 @@ func New() *Observability {
 	multiMetrics := NewMultiMetrics(registry)
 	dbMetrics := NewDBMetrics(registry)
 	guardMetrics := NewGuardMetrics(registry)
+	kanbanMetrics := NewKanbanMetrics(registry)
 
-	return &Observability{Registry: registry, HTTP: httpMetrics, Multi: multiMetrics, DB: dbMetrics, Guard: guardMetrics}
+	return &Observability{Registry: registry, HTTP: httpMetrics, Multi: multiMetrics, DB: dbMetrics, Guard: guardMetrics, Kanban: kanbanMetrics}
 }

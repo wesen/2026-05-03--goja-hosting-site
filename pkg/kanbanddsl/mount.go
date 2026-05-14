@@ -3,6 +3,7 @@ package kanbanddsl
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dop251/goja"
 	"github.com/go-go-golems/go-go-goja/modules/uidsl"
@@ -32,17 +33,29 @@ func (b *Board) Mount(app goja.Value, prefix string) error {
 		b.runtime.clientPrefixes[prefix] = true
 	}
 	if err := callAppMethod(b.vm, app, "get", cleanJoin(cleanJoin(prefix, b.cfg.ID), "fragment"), func(req, res goja.Value) goja.Value {
+		started := time.Now()
 		reqObj := req.ToObject(b.vm)
+		renderStart := time.Now()
 		node, err := b.Render(b.vm.ToValue(map[string]any{"query": reqObj.Get("query").Export(), "session": reqObj.Get("session").Export()}))
+		if b.runtime.observer != nil {
+			b.runtime.observer.ObserveRender(b.cfg.ID, "fragment", time.Since(renderStart), -1, err)
+		}
 		if err != nil {
+			if b.runtime.observer != nil {
+				b.runtime.observer.ObserveFragment(b.cfg.ID, time.Since(started), err)
+			}
 			panic(b.vm.NewGoError(err))
 		}
 		callMethod(b.vm, res.ToObject(b.vm), "html", b.vm.ToValue(node))
+		if b.runtime.observer != nil {
+			b.runtime.observer.ObserveFragment(b.cfg.ID, time.Since(started), nil)
+		}
 		return goja.Undefined()
 	}); err != nil {
 		return err
 	}
 	if err := callAppMethod(b.vm, app, "post", cleanJoin(cleanJoin(cleanJoin(prefix, b.cfg.ID), "action"), ":action"), func(req, res goja.Value) goja.Value {
+		started := time.Now()
 		reqObj := req.ToObject(b.vm)
 		params := reqObj.Get("params").ToObject(b.vm)
 		action := params.Get("action").String()
@@ -52,8 +65,15 @@ func (b *Board) Mount(app goja.Value, prefix string) error {
 		}
 		bodyObj := body.ToObject(b.vm)
 		_ = bodyObj.Set("session", reqObj.Get("session"))
+		dispatchStart := time.Now()
 		result, err := b.Dispatch(action, bodyObj)
+		if b.runtime.observer != nil {
+			b.runtime.observer.ObserveDispatch(b.cfg.ID, action, time.Since(dispatchStart), err)
+		}
 		if err != nil {
+			if b.runtime.observer != nil {
+				b.runtime.observer.ObserveAction(b.cfg.ID, action, false, time.Since(started), err)
+			}
 			panic(b.vm.NewGoError(err))
 		}
 		out := map[string]any{"ok": true}
@@ -67,20 +87,42 @@ func (b *Board) Mount(app goja.Value, prefix string) error {
 		if okValue, exists := out["ok"]; exists && !truthyGo(okValue) {
 			callMethod(b.vm, res.ToObject(b.vm), "status", b.vm.ToValue(400))
 			callMethod(b.vm, res.ToObject(b.vm), "json", b.vm.ToValue(out))
+			if b.runtime.observer != nil {
+				b.runtime.observer.ObserveAction(b.cfg.ID, action, false, time.Since(started), nil)
+			}
 			return goja.Undefined()
 		}
-		if shouldRefresh(out["refresh"]) {
+		refresh := shouldRefresh(out["refresh"])
+		if refresh {
+			renderStart := time.Now()
 			node, err := b.Render(b.vm.ToValue(map[string]any{"query": reqObj.Get("query").Export(), "session": reqObj.Get("session").Export()}))
 			if err != nil {
+				if b.runtime.observer != nil {
+					b.runtime.observer.ObserveRender(b.cfg.ID, "action_refresh", time.Since(renderStart), -1, err)
+					b.runtime.observer.ObserveAction(b.cfg.ID, action, true, time.Since(started), err)
+				}
 				panic(b.vm.NewGoError(err))
 			}
 			html, err := uidsl.RenderAny(b.vm, b.vm.ToValue(node))
+			if b.runtime.observer != nil {
+				htmlBytes := -1
+				if err == nil {
+					htmlBytes = len(html)
+				}
+				b.runtime.observer.ObserveRender(b.cfg.ID, "action_refresh", time.Since(renderStart), htmlBytes, err)
+			}
 			if err != nil {
+				if b.runtime.observer != nil {
+					b.runtime.observer.ObserveAction(b.cfg.ID, action, true, time.Since(started), err)
+				}
 				panic(b.vm.NewGoError(err))
 			}
 			out["html"] = html
 		}
 		callMethod(b.vm, res.ToObject(b.vm), "json", b.vm.ToValue(out))
+		if b.runtime.observer != nil {
+			b.runtime.observer.ObserveAction(b.cfg.ID, action, refresh, time.Since(started), nil)
+		}
 		return goja.Undefined()
 	}); err != nil {
 		return err

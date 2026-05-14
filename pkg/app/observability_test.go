@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -76,6 +77,59 @@ func TestServerDBMetrics(t *testing.T) {
 	}
 }
 
+func TestServerKanbanMetrics(t *testing.T) {
+	root := t.TempDir()
+	scripts := writeSiteScript(t, root, `
+		const express = require("express");
+		const ui = require("ui.dsl");
+		const kanban = require("kanban.dsl");
+		const app = express.app();
+		let cards = [{ id: 1, title: "One", status: "todo", position: 10 }];
+		const board = kanban.board("metrics-board")
+		  .columns(cols => cols.column("todo").title("To Do").done().column("done").title("Done").done())
+		  .data(data => data.cards(() => cards).id(card => String(card.id)).column(card => card.status).position(card => card.position).searchText(card => card.title))
+		  .render(render => render.card(card => ui.h3(card.title)))
+		  .actions(actions => actions.cardMoved(event => { cards[0].status = event.to.columnId; return { ok: true, refresh: true }; }))
+		  .build();
+		board.mount(app, "/_kanban");
+		app.get("/", (req, res) => res.html(board.render({ query: req.query })));
+	`)
+	obs := observability.New()
+	srv, err := NewServer(Config{DBPath: filepath.Join(root, "app.db"), ScriptDirs: []string{scripts}, DBPolicy: DBPolicySimple, ReadOnly: true, SiteName: "kanban-site", Observability: obs})
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+	defer func() { _ = srv.Close(context.Background()) }()
+
+	req := httptest.NewRequest(http.MethodGet, "http://example.test/_kanban/metrics-board/fragment", nil)
+	rr := httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("fragment status = %d body=%s", rr.Code, rr.Body.String())
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "http://example.test/_kanban/metrics-board/action/cardMoved", bytes.NewBufferString(`{"cardId":"1","to":{"columnId":"done","index":0}}`))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	srv.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("action status = %d body=%s", rr.Code, rr.Body.String())
+	}
+
+	if got := gatherHistogramCount(t, obs.Registry, "goja_site_kanban_fragment_duration_seconds", map[string]string{"site": "kanban-site", "board": "metrics-board"}); got != 1 {
+		t.Fatalf("fragment histogram count = %v, want 1", got)
+	}
+	if got := gatherHistogramCount(t, obs.Registry, "goja_site_kanban_action_duration_seconds", map[string]string{"site": "kanban-site", "board": "metrics-board", "action": "cardMoved", "refresh": "true"}); got != 1 {
+		t.Fatalf("action histogram count = %v, want 1", got)
+	}
+	if got := gatherHistogramCount(t, obs.Registry, "goja_site_kanban_dispatch_duration_seconds", map[string]string{"site": "kanban-site", "board": "metrics-board", "action": "cardMoved"}); got != 1 {
+		t.Fatalf("dispatch histogram count = %v, want 1", got)
+	}
+	if got := gatherHistogramCount(t, obs.Registry, "goja_site_kanban_render_duration_seconds", map[string]string{"site": "kanban-site", "board": "metrics-board", "reason": "action_refresh"}); got != 1 {
+		t.Fatalf("action refresh render histogram count = %v, want 1", got)
+	}
+}
+
 func TestMultiServerMetrics(t *testing.T) {
 	root := t.TempDir()
 	script := `
@@ -130,6 +184,15 @@ func gatherCounter(t *testing.T, registry *prometheus.Registry, name string, lab
 		t.Fatalf("metric %s with labels %v is not a counter", name, labels)
 	}
 	return metric.GetCounter().GetValue()
+}
+
+func gatherHistogramCount(t *testing.T, registry *prometheus.Registry, name string, labels map[string]string) uint64 {
+	t.Helper()
+	metric := gatherMetric(t, registry, name, labels)
+	if metric.GetHistogram() == nil {
+		t.Fatalf("metric %s with labels %v is not a histogram", name, labels)
+	}
+	return metric.GetHistogram().GetSampleCount()
 }
 
 func gatherGauge(t *testing.T, registry *prometheus.Registry, name string, labels map[string]string) float64 {
