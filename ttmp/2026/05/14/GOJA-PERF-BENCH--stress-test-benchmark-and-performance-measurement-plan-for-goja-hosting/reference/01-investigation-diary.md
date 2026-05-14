@@ -1579,3 +1579,158 @@ heap.pprof      # /debug/pprof/heap
 allocs.pprof    # /debug/pprof/allocs
 goroutine.txt   # /debug/pprof/goroutine?debug=1
 ```
+
+## Step 14: Start Phase 6 OpenTelemetry tracing
+
+I implemented the first Phase 6 tracing slice: OpenTelemetry dependencies, CLI flags, tracer provider setup, OTLP HTTP export, HTTP handler tracing, database operation spans, benchmark harness flags, and an example collector config for forwarding traces to a Jaeger-compatible backend.
+
+This is intentionally a first tracing slice rather than the final tracing story. HTTP and DB spans are now in place. Multi-site dispatch, guard checks, and Kanban spans remain as explicit follow-up tasks because they need careful context propagation and low-cardinality attribute design.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue from Phase 5 into Phase 6 OpenTelemetry tracing and commit a coherent first tracing slice.
+
+**Inferred user intent:** The user wants ongoing implementation progress with diary entries and commits, not another planning-only response.
+
+**Commit (code):** pending at diary draft time — this step will be updated after the tracing slice commit.
+
+### What I did
+
+- Added OpenTelemetry dependencies:
+  - `go.opentelemetry.io/otel`
+  - `go.opentelemetry.io/otel/sdk`
+  - `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp`
+  - `go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp`
+- Added `pkg/observability/tracing.go`:
+  - `TracingConfig`.
+  - `InitTracing`.
+  - OTLP HTTP exporter setup.
+  - parent-based trace-id-ratio sampler.
+  - service name resource attribute.
+  - W3C trace context/baggage propagation.
+  - HTTP handler wrapping through `otelhttp`.
+- Extended `Observability` with a tracer and tracing-enabled flag.
+- Wrapped `Server.Handler()` with OTel HTTP instrumentation when tracing is enabled.
+- Added DB query/exec spans in `pkg/observability/sql.go` with bounded attributes:
+  - `goja_site.site`
+  - `goja_site.db_policy`
+  - `goja_site.sql_kind`
+- Added tracing flags to `serve` and `serve-multi`:
+  - `--otel-enabled`
+  - `--otel-endpoint`
+  - `--otel-sample-ratio`
+  - `--service-name`
+- Added corresponding Vegeta harness flags:
+  - `--otel`
+  - `--otel-endpoint`
+  - `--otel-sample-ratio`
+- Added `deploy/observability/otel-collector-jaeger.example.yaml`.
+- Added a disabled-tracing no-op test.
+- Ran tests and a short OTel-enabled Vegeta smoke.
+
+### Why
+
+- HTTP spans provide top-level request timing and route classification.
+- DB spans add useful lower-level timing for database operations.
+- OTLP keeps the app backend-neutral; Jaeger can be used through an OpenTelemetry Collector.
+- Tracing must be opt-in and sampled because it has more overhead than metrics.
+
+### What worked
+
+`go test ./...` passed:
+
+```text
+?   	github.com/go-go-golems/goja-site/cmd/goja-site	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/app	(cached)
+ok  	github.com/go-go-golems/goja-site/pkg/dbguard	(cached)
+?   	github.com/go-go-golems/goja-site/pkg/doc	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/kanbanddsl	(cached)
+ok  	github.com/go-go-golems/goja-site/pkg/observability	(cached)
+```
+
+The harness help now exposes OTel flags:
+
+```text
+--otel                enable OpenTelemetry tracing for the goja-site process
+--otel-endpoint URL   OTLP HTTP traces endpoint (default: http://127.0.0.1:4318/v1/traces)
+--otel-sample-ratio N trace sample ratio between 0 and 1 (default: 0.01)
+```
+
+The OTel-enabled smoke succeeded at the HTTP level:
+
+```text
+scripts/bench-vegeta.sh --scenario null --duration 1s --rate 2/s --port 18183 --metrics-port 19193 --otel --otel-sample-ratio 1
+Requests      [total, rate, throughput]         2, 4.00, 3.99
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:2
+benchmark complete: /home/manuel/code/wesen/2026-05-03--goja-hosting-site/bench/results/20260514T202056Z-null
+```
+
+### What didn't work
+
+The OTel smoke did not have a collector listening locally, so shutdown/export logged the expected connection failure:
+
+```text
+2026/05/14 16:21:01 traces export: Post "http://127.0.0.1:4318/v1/traces": dial tcp 127.0.0.1:4318: connect: connection refused
+```
+
+This is acceptable for the smoke because it validates that tracing can be enabled without breaking request handling. A real trace delivery test needs an OpenTelemetry Collector or test exporter.
+
+The first `go test ./...` after adding tracing code failed because the OTel dependencies were not retained in `go.mod`/`go.sum` until the imports existed. Running explicit `go get ... && go mod tidy` after adding imports fixed it.
+
+### What I learned
+
+- Adding OTel before imports are present can be undone by `go mod tidy`; add code imports first or run `go get` again after code is present.
+- `otelhttp` provides a clean top-level request span without modifying `gojahttp.Host`.
+- DB spans currently start from `context.Background()` because the JavaScript database module interface does not pass request context into `QueryExecer`. This means DB spans are useful timing events but are not yet children of request spans.
+
+### What was tricky to build
+
+The main tricky issue is context propagation across the Goja boundary. HTTP requests have context, but JavaScript route handlers call database methods through a `QueryExecer` interface that does not carry context. A future improvement could store request context in the runtime owner call path or add context-aware database module support.
+
+The second tricky issue is exporter behavior when no collector is present. The app should continue serving requests, but shutdown/export can log connection failures. The smoke confirmed request handling remains healthy.
+
+### What warrants a second pair of eyes
+
+- Whether DB spans without request parentage are useful enough, or whether they should wait for context propagation.
+- Whether default `--otel-endpoint` should be empty and rely on `OTEL_EXPORTER_OTLP_ENDPOINT` instead of defaulting to localhost.
+- Whether CLI flags should mirror standard `OTEL_*` environment variables more completely.
+
+### What should be done in the future
+
+- Add an integration test with an in-memory or local OTel collector/test exporter.
+- Add spans for multi-site dispatch, guard checks, Kanban dispatch, and Kanban render once context propagation is clearer.
+- Consider adding context-aware DB instrumentation in go-go-goja's database module.
+
+### Code review instructions
+
+- Start with `pkg/observability/tracing.go`.
+- Review CLI flag wiring in `cmd/goja-site/serve.go` and `cmd/goja-site/serve_multi.go`.
+- Review DB span attributes in `pkg/observability/sql.go` and confirm raw SQL is not attached.
+- Validate with:
+
+```text
+go test ./...
+scripts/bench-vegeta.sh --scenario null --duration 1s --rate 2/s --port 18183 --metrics-port 19193 --otel --otel-sample-ratio 1
+```
+
+### Technical details
+
+New tracing flags:
+
+```text
+--otel-enabled
+--otel-endpoint http://127.0.0.1:4318/v1/traces
+--otel-sample-ratio 0.01
+--service-name goja-site
+```
+
+New harness flags:
+
+```text
+--otel
+--otel-endpoint URL
+--otel-sample-ratio N
+```

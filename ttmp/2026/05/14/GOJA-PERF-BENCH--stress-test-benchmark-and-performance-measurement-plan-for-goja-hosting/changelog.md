@@ -161,3 +161,14 @@ Implemented Phase 5 pprof capture automation in the Vegeta harness and verified 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/scripts/bench-vegeta.sh — Pprof capture automation
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 13 pprof smoke evidence
 
+
+## 2026-05-14
+
+Started Phase 6 OpenTelemetry tracing with OTLP exporter, HTTP spans, DB spans, CLI/harness flags, and collector example.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/deploy/observability/otel-collector-jaeger.example.yaml — Collector-to-Jaeger example
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/sql.go — DB operation spans
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/tracing.go — OpenTelemetry tracing setup
+

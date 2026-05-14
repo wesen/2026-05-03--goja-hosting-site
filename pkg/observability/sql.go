@@ -1,6 +1,7 @@
 package observability
 
 import (
+	"context"
 	"database/sql"
 	"strings"
 	"time"
@@ -8,6 +9,8 @@ import (
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
 	"github.com/go-go-golems/goja-site/pkg/dbguard"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type DBMetrics struct {
@@ -44,19 +47,26 @@ type InstrumentedQueryExecer struct {
 	site    string
 	policy  string
 	metrics *DBMetrics
+	tracer  trace.Tracer
 }
 
-func InstrumentQueryExecer(inner databasemod.QueryExecer, site, policy string, metrics *DBMetrics) databasemod.QueryExecer {
+func InstrumentQueryExecer(inner databasemod.QueryExecer, site, policy string, metrics *DBMetrics, tracer trace.Tracer) databasemod.QueryExecer {
 	if inner == nil || metrics == nil {
 		return inner
 	}
-	return &InstrumentedQueryExecer{inner: inner, site: SiteLabel(site), policy: policy, metrics: metrics}
+	return &InstrumentedQueryExecer{inner: inner, site: SiteLabel(site), policy: policy, metrics: metrics, tracer: tracer}
 }
 
 func (i *InstrumentedQueryExecer) Query(query string, args ...any) (*sql.Rows, error) {
 	kind := SQLKindLabel(query)
 	start := time.Now()
+	ctx, span := i.startSpan("query", kind)
+	_ = ctx
 	rows, err := i.inner.Query(query, args...)
+	if err != nil {
+		span.RecordError(err)
+	}
+	span.End()
 	i.observe("query", kind, start, err)
 	return rows, err
 }
@@ -64,9 +74,26 @@ func (i *InstrumentedQueryExecer) Query(query string, args ...any) (*sql.Rows, e
 func (i *InstrumentedQueryExecer) Exec(query string, args ...any) (sql.Result, error) {
 	kind := SQLKindLabel(query)
 	start := time.Now()
+	ctx, span := i.startSpan("exec", kind)
+	_ = ctx
 	result, err := i.inner.Exec(query, args...)
+	if err != nil {
+		span.RecordError(err)
+	}
+	span.End()
 	i.observe("exec", kind, start, err)
 	return result, err
+}
+
+func (i *InstrumentedQueryExecer) startSpan(operation, kind string) (context.Context, trace.Span) {
+	if i.tracer == nil {
+		return context.Background(), trace.SpanFromContext(context.Background())
+	}
+	return i.tracer.Start(context.Background(), "goja-site.db."+operation, trace.WithAttributes(
+		attribute.String("goja_site.site", i.site),
+		attribute.String("goja_site.db_policy", i.policy),
+		attribute.String("goja_site.sql_kind", kind),
+	))
 }
 
 func (i *InstrumentedQueryExecer) observe(operation, kind string, start time.Time, err error) {

@@ -94,10 +94,14 @@ func NewServer(cfg Config) (*Server, error) {
 }
 
 func (s *Server) Handler() http.Handler {
+	handler := http.Handler(s.host)
 	if s.cfg.Observability != nil && s.cfg.Observability.HTTP != nil {
-		return s.cfg.Observability.HTTP.Wrap(s.cfg.SiteName, s.host)
+		handler = s.cfg.Observability.HTTP.Wrap(s.cfg.SiteName, handler)
 	}
-	return s.host
+	if s.cfg.Observability != nil {
+		handler = s.cfg.Observability.WrapTrace(s.cfg.SiteName, handler)
+	}
+	return handler
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

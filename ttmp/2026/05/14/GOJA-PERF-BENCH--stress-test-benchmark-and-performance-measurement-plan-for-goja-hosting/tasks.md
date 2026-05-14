@@ -97,14 +97,15 @@ Goal: make expensive bottleneck analysis reproducible during stress runs.
 
 Goal: add sampled distributed tracing after metrics and load generation are stable.
 
-- [ ] Add OpenTelemetry dependencies.
-- [ ] Add tracing config and CLI flags/env handling.
-- [ ] Initialize tracer provider and OTLP exporter with clean shutdown.
-- [ ] Wrap HTTP handlers with OTel HTTP instrumentation.
-- [ ] Add spans for multi-site dispatch, DB query/exec, guard checks, Kanban actions, and renders.
-- [ ] Add safe low-cardinality span attributes only.
-- [ ] Add sampling controls and tests/no-op defaults.
-- [ ] Add example OTel Collector to Jaeger config.
+- [x] Add OpenTelemetry dependencies.
+- [x] Add tracing config and CLI flags/env handling.
+- [x] Initialize tracer provider and OTLP exporter with clean shutdown.
+- [x] Wrap HTTP handlers with OTel HTTP instrumentation.
+- [ ] Add spans for multi-site dispatch, guard checks, Kanban actions, and renders.
+- [x] Add spans for DB query/exec operations.
+- [x] Add safe low-cardinality span attributes only.
+- [x] Add sampling controls and tests/no-op defaults.
+- [x] Add example OTel Collector to Jaeger config.
 - [x] Run `go test ./...`.
 - [ ] Commit Phase 6.
 

@@ -39,7 +39,7 @@ func buildDatabaseRuntimeConfig(cfg Config, db *sql.DB) (databaseRuntimeConfig, 
 	}
 
 	if cfg.Observability != nil && cfg.Observability.DB != nil {
-		queryExecer = observability.InstrumentQueryExecer(queryExecer, cfg.SiteName, string(policy), cfg.Observability.DB)
+		queryExecer = observability.InstrumentQueryExecer(queryExecer, cfg.SiteName, string(policy), cfg.Observability.DB, cfg.Observability.Tracer)
 	}
 
 	databaseModule := databasemod.New(

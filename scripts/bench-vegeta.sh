@@ -12,6 +12,9 @@ BINARY=""
 KEEP_DB="0"
 CAPTURE_PPROF="0"
 PPROF_SECONDS="5"
+OTEL_ENABLED="0"
+OTEL_ENDPOINT="http://127.0.0.1:4318/v1/traces"
+OTEL_SAMPLE_RATIO="0.01"
 VEGETA_BIN="${VEGETA_BIN:-vegeta}"
 
 usage() {
@@ -28,6 +31,9 @@ Options:
   --binary PATH         existing goja-site binary to use instead of building tmp binary
   --pprof               enable diagnostics pprof and capture CPU/heap/goroutine profiles
   --pprof-seconds N     CPU profile duration in seconds when --pprof is set (default: 5)
+  --otel                enable OpenTelemetry tracing for the goja-site process
+  --otel-endpoint URL   OTLP HTTP traces endpoint (default: http://127.0.0.1:4318/v1/traces)
+  --otel-sample-ratio N trace sample ratio between 0 and 1 (default: 0.01)
   --keep-db             keep temporary DB files
   -h, --help            show this help
 
@@ -46,6 +52,9 @@ while [[ $# -gt 0 ]]; do
     --binary) BINARY="$2"; shift 2 ;;
     --pprof) CAPTURE_PPROF="1"; shift ;;
     --pprof-seconds) PPROF_SECONDS="$2"; shift 2 ;;
+    --otel) OTEL_ENABLED="1"; shift ;;
+    --otel-endpoint) OTEL_ENDPOINT="$2"; shift 2 ;;
+    --otel-sample-ratio) OTEL_SAMPLE_RATIO="$2"; shift 2 ;;
     --keep-db) KEEP_DB="1"; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -72,6 +81,10 @@ METRICS_URL="http://${METRICS_ADDR}/metrics"
 PPROF_ARGS=()
 if [[ "$CAPTURE_PPROF" == "1" ]]; then
   PPROF_ARGS=(--pprof)
+fi
+OTEL_ARGS=()
+if [[ "$OTEL_ENABLED" == "1" ]]; then
+  OTEL_ARGS=(--otel-enabled --otel-endpoint "$OTEL_ENDPOINT" --otel-sample-ratio "$OTEL_SAMPLE_RATIO")
 fi
 LOG_PATH="$OUT_DIR/server.log"
 TARGETS_PATH="$TMP_DIR/targets.txt"
@@ -147,13 +160,13 @@ EOF_TARGETS
 start_server() {
   case "$SCENARIO" in
     null)
-      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/null-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/null-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     render)
-      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/render-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/render-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     db-read|db-write)
-      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/db-read-write --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/db-read-write --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     multi)
       local cfg="$TMP_DIR/sites.yaml"
@@ -176,7 +189,7 @@ sites:
     scripts:
       - bench/scripts/render-route
 EOF_CFG
-      "$BINARY" serve-multi --config "$cfg" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve-multi --config "$cfg" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
   esac
   SERVER_PID=$!
@@ -254,6 +267,9 @@ cat >"$OUT_DIR/summary.md" <<EOF_SUMMARY
 - Metrics URL: ${METRICS_URL}
 - pprof capture: ${CAPTURE_PPROF}
 - pprof seconds: ${PPROF_SECONDS}
+- OpenTelemetry enabled: ${OTEL_ENABLED}
+- OpenTelemetry endpoint: ${OTEL_ENDPOINT}
+- OpenTelemetry sample ratio: ${OTEL_SAMPLE_RATIO}
 - Commit: $(git rev-parse HEAD)
 - Dirty worktree: $(if [[ -n "$(git status --porcelain)" ]]; then echo true; else echo false; fi)
 - Go version: $(go version)
