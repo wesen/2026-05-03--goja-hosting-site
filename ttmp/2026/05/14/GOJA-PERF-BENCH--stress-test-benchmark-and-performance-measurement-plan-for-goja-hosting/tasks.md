@@ -17,21 +17,21 @@
 
 Goal: add a private diagnostics listener and basic Prometheus metrics before serious load generation.
 
-- [ ] Add Prometheus client dependency.
-- [ ] Create `pkg/observability` package with config, registry, diagnostics server, and label helpers.
-- [ ] Register Go runtime and process collectors on a custom registry.
-- [ ] Add `--metrics-addr`, `--metrics-path`, and `--pprof` flags to `serve`.
-- [ ] Add `--metrics-addr`, `--metrics-path`, and `--pprof` flags to `serve-multi`.
-- [ ] Start diagnostics listener only when `--metrics-addr` is set.
-- [ ] Mount `/metrics` on the diagnostics listener.
-- [ ] Mount `/debug/pprof/*` only when `--pprof` is set.
-- [ ] Add basic HTTP metrics: requests total, request duration, response bytes, in-flight requests.
-- [ ] Add coarse low-cardinality route classifier.
-- [ ] Add multi-site metrics: configured host count, site up gauge, unknown host request counter, dispatch duration.
-- [ ] Add unit tests for diagnostics server, route labels, status class labels, and response recorder.
-- [ ] Add app integration tests proving metrics increment for single-site and multi-site requests.
-- [ ] Run `go test ./...`.
-- [ ] Commit Phase 1.
+- [x] Add Prometheus client dependency.
+- [x] Create `pkg/observability` package with config, registry, diagnostics server, and label helpers.
+- [x] Register Go runtime and process collectors on a custom registry.
+- [x] Add `--metrics-addr`, `--metrics-path`, and `--pprof` flags to `serve`.
+- [x] Add `--metrics-addr`, `--metrics-path`, and `--pprof` flags to `serve-multi`.
+- [x] Start diagnostics listener only when `--metrics-addr` is set.
+- [x] Mount `/metrics` on the diagnostics listener.
+- [x] Mount `/debug/pprof/*` only when `--pprof` is set.
+- [x] Add basic HTTP metrics: requests total, request duration, response bytes, in-flight requests.
+- [x] Add coarse low-cardinality route classifier.
+- [x] Add multi-site metrics: configured host count, site up gauge, unknown host request counter, dispatch duration.
+- [x] Add unit tests for diagnostics server, route labels, status class labels, and response recorder.
+- [x] Add app integration tests proving metrics increment for single-site and multi-site requests.
+- [x] Run `go test ./...`.
+- [x] Commit Phase 1.
 
 ## Phase 2 — Load-generation MVP
 
@@ -63,7 +63,7 @@ Goal: expose the database and guard bottlenecks that realistic goja-site apps ar
 - [ ] Add `db.guard` observer interface or equivalent decoupled metrics hook.
 - [ ] Expose guard check duration, check totals, cleanup attempts, hard/soft limit events, and DB size gauges.
 - [ ] Add tests for guarded write metrics.
-- [ ] Run `go test ./...`.
+- [x] Run `go test ./...`.
 - [ ] Commit Phase 3.
 
 ## Phase 4 — Kanban metrics
@@ -78,7 +78,7 @@ Goal: measure realistic application interaction paths separately from generic HT
 - [ ] Measure rendered HTML bytes.
 - [ ] Count action errors by bounded error class.
 - [ ] Add tests for fragment/action metrics and refresh labels.
-- [ ] Run `go test ./...`.
+- [x] Run `go test ./...`.
 - [ ] Commit Phase 4.
 
 ## Phase 5 — pprof capture automation in load harness
@@ -105,7 +105,7 @@ Goal: add sampled distributed tracing after metrics and load generation are stab
 - [ ] Add safe low-cardinality span attributes only.
 - [ ] Add sampling controls and tests/no-op defaults.
 - [ ] Add example OTel Collector to Jaeger config.
-- [ ] Run `go test ./...`.
+- [x] Run `go test ./...`.
 - [ ] Commit Phase 6.
 
 ## Phase 7 — Benchmark scenarios and production dashboards

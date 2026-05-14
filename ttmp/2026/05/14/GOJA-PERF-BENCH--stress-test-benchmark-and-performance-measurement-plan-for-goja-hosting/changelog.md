@@ -58,3 +58,24 @@ Expanded tasks into phased implementation backlog for observability, load genera
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/tasks.md — Phased task backlog
 
+
+## 2026-05-14
+
+Implemented Phase 1 observability spine with Prometheus diagnostics listener, HTTP metrics, multi-site metrics, and tests.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/cmd/goja-site/serve.go — Single-site diagnostics flags
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go — HTTP metrics wrapper integration
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/registry.go — Prometheus registry and collectors for Phase 1
+
+
+## 2026-05-14
+
+Committed Phase 1 observability spine as 6657f2504ac07194c20c02b6fd934829513f4cc8.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/registry.go — Phase 1 committed implementation
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Diary Step 8 updated with code commit hash
+

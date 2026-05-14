@@ -768,3 +768,152 @@ basic HTTP and multi-site metrics
 unit/integration tests
 go test ./...
 ```
+
+## Step 8: Implement Phase 1 minimal observability spine
+
+I implemented the first code phase: a private Prometheus diagnostics listener, optional pprof mounting, basic HTTP metrics, multi-site dispatch metrics, low-cardinality route/status label helpers, and tests. This gives future load-generation work a metrics surface from the beginning instead of adding measurements after the fact.
+
+The implementation intentionally keeps diagnostics off unless `--metrics-addr` is set. If `--pprof` is requested without a diagnostics address, startup returns an error so pprof cannot accidentally land on the public app listener.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 7)
+
+**Assistant interpretation:** Start working through the phased task list and commit coherent implementation chunks.
+
+**Inferred user intent:** The user wants the plan converted into working code with reviewable commits and diary evidence.
+
+**Commit (code):** 6657f2504ac07194c20c02b6fd934829513f4cc8 — "feat: add prometheus diagnostics foundation"
+
+### What I did
+
+- Added Prometheus client dependency.
+- Added `pkg/observability` with:
+  - config defaults,
+  - isolated Prometheus registry,
+  - Go/process collectors,
+  - diagnostics server,
+  - manual pprof mounting,
+  - HTTP metrics middleware,
+  - response status/byte recorder,
+  - route/status/site label helpers,
+  - multi-site metrics.
+- Extended `app.Config` with `SiteName` and `Observability`.
+- Extended `app.MultiConfig` with non-YAML/non-JSON observability plumbing.
+- Wrapped `Server.Handler()` with HTTP metrics when observability is configured.
+- Added multi-site metrics in `NewMultiServer` and `MultiServer.ServeHTTP`.
+- Added `--metrics-addr`, `--metrics-path`, and `--pprof` flags to `serve` and `serve-multi`.
+- Added unit tests for labels, status class, response recorder, and invalid pprof config.
+- Added app integration tests proving HTTP and multi-site metrics increment.
+
+Files changed:
+
+```text
+cmd/goja-site/serve.go
+cmd/goja-site/serve_multi.go
+go.mod
+go.sum
+pkg/app/config.go
+pkg/app/multi_config.go
+pkg/app/multi_server.go
+pkg/app/server.go
+pkg/app/observability_test.go
+pkg/observability/config.go
+pkg/observability/diagnostics.go
+pkg/observability/http.go
+pkg/observability/labels.go
+pkg/observability/labels_test.go
+pkg/observability/multi.go
+pkg/observability/registry.go
+```
+
+### Why
+
+- Serious benchmarks need internal metrics to explain latency and throughput results.
+- Production multi-site hosting needs per-site and unknown-host visibility.
+- A private diagnostics listener is safer than exposing `/metrics` or pprof on the public app listener.
+
+### What worked
+
+- The implementation kept existing behavior disabled by default.
+- `go test ./...` passed after dependencies and tests were fixed.
+- The tests verify that route labels remain coarse and that unknown hosts use `host_class="unknown"` rather than raw host labels.
+
+Final validation output:
+
+```text
+go test ./...
+?   	github.com/go-go-golems/goja-site/cmd/goja-site	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/app	0.033s
+ok  	github.com/go-go-golems/goja-site/pkg/dbguard	(cached)
+?   	github.com/go-go-golems/goja-site/pkg/doc	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/kanbanddsl	(cached)
+ok  	github.com/go-go-golems/goja-site/pkg/observability	0.003s
+```
+
+### What didn't work
+
+The first `go test ./...` failed after `go get github.com/prometheus/client_golang@latest` because transitive Prometheus packages were missing from `go.sum`.
+
+Exact failure pattern:
+
+```text
+missing go.sum entry for module providing package github.com/beorn7/perks/quantile (imported by github.com/prometheus/client_golang/prometheus); to add:
+	go get github.com/prometheus/client_golang/prometheus@v1.23.2
+```
+
+Fix command:
+
+```text
+go get github.com/prometheus/client_golang/prometheus@v1.23.2 github.com/prometheus/client_golang/prometheus/promhttp@v1.23.2 && go mod tidy
+```
+
+### What I learned
+
+- `github.com/prometheus/client_golang` needs its `prometheus` and `promhttp` subpackages resolved explicitly for this module's `go.sum` when introduced this way.
+- A custom registry avoids global Prometheus registration conflicts in tests.
+- The existing `Server.Handler()` boundary is sufficient for first-pass HTTP metrics without modifying `gojahttp.Host`.
+
+### What was tricky to build
+
+The tricky part was adding metrics without changing default serving behavior or creating cardinality hazards. The implementation uses a coarse route classifier and labels unknown hosts as `unknown`, not as the raw `Host` header.
+
+Another subtle point is diagnostics startup: pprof is useful, but only safe when it is explicitly mounted on a private diagnostics listener. The code rejects `--pprof` without `--metrics-addr` to enforce that invariant.
+
+### What warrants a second pair of eyes
+
+- Whether `MultiServer` dispatch duration should include downstream site handling or only the map lookup. The current implementation includes downstream handling for successful dispatches.
+- Whether `Server.Handler()` should cache the wrapped handler instead of constructing a wrapper each call.
+- Whether response recorder should implement optional interfaces such as `http.Flusher` or `http.Hijacker` before WebSocket or streaming use cases are added.
+
+### What should be done in the future
+
+- Add DB and `db.guard` metrics in Phase 3.
+- Add Kanban metrics in Phase 4.
+- Consider exposing exact route patterns later if `gojahttp.Host` can safely provide them.
+
+### Code review instructions
+
+- Start with `pkg/observability` to review metric names, labels, and diagnostics behavior.
+- Then inspect `pkg/app/server.go` and `pkg/app/multi_server.go` for integration points.
+- Review CLI flag wiring in `cmd/goja-site/serve.go` and `cmd/goja-site/serve_multi.go`.
+- Validate with:
+
+```text
+go test ./...
+```
+
+### Technical details
+
+New initial metrics include:
+
+```text
+goja_site_http_requests_total{site,method,route,status_class}
+goja_site_http_request_duration_seconds_bucket{site,method,route}
+goja_site_http_response_bytes_bucket{site,method,route}
+goja_site_http_in_flight_requests{site}
+goja_site_hosts_configured{mode}
+goja_site_site_up{site}
+goja_site_unknown_host_requests_total{host_class}
+goja_site_multi_dispatch_duration_seconds_bucket{result}
+```
