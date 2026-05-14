@@ -11,6 +11,7 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/schema"
 	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/go-go-golems/goja-site/pkg/app"
+	"github.com/go-go-golems/goja-site/pkg/observability"
 )
 
 type serveCommand struct{ *cmds.CommandDescription }
@@ -25,6 +26,9 @@ type serveSettings struct {
 	DBPolicy    string   `glazed:"db-policy"`
 	ReadOnly    bool     `glazed:"readonly"`
 	AllowWrites bool     `glazed:"allow-writes"`
+	MetricsAddr string   `glazed:"metrics-addr"`
+	MetricsPath string   `glazed:"metrics-path"`
+	Pprof       bool     `glazed:"pprof"`
 }
 
 func newServeCommand() (*serveCommand, error) {
@@ -49,6 +53,9 @@ Example:
 			fields.New("readonly", fields.TypeBool, fields.WithDefault(false), fields.WithHelp("Disable writes for --db-policy simple")),
 			fields.New("allow-writes", fields.TypeBool, fields.WithDefault(false), fields.WithHelp("Allow writes for --db-policy simple when --readonly is false")),
 			fields.New("dev", fields.TypeBool, fields.WithDefault(false), fields.WithHelp("Show detailed development errors in HTTP responses")),
+			fields.New("metrics-addr", fields.TypeString, fields.WithDefault(""), fields.WithHelp("Private diagnostics bind address for Prometheus metrics (disabled when empty)")),
+			fields.New("metrics-path", fields.TypeString, fields.WithDefault("/metrics"), fields.WithHelp("Prometheus metrics path on the diagnostics listener")),
+			fields.New("pprof", fields.TypeBool, fields.WithDefault(false), fields.WithHelp("Expose pprof handlers on the private diagnostics listener (requires --metrics-addr)")),
 		),
 	)
 	return &serveCommand{CommandDescription: desc}, nil
@@ -72,12 +79,26 @@ func (c *serveCommand) Run(ctx context.Context, vals *values.Values) error {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	srv, err := app.NewServer(app.Config{Addr: settings.Addr, DBPath: settings.DBPath, ScriptDirs: settings.ScriptDirs, Dev: settings.Dev, DBPolicy: app.DBPolicy(settings.DBPolicy), ReadOnly: settings.ReadOnly, AllowWrites: settings.AllowWrites})
+	var obs *observability.Observability
+	if settings.MetricsAddr != "" || settings.Pprof {
+		obs = observability.New()
+	}
+	diagnostics, err := observability.StartDiagnostics(ctx, observability.Config{MetricsAddr: settings.MetricsAddr, MetricsPath: settings.MetricsPath, EnablePprof: settings.Pprof}, obs)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = diagnostics.Close(context.Background()) }()
+
+	srv, err := app.NewServer(app.Config{Addr: settings.Addr, DBPath: settings.DBPath, ScriptDirs: settings.ScriptDirs, Dev: settings.Dev, DBPolicy: app.DBPolicy(settings.DBPolicy), ReadOnly: settings.ReadOnly, AllowWrites: settings.AllowWrites, SiteName: "default", Observability: obs})
 	if err != nil {
 		return err
 	}
 	defer func() { _ = srv.Close(context.Background()) }()
+	if obs != nil && obs.Multi != nil {
+		obs.Multi.SetHostsConfigured("single", 1)
+		obs.Multi.SetSiteUp("default", true)
+	}
 
-	fmt.Printf("goja-site serving addr=%s db=%s scripts=%v dbPolicy=%s readonly=%v allowWrites=%v\n", settings.Addr, settings.DBPath, settings.ScriptDirs, settings.DBPolicy, settings.ReadOnly, settings.AllowWrites)
+	fmt.Printf("goja-site serving addr=%s db=%s scripts=%v dbPolicy=%s readonly=%v allowWrites=%v metricsAddr=%s pprof=%v\n", settings.Addr, settings.DBPath, settings.ScriptDirs, settings.DBPolicy, settings.ReadOnly, settings.AllowWrites, settings.MetricsAddr, settings.Pprof)
 	return srv.Run(ctx)
 }

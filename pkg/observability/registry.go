@@ -1,0 +1,27 @@
+package observability
+
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+)
+
+// Observability owns the Prometheus registry and the metric groups used by the
+// application. A nil *Observability means instrumentation is disabled.
+type Observability struct {
+	Registry *prometheus.Registry
+	HTTP     *HTTPMetrics
+	Multi    *MultiMetrics
+}
+
+// New creates an isolated registry so tests and embedded servers do not contend
+// with the Prometheus default global registry.
+func New() *Observability {
+	registry := prometheus.NewRegistry()
+	registry.MustRegister(collectors.NewGoCollector())
+	registry.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+
+	httpMetrics := NewHTTPMetrics(registry)
+	multiMetrics := NewMultiMetrics(registry)
+
+	return &Observability{Registry: registry, HTTP: httpMetrics, Multi: multiMetrics}
+}

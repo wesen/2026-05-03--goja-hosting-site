@@ -89,15 +89,18 @@ func NewServer(cfg Config) (*Server, error) {
 }
 
 func (s *Server) Handler() http.Handler {
+	if s.cfg.Observability != nil && s.cfg.Observability.HTTP != nil {
+		return s.cfg.Observability.HTTP.Wrap(s.cfg.SiteName, s.host)
+	}
 	return s.host
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.host.ServeHTTP(w, r)
+	s.Handler().ServeHTTP(w, r)
 }
 
 func (s *Server) Run(ctx context.Context) error {
-	s.httpSrv = &http.Server{Addr: s.cfg.Addr, Handler: s.host, ReadHeaderTimeout: 5 * time.Second}
+	s.httpSrv = &http.Server{Addr: s.cfg.Addr, Handler: s.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	errCh := make(chan error, 1)
 	go func() {
 		err := s.httpSrv.ListenAndServe()
