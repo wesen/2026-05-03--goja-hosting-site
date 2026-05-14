@@ -56,15 +56,15 @@ Goal: create a repeatable load harness that can use the new `/metrics` endpoint 
 
 Goal: expose the database and guard bottlenecks that realistic goja-site apps are likely to hit.
 
-- [ ] Add SQL kind classifier with bounded labels (`select`, `insert`, `update`, `delete`, `pragma`, `other`, etc.).
-- [ ] Wrap `databasemod.QueryExecer` with query/exec duration metrics.
-- [ ] Add DB operation counters and error counters.
-- [ ] Add tests proving raw SQL is never exported as a metric label.
-- [ ] Add `db.guard` observer interface or equivalent decoupled metrics hook.
-- [ ] Expose guard check duration, check totals, cleanup attempts, hard/soft limit events, and DB size gauges.
-- [ ] Add tests for guarded write metrics.
+- [x] Add SQL kind classifier with bounded labels (`select`, `insert`, `update`, `delete`, `pragma`, `other`, etc.).
+- [x] Wrap `databasemod.QueryExecer` with query/exec duration metrics.
+- [x] Add DB operation counters and error counters.
+- [x] Add tests proving raw SQL is never exported as a metric label.
+- [x] Add `db.guard` observer interface or equivalent decoupled metrics hook.
+- [x] Expose guard check duration, check totals, cleanup attempts, hard/soft limit events, and DB size gauges.
+- [x] Add tests for guarded write metrics.
 - [x] Run `go test ./...`.
-- [ ] Commit Phase 3.
+- [x] Commit Phase 3.
 
 ## Phase 4 — Kanban metrics
 

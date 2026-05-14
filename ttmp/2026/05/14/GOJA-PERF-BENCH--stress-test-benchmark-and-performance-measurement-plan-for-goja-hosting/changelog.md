@@ -109,3 +109,24 @@ Ran Vegeta null-route smoke test, fixed readiness race on port collision, and co
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/scripts/bench-vegeta.sh — Readiness check fix after Vegeta smoke
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 10 smoke evidence
 
+
+## 2026-05-14
+
+Implemented Phase 3 database and db.guard metrics with bounded SQL labels and observer-based guard instrumentation.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/database.go — DB metric wrapper integration
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/dbguard/guard.go — Guard observer hooks
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/sql.go — DB QueryExecer instrumentation
+
+
+## 2026-05-14
+
+Committed Phase 3 database and db.guard metrics as 2e55df47cb1a7ca811e658ed0eeb226ecee23a82.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/sql.go — Phase 3 committed DB metrics
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Diary Step 11 updated with code commit hash
+

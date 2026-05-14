@@ -1181,3 +1181,150 @@ bench/results/20260514T183706Z-null
 ```
 
 This directory is ignored by git through `bench/results/.gitignore`.
+
+## Step 11: Implement Phase 3 database and db.guard metrics
+
+I implemented Phase 3 by adding database operation metrics and guarded database metrics. JavaScript `database`/`db` calls are now wrapped at the Go `QueryExecer` boundary, so both module names and both database policies can be measured without changing site scripts.
+
+The `db.guard` integration uses an observer interface in `pkg/dbguard` so guard internals do not import Prometheus directly. The Prometheus implementation lives in `pkg/observability` and is attached from `pkg/app/database.go` when the guarded policy is used and observability is configured.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, continue keeping a detailed diary."
+
+**Assistant interpretation:** Continue implementing the phased backlog, starting with Phase 3, and keep detailed diary notes.
+
+**Inferred user intent:** The user wants steady progress beyond the Vegeta smoke test, with each phase validated and documented.
+
+**Commit (code):** 2e55df47cb1a7ca811e658ed0eeb226ecee23a82 — "feat: add database guard metrics"
+
+### What I did
+
+- Added `pkg/observability/sql.go`:
+  - DB operation counter.
+  - DB operation duration histogram.
+  - DB error counter.
+  - bounded SQL kind classifier.
+  - bounded error class classifier.
+  - `InstrumentQueryExecer` wrapper.
+- Added `pkg/observability/guard.go`:
+  - guard check counters and duration histograms.
+  - guard limit exceeded counter.
+  - cleanup attempt counter.
+  - DB size gauges.
+  - DB limit gauges.
+  - writes-since-check gauge.
+- Extended `pkg/observability/registry.go` with DB and guard metric groups.
+- Added `dbguard.Observer` and `Guard.SetObserver`.
+- Instrumented `dbguard.Guard` paths:
+  - `Stats`.
+  - `BeforeExec`.
+  - `ErrorAfterExec`.
+  - `AfterExec` skipped paths.
+  - `CheckNow` under-limit/over-limit/cleanup paths.
+  - hard-limit errors.
+  - measured DB stats.
+- Wrapped the selected database policy in `pkg/app/database.go` with `observability.InstrumentQueryExecer`.
+- Attached `observability.NewGuardObserver` when guarded policy is used.
+- Added tests for SQL kind labels and DB/guard metrics.
+- Ran `go test ./...`.
+- Ran a short `db-read` Vegeta smoke on alternate ports and confirmed DB metrics appear in the metrics snapshot.
+
+### Why
+
+- HTTP metrics show that a route is slow, but DB metrics explain whether SQLite reads/writes are the source.
+- Guarded policy is the default and can add work around writes, so guard checks must be observable before serious stress testing.
+- The metrics use SQL kind labels instead of raw SQL to avoid leaking data and exploding cardinality.
+
+### What worked
+
+`go test ./...` passed:
+
+```text
+?   	github.com/go-go-golems/goja-site/cmd/goja-site	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/app	0.065s
+ok  	github.com/go-go-golems/goja-site/pkg/dbguard	0.038s
+?   	github.com/go-go-golems/goja-site/pkg/doc	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/kanbanddsl	(cached)
+ok  	github.com/go-go-golems/goja-site/pkg/observability	0.007s
+```
+
+The `db-read` Vegeta smoke succeeded:
+
+```text
+scripts/bench-vegeta.sh --scenario db-read --duration 2s --rate 5/s --port 18181 --metrics-port 19191
+Requests      [total, rate, throughput]         10, 5.55, 5.55
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:10
+benchmark complete: /home/manuel/code/wesen/2026-05-03--goja-hosting-site/bench/results/20260514T184834Z-db-read
+```
+
+The metrics snapshot showed DB operation metrics:
+
+```text
+goja_site_db_operations_total{db_policy="simple",operation="exec",site="default",sql_kind="create"} 2
+goja_site_db_operations_total{db_policy="simple",operation="exec",site="default",sql_kind="insert"} 100
+goja_site_db_operations_total{db_policy="simple",operation="query",site="default",sql_kind="select"} 101
+```
+
+### What didn't work
+
+- N/A for this step. The implementation compiled and tests passed after the first full test run.
+
+### What I learned
+
+- The cleanest DB instrumentation point is after policy selection and before constructing the JavaScript `database` and `db` modules.
+- Guard metrics need to observe both fast skipped paths and actual measurement/cleanup paths, otherwise write-heavy workloads with no configured limits would appear invisible.
+- The benchmark fixture inserts seed rows during script load, so DB metrics include startup script SQL as well as request-time SQL. That is useful but should be called out in benchmark reports.
+
+### What was tricky to build
+
+The tricky part was keeping `dbguard` decoupled from Prometheus while still exposing enough internal events. The observer interface solves this, but it means future guard changes must remember to call observer methods for new paths.
+
+Another subtle point is result labeling. The guard has many skipped paths (`no limit configured`, throttle, cooldown, cleanup already running). These were normalized into bounded result labels such as `skipped_no_limit` and `skipped_throttle` rather than exporting arbitrary text.
+
+### What warrants a second pair of eyes
+
+- Whether `goja_site_db_operation_duration_seconds` should remain one metric with an `operation` label or split into separate `query_duration` and `exec_duration` metrics.
+- Whether guard observer calls while holding the guard mutex are acceptable; Prometheus calls should be quick, but this is still worth reviewing.
+- Whether startup script SQL should be labeled separately from request-time SQL in a future phase.
+
+### What should be done in the future
+
+- Add Kanban fragment/action/render metrics in Phase 4.
+- Consider a request context or operation label that distinguishes script load from HTTP request execution.
+- Add a guarded-policy scenario to the Vegeta harness so guard metrics can be exercised externally without relying only on unit/integration tests.
+
+### Code review instructions
+
+- Start with `pkg/observability/sql.go` and `pkg/observability/guard.go`.
+- Then review `pkg/dbguard/guard.go` observer hooks.
+- Then review `pkg/app/database.go` to verify wrapping order.
+- Validate with:
+
+```text
+go test ./...
+scripts/bench-vegeta.sh --scenario db-read --duration 2s --rate 5/s --port 18181 --metrics-port 19191
+```
+
+### Technical details
+
+New DB metrics:
+
+```text
+goja_site_db_operations_total{site,db_policy,operation,sql_kind}
+goja_site_db_operation_duration_seconds_bucket{site,db_policy,operation,sql_kind}
+goja_site_db_errors_total{site,db_policy,operation,sql_kind,error_class}
+```
+
+New guard metrics:
+
+```text
+goja_site_db_guard_checks_total{site,phase,result}
+goja_site_db_guard_check_duration_seconds_bucket{site,phase,result}
+goja_site_db_guard_limit_exceeded_total{site,kind,hard}
+goja_site_db_guard_cleanup_attempts_total{site,result}
+goja_site_db_size_bytes{site,component}
+goja_site_db_limit_bytes{site,limit_type}
+goja_site_db_guard_writes_since_check{site}
+```
