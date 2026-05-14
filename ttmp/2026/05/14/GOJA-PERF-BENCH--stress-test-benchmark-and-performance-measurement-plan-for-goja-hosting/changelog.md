@@ -172,3 +172,12 @@ Started Phase 6 OpenTelemetry tracing with OTLP exporter, HTTP spans, DB spans, 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/sql.go — DB operation spans
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/tracing.go — OpenTelemetry tracing setup
 
+
+## 2026-05-14
+
+Added dedicated go-go-goja request context propagation analysis and implementation guide.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/design-doc/03-goja-request-context-propagation-across-javascript-and-native-modules.md — Third design deliverable for correct JS/native-module context propagation
+

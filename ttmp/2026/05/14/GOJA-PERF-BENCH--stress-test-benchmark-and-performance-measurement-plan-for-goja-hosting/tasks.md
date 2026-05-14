@@ -109,6 +109,19 @@ Goal: add sampled distributed tracing after metrics and load generation are stab
 - [x] Run `go test ./...`.
 - [ ] Commit Phase 6.
 
+
+## Phase 6A — go-go-goja request context propagation design
+
+Goal: design the upstream go-go-goja changes needed for native modules to access the active request context while JavaScript handlers execute.
+
+- [x] Inspect go-go-goja runtimeowner, runtimebridge, gojahttp, and database module context behavior.
+- [x] Write dedicated request-context propagation analysis and implementation guide.
+- [ ] Implement runtimebridge current-call context stack in go-go-goja.
+- [ ] Wrap runtimeowner invoke/invokePost with current-call context.
+- [ ] Add QueryExecerContext support to go-go-goja database module.
+- [ ] Update goja-site DB wrappers to QueryContext/ExecContext after go-go-goja change is available.
+- [ ] Add trace parentage tests proving DB spans are children of HTTP request spans.
+
 ## Phase 7 — Benchmark scenarios and production dashboards
 
 Goal: turn raw metrics into usable engineering and operations artifacts.

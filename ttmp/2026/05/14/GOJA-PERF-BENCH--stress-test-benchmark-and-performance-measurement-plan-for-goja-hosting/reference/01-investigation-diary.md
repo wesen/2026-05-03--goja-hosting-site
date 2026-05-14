@@ -1734,3 +1734,108 @@ New harness flags:
 --otel-endpoint URL
 --otel-sample-ratio N
 ```
+
+## Step 15: Analyze go-go-goja context propagation for JS native modules
+
+I investigated how `go-go-goja` currently handles `context.Context` across runtime owner calls, HTTP route execution, runtime bridge bindings, and database module calls. I then wrote a dedicated design and implementation guide for doing context propagation properly in `go-go-goja` itself rather than patching around it only in `goja-site`.
+
+The key finding is positive: `gojahttp.Host` already passes `r.Context()` into `runtimeowner.Runner.Call` when invoking JavaScript HTTP handlers. The missing piece is a standard way for native modules invoked from JavaScript to retrieve the current owner-call/request context.
+
+### Prompt Context
+
+**User prompt (verbatim):** "how does go-go-goja handles context in its calls. I want to do the context through JS right, even if it means updating go-go-goja itself. 
+
+Create a separate analysis and implementation guide for that topic and upload to the remarkable tablet when done."
+
+**Assistant interpretation:** Inspect go-go-goja internals, explain how context currently flows, design the right upstream changes for JS/native-module context propagation, store the guide in the ticket, and upload the refreshed bundle to reMarkable.
+
+**Inferred user intent:** The user wants correct trace parentage and cancellation semantics across HTTP → Goja JavaScript → native modules → database, even if that requires changing the shared go-go-goja library.
+
+**Commit (code):** N/A — analysis/design-document step only.
+
+### What I did
+
+- Inspected go-go-goja v0.4.16 in the module cache.
+- Read key source files:
+  - `pkg/runtimeowner/runner.go`
+  - `pkg/runtimeowner/types.go`
+  - `pkg/gojahttp/host.go`
+  - `pkg/gojahttp/request_response.go`
+  - `pkg/runtimebridge/runtimebridge.go`
+  - `engine/factory.go`
+  - `modules/database/database.go`
+- Captured line-numbered evidence with `nl -ba` for the design guide.
+- Created a new ticket design doc:
+  - `design-doc/03-goja-request-context-propagation-across-javascript-and-native-modules.md`
+- Updated the ticket task list with Phase 6A for upstream go-go-goja context propagation.
+
+### Why
+
+- The current `goja-site` DB spans use `context.Background()` because the JS database module does not receive request context.
+- Adding more spans without solving context propagation would create disconnected traces.
+- The right abstraction belongs in go-go-goja because all native modules can benefit, not just `goja-site`'s database wrapper.
+
+### What worked
+
+- `runtimeowner.Runner` already has context-aware `Call` and `Post` APIs.
+- `gojahttp.Host` already invokes route handlers with `h.owner.Call(r.Context(), "http-handler", ...)`.
+- `runtimebridge` already stores per-VM runtime lifecycle bindings, making it a natural package to extend with current-call context.
+- The database module has a clear compatibility path: add `QueryExecerContext`, keep `QueryExecer`, and export VM-closing JS function closures from `Loader`.
+
+### What didn't work
+
+- Native modules currently cannot retrieve the current request context from `*goja.Runtime`.
+- `modules/database.QueryExecer` has only `Query` and `Exec`, not `QueryContext` and `ExecContext`.
+- `DBModule.Query` and `Exec` currently do not receive `*goja.Runtime`, so the loader must export closures that close over `vm` if they need `runtimebridge.CurrentContext(vm)`.
+
+### What I learned
+
+- The context is not lost at the HTTP boundary; it is lost at the native module boundary.
+- Owner context in `runtimeowner` currently solves reentrant owner scheduling, not general current request-context lookup.
+- The clean design is to add a current-call context stack to `runtimebridge` and wrap `runtimeowner.invoke` / `invokePost`.
+
+### What was tricky to build
+
+The tricky distinction is between runtime lifecycle context and request/call context. `runtimebridge.Bindings.Context` is runtime-scoped and lasts until runtime shutdown. It is not the same as the per-request context that carries cancellation, deadlines, and OpenTelemetry parent spans.
+
+Another subtlety is JavaScript ergonomics. Passing `req.context` explicitly through JS would work mechanically but is the wrong API. Site authors should not be responsible for threading Go context through every native module call.
+
+### What warrants a second pair of eyes
+
+- Whether `runtimebridge` is the best home for current-call context, or whether a new package should own it.
+- Whether the current-context stack should be mutex-protected even though Goja owner calls are serialized.
+- Whether async timer callbacks should inherit request context or runtime lifecycle context by default.
+
+### What should be done in the future
+
+- Implement the guide in go-go-goja:
+  - runtimebridge current-call context stack,
+  - runtimeowner wrapping,
+  - database `QueryContext`/`ExecContext` support.
+- Then update goja-site wrappers to use context-aware DB calls and add trace parentage tests.
+
+### Code review instructions
+
+- Start with the new guide:
+  - `ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/design-doc/03-goja-request-context-propagation-across-javascript-and-native-modules.md`
+- Compare the claims against go-go-goja v0.4.16 source files named in the References section.
+- Pay special attention to `runtimeowner.Runner.Call`, `gojahttp.Host.ServeHTTP`, `runtimebridge.Bindings`, and `modules/database.DBModule.Loader`.
+
+### Technical details
+
+Recommended go-go-goja API sketch from the guide:
+
+```text
+runtimebridge.CurrentContext(vm *goja.Runtime) context.Context
+runtimebridge.WithCallContext(vm *goja.Runtime, ctx context.Context, fn func() (any, error)) (any, error)
+runtimebridge.WithCallContextVoid(vm *goja.Runtime, ctx context.Context, fn func() error) error
+```
+
+Recommended database extension:
+
+```text
+QueryExecerContext.QueryContext(ctx, query, args...)
+QueryExecerContext.ExecContext(ctx, query, args...)
+DBModule.QueryContext(ctx, query, args...)
+DBModule.ExecContext(ctx, query, args...)
+```
