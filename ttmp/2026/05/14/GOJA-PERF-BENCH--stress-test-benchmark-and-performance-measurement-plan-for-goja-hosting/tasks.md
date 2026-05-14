@@ -37,20 +37,20 @@ Goal: add a private diagnostics listener and basic Prometheus metrics before ser
 
 Goal: create a repeatable load harness that can use the new `/metrics` endpoint from day one.
 
-- [ ] Choose primary initial load engine, preferably Vegeta CLI plus later Go-library embedding.
-- [ ] Add `bench/targets/` with null-route and multi-site target examples.
-- [ ] Add `bench/results/.gitignore` to avoid committing generated result artifacts.
-- [ ] Add `scripts/bench-vegeta.sh` that builds or accepts a `goja-site` binary, starts a server, waits for readiness, runs Vegeta, captures output, and cleans up.
-- [ ] Support single-site null route scenario.
-- [ ] Support single-site render route scenario.
-- [ ] Support DB read/write route scenario.
-- [ ] Support multi-site Host-header mix scenario.
-- [ ] Scrape `/metrics` before and after each run.
-- [ ] Record metadata: commit, dirty status, Go version, OS/arch, scenario, rate, duration, concurrency/worker settings, observability mode.
-- [ ] Write Markdown and JSON summaries under `bench/results/`.
-- [ ] Document how to install/use Vegeta and alternatives (`fortio`, `hey`, `bombardier`, `k6`).
+- [x] Choose primary initial load engine, preferably Vegeta CLI plus later Go-library embedding.
+- [x] Add `bench/targets/` with null-route and multi-site target examples.
+- [x] Add `bench/results/.gitignore` to avoid committing generated result artifacts.
+- [x] Add `scripts/bench-vegeta.sh` that builds or accepts a `goja-site` binary, starts a server, waits for readiness, runs Vegeta, captures output, and cleans up.
+- [x] Support single-site null route scenario.
+- [x] Support single-site render route scenario.
+- [x] Support DB read/write route scenario.
+- [x] Support multi-site Host-header mix scenario.
+- [x] Scrape `/metrics` before and after each run.
+- [x] Record metadata: commit, dirty status, Go version, OS/arch, scenario, rate, duration, concurrency/worker settings, observability mode.
+- [x] Write Markdown and JSON summaries under `bench/results/`.
+- [x] Document how to install/use Vegeta and alternatives (`fortio`, `hey`, `bombardier`, `k6`).
 - [ ] Run a short local smoke load test.
-- [ ] Commit Phase 2.
+- [x] Commit Phase 2.
 
 ## Phase 3 — Database and db.guard metrics
 

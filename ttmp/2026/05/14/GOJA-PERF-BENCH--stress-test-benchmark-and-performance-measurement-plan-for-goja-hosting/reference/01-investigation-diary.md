@@ -917,3 +917,134 @@ goja_site_site_up{site}
 goja_site_unknown_host_requests_total{host_class}
 goja_site_multi_dispatch_duration_seconds_bucket{result}
 ```
+
+## Step 9: Implement Phase 2 Vegeta load-generation MVP
+
+I implemented the first load-generation layer around Vegeta. This adds benchmark fixture sites, target examples, documentation, and a wrapper script that can build `goja-site`, start single-site or multi-site scenarios, enable the metrics listener, scrape metrics before and after the load run, and write a result directory.
+
+The script is intentionally shell-based for the first iteration. It gives immediate value while leaving room for a future Go scenario runner that embeds Vegeta as a library once workflows become more stateful.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 7)
+
+**Assistant interpretation:** Continue through the task phases after Phase 1, starting with the load-generation MVP.
+
+**Inferred user intent:** The user wants practical tools to generate load, preferably using Go-native tooling, and wants progress committed in focused chunks.
+
+**Commit (code):** 48743a178f37978ffa3dde04841241207b3ea3ae — "feat: add vegeta benchmark harness"
+
+### What I did
+
+- Added benchmark fixture scripts:
+  - `bench/scripts/null-route/app.js`
+  - `bench/scripts/render-route/app.js`
+  - `bench/scripts/db-read-write/app.js`
+- Added target examples:
+  - `bench/targets/null.txt`
+  - `bench/targets/render.txt`
+  - `bench/targets/db-read.txt`
+  - `bench/targets/db-write.txt`
+  - `bench/targets/payloads/write-one.json`
+- Added `bench/results/.gitignore` so generated benchmark artifacts are not committed.
+- Added `bench/README.md` documenting Vegeta and alternatives: Fortio, hey, bombardier, and k6.
+- Added `scripts/bench-vegeta.sh` with scenarios:
+  - `null`
+  - `render`
+  - `db-read`
+  - `db-write`
+  - `multi`
+- The wrapper supports:
+  - building a temporary `goja-site` binary or using `--binary`,
+  - app and metrics ports,
+  - output directory selection,
+  - temporary DB cleanup,
+  - metrics scraping before and after,
+  - raw Vegeta binary output,
+  - JSON report,
+  - text report,
+  - Markdown summary,
+  - target capture.
+
+### Why
+
+- Phase 1 made metrics available; Phase 2 needed a repeatable way to put traffic through those metrics.
+- Vegeta is a good first tool because it is Go-based, supports constant-rate testing, can use Host headers for multi-site tests, and can later be embedded as a library.
+
+### What worked
+
+- `go test ./...` still passed after adding the benchmark fixtures and script.
+- `scripts/bench-vegeta.sh --help` printed the expected usage.
+- The script is careful to keep generated outputs under `bench/results/`, which is ignored except for `.gitignore`.
+
+Validation output:
+
+```text
+go test ./...
+?   	github.com/go-go-golems/goja-site/cmd/goja-site	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/app	(cached)
+ok  	github.com/go-go-golems/goja-site/pkg/dbguard	(cached)
+?   	github.com/go-go-golems/goja-site/pkg/doc	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/kanbanddsl	(cached)
+ok  	github.com/go-go-golems/goja-site/pkg/observability	(cached)
+```
+
+### What didn't work
+
+A live Vegeta smoke run was skipped because `vegeta` is not currently installed in this environment.
+
+Exact command/output:
+
+```text
+if command -v vegeta >/dev/null 2>&1; then scripts/bench-vegeta.sh --scenario null --duration 2s --rate 5/s; else echo 'vegeta not installed; skipping smoke load'; fi
+vegeta not installed; skipping smoke load
+```
+
+### What I learned
+
+- The load harness can be useful before a custom Go scenario runner exists.
+- Multi-site load can be represented with Vegeta target files containing per-target Host headers.
+- The script should keep raw target files in each result directory so runs are reproducible.
+
+### What was tricky to build
+
+The tricky part was keeping the wrapper generic without turning it into the full future Go scenario runner. The current script supports the important first scenarios and captures metrics, but avoids complex per-user state, response extraction, or weighted workflows. Those should move to a Go runner later if needed.
+
+### What warrants a second pair of eyes
+
+- Whether the target file format with `@payload.json` is acceptable for all installed Vegeta versions.
+- Whether the multi-site scenario should use synthetic benchmark scripts or the real `sites/trail`, `sites/crm`, `sites/editorial`, and `sites/pizza` apps by default.
+- Whether the wrapper should auto-install Vegeta or only document installation.
+
+### What should be done in the future
+
+- Install Vegeta and run the short smoke scenario.
+- Add pprof capture to the wrapper in Phase 5.
+- Add a Go-based scenario runner if shell + target files become too limiting.
+
+### Code review instructions
+
+- Start with `scripts/bench-vegeta.sh`.
+- Review cleanup behavior and ensure generated files stay under ignored result directories.
+- Review `bench/README.md` for the recommended tool guidance.
+- Run after installing Vegeta:
+
+```text
+go install github.com/tsenart/vegeta/v12@latest
+scripts/bench-vegeta.sh --scenario null --duration 5s --rate 10/s
+```
+
+### Technical details
+
+The load harness writes these result files:
+
+```text
+summary.md
+server.log
+targets.txt
+vegeta.bin
+vegeta.json
+vegeta.txt
+metrics-before.prom
+metrics-after.prom
+```
