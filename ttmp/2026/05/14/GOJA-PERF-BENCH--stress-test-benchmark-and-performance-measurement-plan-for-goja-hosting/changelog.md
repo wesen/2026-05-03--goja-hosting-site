@@ -199,3 +199,12 @@ Implemented local go-go-goja request context propagation and wired goja-site DB 
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 17 implementation diary
 
+
+## 2026-05-14
+
+Committed goja-site request-parented DB trace changes and final validation passed.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 17 follow-up commit and validation evidence
+

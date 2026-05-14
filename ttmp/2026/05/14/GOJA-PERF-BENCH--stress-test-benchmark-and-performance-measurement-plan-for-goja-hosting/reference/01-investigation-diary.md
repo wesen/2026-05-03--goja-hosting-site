@@ -2117,3 +2117,21 @@ DBModule.QueryContext/ExecContext calls QueryExecerContext if available
 go-site InstrumentedQueryExecer starts DB span from incoming ctx
 sql.DB QueryContext/ExecContext receives the request context
 ```
+
+### Step 17 follow-up: commits and final validation
+
+After implementing and validating the code, I committed the goja-site changes separately from the ticket documentation:
+
+```text
+5b2aca3e47f3f4b2b0379d9ffa3388e526213828 feat: parent database spans to request traces
+8ace3000483edbe99de63d7218115d248e17f90f docs: record context propagation implementation
+```
+
+I then reran final validation from the goja-site repo:
+
+```text
+go test ./...
+docmgr doctor --ticket GOJA-PERF-BENCH --stale-after 30
+```
+
+Both passed. The only remaining untracked item in the goja-site worktree is the pre-existing unrelated `tmp/` directory.
