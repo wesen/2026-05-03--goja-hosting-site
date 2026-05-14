@@ -58,11 +58,17 @@ func InstrumentQueryExecer(inner databasemod.QueryExecer, site, policy string, m
 }
 
 func (i *InstrumentedQueryExecer) Query(query string, args ...any) (*sql.Rows, error) {
+	return i.QueryContext(context.Background(), query, args...)
+}
+
+func (i *InstrumentedQueryExecer) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	kind := SQLKindLabel(query)
 	start := time.Now()
-	ctx, span := i.startSpan("query", kind)
-	_ = ctx
-	rows, err := i.inner.Query(query, args...)
+	ctx, span := i.startSpan(ctx, "query", kind)
+	rows, err := queryContext(ctx, i.inner, query, args...)
 	if err != nil {
 		span.RecordError(err)
 	}
@@ -72,11 +78,17 @@ func (i *InstrumentedQueryExecer) Query(query string, args ...any) (*sql.Rows, e
 }
 
 func (i *InstrumentedQueryExecer) Exec(query string, args ...any) (sql.Result, error) {
+	return i.ExecContext(context.Background(), query, args...)
+}
+
+func (i *InstrumentedQueryExecer) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	kind := SQLKindLabel(query)
 	start := time.Now()
-	ctx, span := i.startSpan("exec", kind)
-	_ = ctx
-	result, err := i.inner.Exec(query, args...)
+	ctx, span := i.startSpan(ctx, "exec", kind)
+	result, err := execContext(ctx, i.inner, query, args...)
 	if err != nil {
 		span.RecordError(err)
 	}
@@ -85,11 +97,14 @@ func (i *InstrumentedQueryExecer) Exec(query string, args ...any) (sql.Result, e
 	return result, err
 }
 
-func (i *InstrumentedQueryExecer) startSpan(operation, kind string) (context.Context, trace.Span) {
-	if i.tracer == nil {
-		return context.Background(), trace.SpanFromContext(context.Background())
+func (i *InstrumentedQueryExecer) startSpan(ctx context.Context, operation, kind string) (context.Context, trace.Span) {
+	if ctx == nil {
+		ctx = context.Background()
 	}
-	return i.tracer.Start(context.Background(), "goja-site.db."+operation, trace.WithAttributes(
+	if i.tracer == nil {
+		return ctx, trace.SpanFromContext(ctx)
+	}
+	return i.tracer.Start(ctx, "goja-site.db."+operation, trace.WithAttributes(
 		attribute.String("goja_site.site", i.site),
 		attribute.String("goja_site.db_policy", i.policy),
 		attribute.String("goja_site.sql_kind", kind),
@@ -102,6 +117,26 @@ func (i *InstrumentedQueryExecer) observe(operation, kind string, start time.Tim
 	if err != nil {
 		i.metrics.Errors.WithLabelValues(i.site, i.policy, operation, kind, ErrorClass(err)).Inc()
 	}
+}
+
+func queryContext(ctx context.Context, inner databasemod.QueryExecer, query string, args ...any) (*sql.Rows, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if innerContext, ok := inner.(databasemod.QueryExecerContext); ok {
+		return innerContext.QueryContext(ctx, query, args...)
+	}
+	return inner.Query(query, args...)
+}
+
+func execContext(ctx context.Context, inner databasemod.QueryExecer, query string, args ...any) (sql.Result, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if innerContext, ok := inner.(databasemod.QueryExecerContext); ok {
+		return innerContext.ExecContext(ctx, query, args...)
+	}
+	return inner.Exec(query, args...)
 }
 
 func SQLKindLabel(query string) string {

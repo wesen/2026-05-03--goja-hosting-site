@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -67,23 +68,37 @@ type simpleDB struct {
 }
 
 func (s *simpleDB) Query(query string, args ...any) (*sql.Rows, error) {
+	return s.QueryContext(context.Background(), query, args...)
+}
+
+func (s *simpleDB) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	if s == nil || s.db == nil {
 		return nil, fmt.Errorf("database is not configured")
+	}
+	if ctx == nil {
+		ctx = context.Background()
 	}
 	if !s.allowWrites && !isReadOnlySQL(query) {
 		return nil, writesDisabledError()
 	}
-	return s.db.Query(query, args...)
+	return s.db.QueryContext(ctx, query, args...)
 }
 
 func (s *simpleDB) Exec(query string, args ...any) (sql.Result, error) {
+	return s.ExecContext(context.Background(), query, args...)
+}
+
+func (s *simpleDB) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	if s == nil || s.db == nil {
 		return nil, fmt.Errorf("database is not configured")
+	}
+	if ctx == nil {
+		ctx = context.Background()
 	}
 	if !s.allowWrites {
 		return nil, writesDisabledError()
 	}
-	return s.db.Exec(query, args...)
+	return s.db.ExecContext(ctx, query, args...)
 }
 
 func writesDisabledError() error {

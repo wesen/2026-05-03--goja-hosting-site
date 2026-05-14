@@ -11,6 +11,9 @@ import (
 	"github.com/go-go-golems/goja-site/pkg/observability"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
+	"go.opentelemetry.io/otel"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
 
 func TestServerHTTPMetrics(t *testing.T) {
@@ -74,6 +77,68 @@ func TestServerDBMetrics(t *testing.T) {
 	}
 	if got := gatherCounter(t, obs.Registry, "goja_site_db_guard_checks_total", map[string]string{"site": "dbsite", "phase": "after_exec", "result": "skipped_no_limit"}); got < 1 {
 		t.Fatalf("guard skipped_no_limit counter = %v, want >= 1", got)
+	}
+}
+
+func TestServerDBSpansAreChildrenOfHTTPSpan(t *testing.T) {
+	root := t.TempDir()
+	scripts := writeSiteScript(t, root, `
+		const db = require("database");
+		const express = require("express");
+		const app = express.app();
+		app.get("/", (req, res) => {
+		  db.exec("CREATE TABLE IF NOT EXISTS visits(id INTEGER PRIMARY KEY AUTOINCREMENT)");
+		  db.exec("INSERT INTO visits DEFAULT VALUES");
+		  const rows = db.query("SELECT COUNT(*) AS count FROM visits");
+		  res.type("text/plain").send(String(rows[0].count));
+		});
+	`)
+	exporter := tracetest.NewInMemoryExporter()
+	provider := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
+	previousProvider := otel.GetTracerProvider()
+	otel.SetTracerProvider(provider)
+	defer func() {
+		otel.SetTracerProvider(previousProvider)
+		_ = provider.Shutdown(context.Background())
+	}()
+
+	obs := observability.New()
+	obs.EnableTracing(&observability.Tracing{Tracer: provider.Tracer("goja-site-test"), Shutdown: provider.Shutdown})
+	srv, err := NewServer(Config{DBPath: filepath.Join(root, "app.db"), ScriptDirs: []string{scripts}, DBPolicy: DBPolicySimple, AllowWrites: true, SiteName: "trace-site", Observability: obs})
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+	defer func() { _ = srv.Close(context.Background()) }()
+
+	if got := getServerBody(t, srv, "/"); got != "1" {
+		t.Fatalf("body = %q, want 1", got)
+	}
+	if err := provider.ForceFlush(context.Background()); err != nil {
+		t.Fatalf("force flush traces: %v", err)
+	}
+
+	spans := exporter.GetSpans()
+	var httpSpan, dbQuerySpan *tracetest.SpanStub
+	for i := range spans {
+		span := &spans[i]
+		switch span.Name {
+		case "GET /":
+			httpSpan = span
+		case "goja-site.db.query":
+			dbQuerySpan = span
+		}
+	}
+	if httpSpan == nil {
+		t.Fatalf("HTTP span not found in spans: %#v", spans)
+	}
+	if dbQuerySpan == nil {
+		t.Fatalf("DB query span not found in spans: %#v", spans)
+	}
+	if dbQuerySpan.SpanContext.TraceID() != httpSpan.SpanContext.TraceID() {
+		t.Fatalf("DB query trace id = %s, want HTTP trace id %s", dbQuerySpan.SpanContext.TraceID(), httpSpan.SpanContext.TraceID())
+	}
+	if dbQuerySpan.Parent.SpanID() != httpSpan.SpanContext.SpanID() {
+		t.Fatalf("DB query parent span id = %s, want HTTP span id %s", dbQuerySpan.Parent.SpanID(), httpSpan.SpanContext.SpanID())
 	}
 }
 
