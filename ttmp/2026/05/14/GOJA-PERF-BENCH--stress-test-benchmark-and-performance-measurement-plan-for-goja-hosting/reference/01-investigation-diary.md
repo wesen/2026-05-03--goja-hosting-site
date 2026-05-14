@@ -2337,3 +2337,14 @@ matrix-summary.json
 matrix-summary.md
 <scenario>/rate-<rate>/run-<n>/...
 ```
+
+### Step 18 follow-up: final validation after commits
+
+After committing the benchmark matrix implementation and smoke report, I reran final validation:
+
+```text
+go test ./...
+docmgr doctor --ticket GOJA-PERF-BENCH --stale-after 30
+```
+
+Both passed. The only untracked item in the worktree remains the unrelated pre-existing `tmp/` directory. Benchmark result directories under `bench/results/...` are ignored as intended.
