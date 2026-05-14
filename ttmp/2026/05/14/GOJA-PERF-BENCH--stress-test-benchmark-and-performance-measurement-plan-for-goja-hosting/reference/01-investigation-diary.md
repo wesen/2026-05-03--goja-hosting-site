@@ -1328,3 +1328,117 @@ goja_site_db_size_bytes{site,component}
 goja_site_db_limit_bytes{site,limit_type}
 goja_site_db_guard_writes_since_check{site}
 ```
+
+## Step 12: Implement Phase 4 Kanban metrics
+
+I implemented Phase 4 by adding Kanban-specific metrics around the mounted board routes. This gives visibility into the realistic interaction path that combines JavaScript callbacks, board data loading, UI DSL rendering, and optional refreshed HTML in action responses.
+
+The implementation adds an observer interface to `pkg/kanbanddsl`, then provides a Prometheus-backed observer in `pkg/observability`. The app server wires the observer into the Kanban DSL registrar when observability is enabled for a site.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue, keep a diary, commit at appropriate intervals"
+
+**Assistant interpretation:** Continue with the next implementation phase, keep diary evidence, validate, and commit at a coherent checkpoint.
+
+**Inferred user intent:** The user wants ongoing progress through the phased backlog with reviewable commits and clear notes.
+
+**Commit (code):** a08e5848944e1c4e9eed7a78f712f865662ed679 — "feat: add kanban metrics"
+
+### What I did
+
+- Added `pkg/kanbanddsl/observer.go` with a Kanban observer interface.
+- Extended `kanbanddsl.Runtime` to carry an optional observer.
+- Changed the Kanban registrar to accept an optional observer while keeping `kanbanddsl.NewRegistrar()` backwards compatible.
+- Added `pkg/observability/kanban.go` with Prometheus metrics for:
+  - fragment route duration,
+  - action route duration,
+  - action dispatch duration,
+  - render duration,
+  - rendered HTML bytes,
+  - bounded error counters.
+- Extended the observability registry with Kanban metrics.
+- Wired `observability.NewKanbanObserver` into `app.NewServer`.
+- Instrumented `Board.Mount` fragment and action handlers.
+- Added app integration coverage that exercises a mounted board fragment and `cardMoved` action, then verifies metric histogram counts.
+- Ran `go test ./...`.
+
+### Why
+
+- Kanban action routes are likely to be among the most representative goja-site workloads.
+- A single Kanban action can include JavaScript dispatch, application state mutation, board reload, UI node creation, Go rendering, and JSON response writing.
+- Generic HTTP latency cannot distinguish dispatch time from refresh render time.
+
+### What worked
+
+`go test ./...` passed:
+
+```text
+?   	github.com/go-go-golems/goja-site/cmd/goja-site	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/app	0.063s
+ok  	github.com/go-go-golems/goja-site/pkg/dbguard	(cached)
+?   	github.com/go-go-golems/goja-site/pkg/doc	[no test files]
+ok  	github.com/go-go-golems/goja-site/pkg/kanbanddsl	(cached)
+ok  	github.com/go-go-golems/goja-site/pkg/observability	(cached)
+```
+
+The new integration test verifies:
+
+```text
+goja_site_kanban_fragment_duration_seconds
+goja_site_kanban_action_duration_seconds{refresh="true"}
+goja_site_kanban_dispatch_duration_seconds
+goja_site_kanban_render_duration_seconds{reason="action_refresh"}
+```
+
+### What didn't work
+
+- N/A for this step. The instrumentation and tests passed after formatting.
+
+### What I learned
+
+- The Kanban registrar was a clean place to inject site-specific observers because each `Server` builds its own Goja runtime and module registrar set.
+- Fragment routes can observe render duration before response rendering, but they do not currently know final HTML byte length because the response helper handles HTML rendering internally.
+- Action refresh routes do explicitly call `uidsl.RenderAny`, so they can record rendered HTML bytes.
+
+### What was tricky to build
+
+The tricky part was preserving backwards compatibility. Existing tests and code call `kanbanddsl.NewRegistrar()` without arguments, so the registrar now accepts optional observers with a variadic parameter.
+
+The other subtle point was avoiding duplicate or misleading action observations on error paths. The action handler now records dispatch duration, action duration, and render duration where possible, including error classes through bounded labels.
+
+### What warrants a second pair of eyes
+
+- Whether fragment render should also record rendered HTML bytes by changing the response path to explicitly call `uidsl.RenderAny`.
+- Whether action names should be further normalized if custom trusted actions become numerous.
+- Whether the observer should recover from panics defensively, or whether Prometheus observer implementations are safe enough.
+
+### What should be done in the future
+
+- Add a Kanban scenario to the Vegeta harness or a future Go scenario runner so these metrics can be exercised outside tests.
+- Consider measuring full-page `board.render(...)` calls, not just mounted fragment/action routes.
+- Continue to Phase 5 pprof capture automation.
+
+### Code review instructions
+
+- Start with `pkg/kanbanddsl/observer.go`, `pkg/kanbanddsl/registrar.go`, and `pkg/kanbanddsl/mount.go`.
+- Then review `pkg/observability/kanban.go` for metric names and labels.
+- Finally review `pkg/app/observability_test.go` for integration coverage.
+- Validate with:
+
+```text
+go test ./...
+```
+
+### Technical details
+
+New Kanban metrics:
+
+```text
+goja_site_kanban_fragment_duration_seconds{site,board}
+goja_site_kanban_action_duration_seconds{site,board,action,refresh}
+goja_site_kanban_dispatch_duration_seconds{site,board,action}
+goja_site_kanban_render_duration_seconds{site,board,reason}
+goja_site_kanban_rendered_html_bytes{site,board,reason}
+goja_site_kanban_errors_total{site,board,action,phase,error_class}
+```

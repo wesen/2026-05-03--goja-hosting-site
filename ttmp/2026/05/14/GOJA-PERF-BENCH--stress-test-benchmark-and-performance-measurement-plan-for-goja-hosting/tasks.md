@@ -70,16 +70,16 @@ Goal: expose the database and guard bottlenecks that realistic goja-site apps ar
 
 Goal: measure realistic application interaction paths separately from generic HTTP timing.
 
-- [ ] Add Kanban observer interface or metrics hook.
-- [ ] Measure fragment render duration.
-- [ ] Measure action total duration.
-- [ ] Measure action dispatch duration.
-- [ ] Measure action refresh render duration.
-- [ ] Measure rendered HTML bytes.
-- [ ] Count action errors by bounded error class.
-- [ ] Add tests for fragment/action metrics and refresh labels.
+- [x] Add Kanban observer interface or metrics hook.
+- [x] Measure fragment render duration.
+- [x] Measure action total duration.
+- [x] Measure action dispatch duration.
+- [x] Measure action refresh render duration.
+- [x] Measure rendered HTML bytes.
+- [x] Count action errors by bounded error class.
+- [x] Add tests for fragment/action metrics and refresh labels.
 - [x] Run `go test ./...`.
-- [ ] Commit Phase 4.
+- [x] Commit Phase 4.
 
 ## Phase 5 — pprof capture automation in load harness
 
