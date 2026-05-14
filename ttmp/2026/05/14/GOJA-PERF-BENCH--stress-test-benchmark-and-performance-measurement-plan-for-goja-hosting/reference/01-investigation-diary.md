@@ -1839,3 +1839,90 @@ QueryExecerContext.ExecContext(ctx, query, args...)
 DBModule.QueryContext(ctx, query, args...)
 DBModule.ExecContext(ctx, query, args...)
 ```
+
+## Step 16: Upload context propagation guide bundle to reMarkable
+
+I uploaded the refreshed GOJA-PERF-BENCH bundle to reMarkable after adding the third design document. The bundle now includes the original benchmark guide, the production observability guide, the new go-go-goja request context propagation guide, tasks, changelog, index, and diary.
+
+The upload used the same stable PDF name and destination as previous bundle uploads, with `--force`, so the reMarkable copy is current.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 15)
+
+**Assistant interpretation:** Deliver the new context propagation guide to the reMarkable tablet after storing it in the ticket.
+
+**Inferred user intent:** The user wants the analysis available for reading/review on device, not only in the repo.
+
+**Commit (code):** 07c38f2b8ae3d87bcdf18ba96568d715b2b3159f — "docs: design goja context propagation"
+
+### What I did
+
+- Ran a dry-run upload including the new third design doc.
+- Ran the real upload with `--force`.
+
+Dry-run evidence:
+
+```text
+DRY: include .../design-doc/03-goja-request-context-propagation-across-javascript-and-native-modules.md (title="03-goja-request-context-propagation-across-javascript-and-native-modules")
+DRY: upload GOJA_PERF_BENCH_Guide.pdf -> /ai/2026/05/14/GOJA-PERF-BENCH
+```
+
+Real upload evidence:
+
+```text
+OK: uploaded GOJA_PERF_BENCH_Guide.pdf -> /ai/2026/05/14/GOJA-PERF-BENCH
+```
+
+### Why
+
+- The user explicitly requested upload to the reMarkable tablet.
+- Keeping the same bundle name makes the ticket packet easy to locate.
+
+### What worked
+
+- The dry run confirmed the new third design doc was included.
+- The forced upload succeeded.
+
+### What didn't work
+
+- N/A for this step.
+
+### What I learned
+
+- The stable bundle workflow remains effective for iterative ticket packets, but it can overwrite annotations on the prior PDF.
+
+### What was tricky to build
+
+The only operational caveat is the intentional use of `--force`; this keeps one canonical bundle on reMarkable but may replace annotated copies.
+
+### What warrants a second pair of eyes
+
+- Confirm whether future uploads should use a new bundle name instead of overwriting the canonical `GOJA_PERF_BENCH_Guide.pdf`.
+
+### What should be done in the future
+
+- Implement the go-go-goja context propagation guide in the go-go-goja repo or with a local `replace` workflow.
+- Re-upload after implementation notes/results are added.
+
+### Code review instructions
+
+- Confirm the reMarkable destination:
+
+```text
+/ai/2026/05/14/GOJA-PERF-BENCH/GOJA_PERF_BENCH_Guide.pdf
+```
+
+### Technical details
+
+The uploaded bundle now includes:
+
+```text
+index.md
+tasks.md
+changelog.md
+01-goja-hosting-stress-test-benchmark-and-performance-guide.md
+02-goja-site-production-observability-metrics-and-tracing-guide.md
+03-goja-request-context-propagation-across-javascript-and-native-modules.md
+01-investigation-diary.md
+```

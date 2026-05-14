@@ -181,3 +181,12 @@ Added dedicated go-go-goja request context propagation analysis and implementati
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/design-doc/03-goja-request-context-propagation-across-javascript-and-native-modules.md — Third design deliverable for correct JS/native-module context propagation
 
+
+## 2026-05-14
+
+Uploaded refreshed bundle with context propagation guide to reMarkable.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 16 upload evidence
+
