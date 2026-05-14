@@ -11,6 +11,8 @@ type Observability struct {
 	Registry *prometheus.Registry
 	HTTP     *HTTPMetrics
 	Multi    *MultiMetrics
+	DB       *DBMetrics
+	Guard    *GuardMetrics
 }
 
 // New creates an isolated registry so tests and embedded servers do not contend
@@ -22,6 +24,8 @@ func New() *Observability {
 
 	httpMetrics := NewHTTPMetrics(registry)
 	multiMetrics := NewMultiMetrics(registry)
+	dbMetrics := NewDBMetrics(registry)
+	guardMetrics := NewGuardMetrics(registry)
 
-	return &Observability{Registry: registry, HTTP: httpMetrics, Multi: multiMetrics}
+	return &Observability{Registry: registry, HTTP: httpMetrics, Multi: multiMetrics, DB: dbMetrics, Guard: guardMetrics}
 }

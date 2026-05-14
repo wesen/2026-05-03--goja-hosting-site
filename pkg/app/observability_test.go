@@ -41,6 +41,41 @@ func TestServerHTTPMetrics(t *testing.T) {
 	}
 }
 
+func TestServerDBMetrics(t *testing.T) {
+	root := t.TempDir()
+	scripts := writeSiteScript(t, root, `
+		const db = require("database");
+		const express = require("express");
+		const app = express.app();
+		db.exec("CREATE TABLE IF NOT EXISTS visits(id INTEGER PRIMARY KEY AUTOINCREMENT)");
+		app.get("/", (req, res) => {
+		  db.exec("INSERT INTO visits DEFAULT VALUES");
+		  const rows = db.query("SELECT COUNT(*) AS count FROM visits");
+		  res.type("text/plain").send(String(rows[0].count));
+		});
+	`)
+	obs := observability.New()
+	srv, err := NewServer(Config{DBPath: filepath.Join(root, "app.db"), ScriptDirs: []string{scripts}, DBPolicy: DBPolicyGuarded, SiteName: "dbsite", Observability: obs})
+	if err != nil {
+		t.Fatalf("NewServer() error = %v", err)
+	}
+	defer func() { _ = srv.Close(context.Background()) }()
+
+	if got := getServerBody(t, srv, "/"); got != "1" {
+		t.Fatalf("body = %q, want 1", got)
+	}
+
+	if got := gatherCounter(t, obs.Registry, "goja_site_db_operations_total", map[string]string{"site": "dbsite", "db_policy": "guarded", "operation": "exec", "sql_kind": "insert"}); got != 1 {
+		t.Fatalf("insert exec counter = %v, want 1", got)
+	}
+	if got := gatherCounter(t, obs.Registry, "goja_site_db_operations_total", map[string]string{"site": "dbsite", "db_policy": "guarded", "operation": "query", "sql_kind": "select"}); got != 1 {
+		t.Fatalf("select query counter = %v, want 1", got)
+	}
+	if got := gatherCounter(t, obs.Registry, "goja_site_db_guard_checks_total", map[string]string{"site": "dbsite", "phase": "after_exec", "result": "skipped_no_limit"}); got < 1 {
+		t.Fatalf("guard skipped_no_limit counter = %v, want >= 1", got)
+	}
+}
+
 func TestMultiServerMetrics(t *testing.T) {
 	root := t.TempDir()
 	script := `

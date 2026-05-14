@@ -8,6 +8,7 @@ import (
 	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
 	"github.com/go-go-golems/goja-site/pkg/dbguard"
+	"github.com/go-go-golems/goja-site/pkg/observability"
 )
 
 type databaseRuntimeConfig struct {
@@ -28,10 +29,17 @@ func buildDatabaseRuntimeConfig(cfg Config, db *sql.DB) (databaseRuntimeConfig, 
 		queryExecer = &simpleDB{db: db, allowWrites: cfg.AllowWrites && !cfg.ReadOnly}
 	case DBPolicyGuarded:
 		guard := dbguard.New(db, cfg.DBPath)
+		if cfg.Observability != nil && cfg.Observability.Guard != nil {
+			guard.SetObserver(observability.NewGuardObserver(cfg.SiteName, cfg.Observability.Guard))
+		}
 		queryExecer = dbguard.NewMeteredDB(db, guard)
 		registrars = append(registrars, dbguard.NewRegistrar(guard))
 	default:
 		return databaseRuntimeConfig{}, fmt.Errorf("unsupported database policy %q", policy)
+	}
+
+	if cfg.Observability != nil && cfg.Observability.DB != nil {
+		queryExecer = observability.InstrumentQueryExecer(queryExecer, cfg.SiteName, string(policy), cfg.Observability.DB)
 	}
 
 	databaseModule := databasemod.New(
