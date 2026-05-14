@@ -1,0 +1,102 @@
+# Canonical GOJA-PERF-BENCH benchmark matrix.
+# The shell runners do not require this file at runtime; it documents the
+# scenarios, safe smoke defaults, and suggested real benchmark rates.
+version: 1
+
+profiles:
+  smoke:
+    duration: 2s
+    warmup_duration: 0s
+    rates: [5/s]
+    purpose: "Fast validity check for targets, scripts, and action endpoints."
+  short:
+    duration: 60s
+    warmup_duration: 10s
+    rates: [10/s, 25/s, 50/s]
+    purpose: "Repeatable local comparison run."
+  saturation:
+    duration: 60s
+    warmup_duration: 10s
+    rates: [10/s, 25/s, 50/s, 100/s, 200/s]
+    purpose: "Find the knee where latency/errors rise sharply."
+  soak:
+    duration: 10m
+    warmup_duration: 30s
+    rates: [25/s]
+    purpose: "Look for leaks, heap growth, goroutine growth, and slow guard/DB pathologies."
+
+scenarios:
+  null:
+    script_dir: bench/scripts/null-route
+    description: "Minimal express route; isolates HTTP + host + JS handler overhead."
+    target: "GET /"
+    smoke_rate: 5/s
+    short_rates: [10/s, 50/s, 100/s]
+  render:
+    script_dir: bench/scripts/render-route
+    description: "Server-side UI DSL render route with n=100 nodes."
+    target: "GET /render?n=100"
+    smoke_rate: 5/s
+    short_rates: [10/s, 25/s, 50/s]
+  db-read:
+    script_dir: bench/scripts/db-read-write
+    description: "SQLite read route; exercises request-parented DB query spans and DB metrics."
+    target: "GET /read?n=10"
+    smoke_rate: 5/s
+    short_rates: [10/s, 25/s, 50/s]
+  db-write:
+    script_dir: bench/scripts/db-read-write
+    description: "SQLite write route; exercises DB exec path."
+    target: "POST /write"
+    smoke_rate: 5/s
+    short_rates: [5/s, 10/s, 25/s]
+  multi:
+    script_dir: "generated multi-site config"
+    description: "serve-multi dispatch across two known hosts."
+    target: "GET / with Host site-a/site-b"
+    smoke_rate: 5/s
+    short_rates: [10/s, 50/s, 100/s]
+  kanban-page:
+    script_dir: bench/scripts/kanban-board
+    description: "Full HTML page rendering a mounted 120-card Kanban board."
+    target: "GET /"
+    smoke_rate: 2/s
+    short_rates: [5/s, 10/s, 25/s]
+  kanban-fragment:
+    script_dir: bench/scripts/kanban-board
+    description: "Mounted Kanban fragment endpoint for the 120-card board."
+    target: "GET /_kanban/bench/fragment"
+    smoke_rate: 2/s
+    short_rates: [5/s, 10/s, 25/s]
+  kanban-action:
+    script_dir: bench/scripts/kanban-board
+    description: "Valid cardMoved action against the mounted board; returns refreshed HTML."
+    target: "POST /_kanban/bench/action/cardMoved"
+    smoke_rate: 2/s
+    short_rates: [2/s, 5/s, 10/s]
+  kanban-mixed:
+    script_dir: bench/scripts/kanban-board
+    description: "Approximate UI workload: mostly fragments, some page loads, and valid cardMoved actions."
+    target: "weighted fragment/page/action targets"
+    smoke_rate: 2/s
+    short_rates: [5/s, 10/s, 25/s]
+
+thresholds:
+  smoke:
+    success_min: 0.99
+  suggested_short:
+    null:
+      success_min: 0.999
+      p95_max_ms: 25
+    render:
+      success_min: 0.995
+      p95_max_ms: 100
+    db-read:
+      success_min: 0.995
+      p95_max_ms: 150
+    db-write:
+      success_min: 0.99
+      p95_max_ms: 250
+    kanban-mixed:
+      success_min: 0.99
+      p95_max_ms: 300

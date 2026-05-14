@@ -15,6 +15,7 @@ PPROF_SECONDS="5"
 OTEL_ENABLED="0"
 OTEL_ENDPOINT="http://127.0.0.1:4318/v1/traces"
 OTEL_SAMPLE_RATIO="0.01"
+WARMUP_DURATION="0s"
 VEGETA_BIN="${VEGETA_BIN:-vegeta}"
 
 usage() {
@@ -22,8 +23,9 @@ usage() {
 Usage: scripts/bench-vegeta.sh [options]
 
 Options:
-  --scenario NAME       null | render | db-read | db-write | multi (default: null)
-  --duration DURATION   Vegeta duration, e.g. 30s (default: 30s)
+  --scenario NAME       null | render | db-read | db-write | multi | kanban-page | kanban-fragment | kanban-action | kanban-mixed (default: null)
+  --duration DURATION   Vegeta measurement duration, e.g. 30s (default: 30s)
+  --warmup-duration D   Optional warmup before measured run, e.g. 10s (default: 0s)
   --rate RATE           Vegeta rate, e.g. 50/s or 100/1s (default: 50/s)
   --port PORT           goja-site app port (default: 18080)
   --metrics-port PORT   private metrics port (default: 19090)
@@ -45,6 +47,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --scenario) SCENARIO="$2"; shift 2 ;;
     --duration) DURATION="$2"; shift 2 ;;
+    --warmup-duration) WARMUP_DURATION="$2"; shift 2 ;;
     --rate) RATE="$2"; shift 2 ;;
     --port) PORT="$2"; shift 2 ;;
     --metrics-port) METRICS_PORT="$2"; shift 2 ;;
@@ -153,6 +156,54 @@ GET ${BASE_URL}/
 Host: site-b.bench.example.test
 EOF_TARGETS
       ;;
+    kanban-page)
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+GET ${BASE_URL}/
+EOF_TARGETS
+      ;;
+    kanban-fragment)
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+GET ${BASE_URL}/_kanban/bench/fragment
+EOF_TARGETS
+      ;;
+    kanban-action)
+      cat >"$TMP_DIR/kanban-move.json" <<'EOF_JSON'
+{"cardId":"1","to":{"columnId":"done","index":0}}
+EOF_JSON
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+POST ${BASE_URL}/_kanban/bench/action/cardMoved
+Content-Type: application/json
+Cookie: goja_session=bench-session
+@${TMP_DIR}/kanban-move.json
+EOF_TARGETS
+      ;;
+    kanban-mixed)
+      cat >"$TMP_DIR/kanban-move.json" <<'EOF_JSON'
+{"cardId":"1","to":{"columnId":"done","index":0}}
+EOF_JSON
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+GET ${BASE_URL}/_kanban/bench/fragment
+
+POST ${BASE_URL}/_kanban/bench/action/cardMoved
+Content-Type: application/json
+Cookie: goja_session=bench-session
+@${TMP_DIR}/kanban-move.json
+
+GET ${BASE_URL}/
+GET ${BASE_URL}/_kanban/bench/fragment
+GET ${BASE_URL}/_kanban/bench/fragment
+GET ${BASE_URL}/_kanban/bench/fragment
+GET ${BASE_URL}/_kanban/bench/fragment
+GET ${BASE_URL}/_kanban/bench/fragment
+GET ${BASE_URL}/_kanban/bench/fragment
+GET ${BASE_URL}/_kanban/bench/fragment
+
+POST ${BASE_URL}/_kanban/bench/action/cardMoved
+Content-Type: application/json
+Cookie: goja_session=bench-session
+@${TMP_DIR}/kanban-move.json
+EOF_TARGETS
+      ;;
     *) echo "unsupported scenario: $SCENARIO" >&2; exit 2 ;;
   esac
 }
@@ -167,6 +218,9 @@ start_server() {
       ;;
     db-read|db-write)
       "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/db-read-write --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      ;;
+    kanban-page|kanban-fragment|kanban-action|kanban-mixed)
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/kanban-board --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     multi)
       local cfg="$TMP_DIR/sites.yaml"
@@ -236,6 +290,12 @@ capture_pprof_after_run() {
 write_targets
 start_server
 wait_ready
+cp "$TARGETS_PATH" "$OUT_DIR/targets.txt"
+
+if [[ "$WARMUP_DURATION" != "0" && "$WARMUP_DURATION" != "0s" ]]; then
+  "$VEGETA_BIN" attack -targets="$TARGETS_PATH" -rate="$RATE" -duration="$WARMUP_DURATION" >/dev/null
+fi
+
 scrape_metrics "$OUT_DIR/metrics-before.prom"
 
 RESULT_BIN="$OUT_DIR/vegeta.bin"
@@ -257,11 +317,72 @@ fi
 scrape_metrics "$OUT_DIR/metrics-after.prom"
 capture_pprof_after_run
 
+python3 - "$OUT_DIR" "$SCENARIO" "$DURATION" "$WARMUP_DURATION" "$RATE" "$BASE_URL" "$METRICS_URL" "$CAPTURE_PPROF" "$PPROF_SECONDS" "$OTEL_ENABLED" "$OTEL_ENDPOINT" "$OTEL_SAMPLE_RATIO" "$BINARY" <<'PY'
+import json, os, platform, socket, subprocess, sys, time
+(out_dir, scenario, duration, warmup, rate, base_url, metrics_url, pprof, pprof_seconds, otel, otel_endpoint, otel_sample_ratio, binary) = sys.argv[1:14]
+def run(cmd):
+    try:
+        return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT).strip()
+    except Exception as e:
+        return str(e)
+meta = {
+    "created_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "scenario": scenario,
+    "duration": duration,
+    "warmup_duration": warmup,
+    "rate": rate,
+    "base_url": base_url,
+    "metrics_url": metrics_url,
+    "pprof_capture": pprof == "1",
+    "pprof_seconds": pprof_seconds,
+    "otel_enabled": otel == "1",
+    "otel_endpoint": otel_endpoint,
+    "otel_sample_ratio": otel_sample_ratio,
+    "binary": binary,
+    "git_commit": run(["git", "rev-parse", "HEAD"]),
+    "git_dirty": bool(run(["git", "status", "--porcelain"])),
+    "go_version": run(["go", "version"]),
+    "hostname": socket.gethostname(),
+    "platform": platform.platform(),
+}
+with open(os.path.join(out_dir, "metadata.json"), "w", encoding="utf-8") as f:
+    json.dump(meta, f, indent=2, sort_keys=True)
+    f.write("\n")
+PY
+
+python3 - "$OUT_DIR/metrics-before.prom" "$OUT_DIR/metrics-after.prom" >"$OUT_DIR/metrics-delta.txt" <<'PY' || true
+import re, sys
+metric_re = re.compile(r'^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*\})?\s+([-+0-9.eE]+)$')
+def load(path):
+    out = {}
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            if line.startswith('#'):
+                continue
+            m = metric_re.match(line.strip())
+            if not m:
+                continue
+            name, labels, value = m.groups()
+            if not name.startswith('goja_site_'):
+                continue
+            try:
+                out[(name, labels or '')] = float(value)
+            except ValueError:
+                pass
+    return out
+before, after = load(sys.argv[1]), load(sys.argv[2])
+for key in sorted(after):
+    delta = after[key] - before.get(key, 0.0)
+    if delta:
+        print(f"{key[0]}{key[1]} {delta:g}")
+PY
+
 cat >"$OUT_DIR/summary.md" <<EOF_SUMMARY
 # goja-site Vegeta benchmark
 
 - Scenario: ${SCENARIO}
 - Duration: ${DURATION}
+- Warmup duration: ${WARMUP_DURATION}
 - Rate: ${RATE}
 - Base URL: ${BASE_URL}
 - Metrics URL: ${METRICS_URL}
@@ -286,14 +407,15 @@ $(cat "$RESULT_TEXT")
 - Raw results: vegeta.bin
 - JSON report: vegeta.json
 - Text report: vegeta.txt
+- Run metadata: metadata.json
 - Metrics before: metrics-before.prom
 - Metrics after: metrics-after.prom
+- Metrics delta: metrics-delta.txt
 - Server log: server.log
 - Targets: targets.txt
 - CPU profile: cpu.pprof (when --pprof is set)
 - Heap profile: heap.pprof (when --pprof is set)
 - Goroutine profile: goroutine.txt (when --pprof is set)
 EOF_SUMMARY
-cp "$TARGETS_PATH" "$OUT_DIR/targets.txt"
 
 echo "benchmark complete: $OUT_DIR"

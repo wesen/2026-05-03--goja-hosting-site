@@ -1,0 +1,104 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+      "id": 1,
+      "targets": [{"expr": "sum by (site, route, status_class) (rate(goja_site_http_requests_total[1m]))", "legendFormat": "{{site}} {{route}} {{status_class}}"}],
+      "title": "HTTP request rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+      "id": 2,
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le, site, route) (rate(goja_site_http_request_duration_seconds_bucket[1m])))", "legendFormat": "p95 {{site}} {{route}}"}],
+      "title": "HTTP p95 latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0},
+      "id": 3,
+      "targets": [{"expr": "sum by (site) (goja_site_http_in_flight_requests)", "legendFormat": "{{site}}"}],
+      "title": "In-flight HTTP requests",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "ops"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+      "id": 4,
+      "targets": [{"expr": "sum by (site, operation, sql_kind) (rate(goja_site_db_operations_total[1m]))", "legendFormat": "{{site}} {{operation}} {{sql_kind}}"}],
+      "title": "DB operations/sec",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+      "id": 5,
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le, site, operation, sql_kind) (rate(goja_site_db_operation_duration_seconds_bucket[1m])))", "legendFormat": "p95 {{site}} {{operation}} {{sql_kind}}"}],
+      "title": "DB p95 latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+      "id": 6,
+      "targets": [{"expr": "sum by (site, operation, sql_kind, error_class) (rate(goja_site_db_errors_total[1m]))", "legendFormat": "{{site}} {{operation}} {{sql_kind}} {{error_class}}"}],
+      "title": "DB errors/sec",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16},
+      "id": 7,
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le, site, board) (rate(goja_site_kanban_fragment_duration_seconds_bucket[1m])))", "legendFormat": "fragment p95 {{site}} {{board}}"}],
+      "title": "Kanban fragment p95 latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 16},
+      "id": 8,
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le, site, board, action) (rate(goja_site_kanban_action_duration_seconds_bucket[1m])))", "legendFormat": "action p95 {{site}} {{board}} {{action}}"}],
+      "title": "Kanban action p95 latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 16},
+      "id": 9,
+      "targets": [{"expr": "go_memstats_heap_alloc_bytes", "legendFormat": "heap alloc"}],
+      "title": "Go heap allocation",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["goja-site", "benchmark"],
+  "templating": {"list": []},
+  "time": {"from": "now-15m", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "goja-site Benchmark Overview",
+  "uid": "goja-site-benchmark",
+  "version": 1,
+  "weekStart": ""
+}
