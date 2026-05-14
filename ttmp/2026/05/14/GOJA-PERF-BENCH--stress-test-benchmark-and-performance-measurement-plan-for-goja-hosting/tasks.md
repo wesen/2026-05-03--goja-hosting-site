@@ -126,13 +126,13 @@ Goal: design the upstream go-go-goja changes needed for native modules to access
 
 Goal: turn raw metrics into usable engineering and operations artifacts.
 
-- [ ] Add benchmark scripts/fixtures described by the first design guide.
+- [x] Add benchmark scripts/fixtures described by the first design guide.
 - [ ] Add in-process `testing.B` benchmarks for startup, null route, render route, DB routes, guarded writes, and multi-site dispatch.
 - [ ] Add observability overhead benchmark matrix: off, metrics, metrics+pprof, metrics+tracing sampled.
-- [ ] Add starter Prometheus scrape config.
-- [ ] Add starter Grafana dashboard JSON or documented dashboard panels.
+- [x] Add starter Prometheus scrape config.
+- [x] Add starter Grafana dashboard JSON or documented dashboard panels.
 - [ ] Add starter alert rules.
-- [ ] Run benchmark smoke suite.
-- [ ] Append measured baseline report to ticket.
+- [x] Run benchmark smoke suite.
+- [x] Append measured baseline report to ticket.
 - [ ] Upload refreshed bundle to reMarkable.
-- [ ] Commit Phase 7.
+- [x] Commit Phase 7.

@@ -208,3 +208,12 @@ Committed goja-site request-parented DB trace changes and final validation passe
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 17 follow-up commit and validation evidence
 
+
+## 2026-05-14
+
+Added Phase 7 benchmark matrix runner, Kanban benchmark scenarios, dashboard starters, smoke validation, and smoke report.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/02-phase7-smoke-benchmark-report.md — Phase 7 smoke benchmark report
+

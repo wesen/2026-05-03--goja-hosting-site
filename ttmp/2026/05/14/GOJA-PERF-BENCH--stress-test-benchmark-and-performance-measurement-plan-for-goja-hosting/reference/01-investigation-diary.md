@@ -2135,3 +2135,205 @@ docmgr doctor --ticket GOJA-PERF-BENCH --stale-after 30
 ```
 
 Both passed. The only remaining untracked item in the goja-site worktree is the pre-existing unrelated `tmp/` directory.
+
+## Step 18: Build Phase 7 benchmark matrix runner and validate real scenarios/actions
+
+I moved from instrumentation work into proper benchmark methodology. The user explicitly said we do not need to instrument smaller parts right now, so I focused on repeatable scenario/rate runs, valid fixture sites, valid Kanban action payloads, metrics snapshots, summaries, and reproducible scripts.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, do it. Keep a detailed diary. Save any script you write in the scripts/ folder of the ticket so that we can retrace your steps as well. Commit at appropriate intervals. Make sure you are testing valid sites and actions."
+
+**Assistant interpretation:** Implement Phase 7 benchmark harness improvements, add valid benchmark fixtures and matrix scripts, store reproducibility scripts under the ticket's `scripts/` directory, run smoke validation, and commit in focused chunks.
+
+**Inferred user intent:** The user wants benchmarking to become repeatable and auditable, with special attention to not benchmarking broken routes or invalid Kanban actions.
+
+**Commit (code):** `5475ea75cdf10bb523056b3abac1cc2199dfe6fd` — "feat: add benchmark matrix runner".
+
+### What I did
+
+Added benchmark matrix and runner artifacts:
+
+- `bench/scenarios.yaml`
+- `scripts/bench-matrix.sh`
+- `bench/scripts/kanban-board/app.js`
+- `bench/targets/kanban-page.txt`
+- `bench/targets/kanban-fragment.txt`
+- `bench/targets/kanban-action.txt`
+- `bench/targets/kanban-mixed.txt`
+- `bench/targets/payloads/kanban-move.json`
+
+Enhanced `scripts/bench-vegeta.sh`:
+
+- Added `--warmup-duration`.
+- Added Kanban scenarios:
+  - `kanban-page`,
+  - `kanban-fragment`,
+  - `kanban-action`,
+  - `kanban-mixed`.
+- Added `metadata.json` per run.
+- Added `metrics-delta.txt` per run.
+- Copies the exact generated `targets.txt` into each result directory.
+
+Added observability deployment starters:
+
+- `deploy/observability/prometheus.example.yaml`
+- `deploy/observability/grafana-dashboard-goja-site-benchmark.json`
+
+Added ticket scripts for retracing the benchmark steps:
+
+- `ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/scripts/run-phase7-smoke-matrix.sh`
+- `ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/scripts/run-phase7-short-matrix.sh`
+
+Added a smoke report:
+
+- `reference/02-phase7-smoke-benchmark-report.md`
+
+### Why
+
+The project already has enough instrumentation for benchmark interpretation. The more important gap was reproducibility: defined scenarios, valid routes/actions, consistent result directories, matrix summaries, and scripts that can be rerun later.
+
+### What worked
+
+- The new Kanban fixture mounted a real 120-card board at `/_kanban/bench`.
+- The `kanban-action` scenario successfully posted a valid `cardMoved` payload to:
+
+```text
+POST /_kanban/bench/action/cardMoved
+```
+
+- The `kanban-mixed` scenario was verified to hit both fragment and action paths.
+- The matrix runner successfully produced:
+  - `runs.tsv`,
+  - `matrix-summary.json`,
+  - `matrix-summary.md`,
+  - one full artifact directory per run.
+
+### What didn't work
+
+The first full matrix smoke run produced valid per-scenario run results, but summary generation failed with:
+
+```text
+TypeError: str.format() got multiple values for keyword argument 'errors'
+```
+
+The bug was caused by passing `errors=...` into `format(...)` while also expanding a row dict that already had an `errors` key. I fixed it by renaming the explicit formatter fields to `status_json` and `errors_json`.
+
+After that fix, the smoke matrix completed and wrote `matrix-summary.md` successfully.
+
+### Validation
+
+Unit/integration validation:
+
+```text
+go test ./...
+```
+
+Result: passed.
+
+Dedicated valid Kanban action benchmark smoke:
+
+```text
+scripts/bench-vegeta.sh --scenario kanban-action --duration 2s --rate 2/s --port 18210 --metrics-port 19210
+```
+
+Result: 4 requests, 4 HTTP 200s, 100% success.
+
+Full smoke matrix:
+
+```text
+scripts/bench-matrix.sh --scenarios null,render,db-read,db-write,kanban-fragment,kanban-action,kanban-mixed --rates 2/s --duration 2s --warmup-duration 0s --repeat 1 --start-port 18240 --start-metrics-port 19240 --out-root bench/results/phase7-smoke-manual2
+```
+
+Result: all seven scenarios returned 100% success with only HTTP 200 status codes.
+
+Kanban mixed action verification after target ordering fix:
+
+```text
+scripts/bench-vegeta.sh --scenario kanban-mixed --duration 2s --rate 2/s --port 18260 --metrics-port 19260
+```
+
+Metrics delta evidence:
+
+```text
+goja_site_kanban_action_duration_seconds_count{action="cardMoved",board="bench",refresh="true",site="default"} 1
+goja_site_kanban_fragment_duration_seconds_count{board="bench",site="default"} 2
+goja_site_kanban_render_duration_seconds_count{board="bench",reason="action_refresh",site="default"} 1
+goja_site_kanban_render_duration_seconds_count{board="bench",reason="fragment",site="default"} 2
+```
+
+This proves that the tiny mixed smoke hit a valid action endpoint, not just fragment reads.
+
+### What I learned
+
+- Very short mixed Vegeta runs may only consume the first few targets, so target ordering matters for smoke validation.
+- A mixed target file should put at least one valid action near the top so low-request smoke runs exercise it.
+- For real benchmark matrices, per-run target snapshots and metadata are as important as raw latency summaries because they make results auditable.
+
+### What was tricky to build
+
+The main subtlety was making the mixed Kanban workload both representative and smoke-friendly. A weighted target list that puts all action targets at the bottom is fine for longer runs, but it can fail to validate actions in short smoke runs. I reordered the mixed targets to include a `cardMoved` POST near the top.
+
+### What warrants a second pair of eyes
+
+- Whether the short matrix defaults should use rates `5/s,10/s,25/s` for all scenarios, or lower defaults for Kanban action/write-heavy scenarios.
+- Whether the starter Grafana dashboard should use datasource UID `prometheus` or a variable-based datasource for portability.
+- Whether `bench/scenarios.yaml` should become machine-parsed by the matrix runner later.
+
+### What should be done in the future
+
+- Run the short matrix script and write a true baseline report.
+- Run saturation rates for the scenario that matters most.
+- Use `--pprof` only on targeted reruns where p95 or errors show a knee.
+- Add alert-rule examples after a few real baselines establish sensible thresholds.
+
+### Code review instructions
+
+Review these implementation files first:
+
+```text
+scripts/bench-vegeta.sh
+scripts/bench-matrix.sh
+bench/scenarios.yaml
+bench/scripts/kanban-board/app.js
+bench/targets/kanban-*.txt
+```
+
+Then review the retrace scripts:
+
+```text
+ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/scripts/run-phase7-smoke-matrix.sh
+ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/scripts/run-phase7-short-matrix.sh
+```
+
+Finally, review the report:
+
+```text
+ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/02-phase7-smoke-benchmark-report.md
+```
+
+### Technical details
+
+Each `scripts/bench-vegeta.sh` result directory now contains:
+
+```text
+metadata.json
+metrics-before.prom
+metrics-after.prom
+metrics-delta.txt
+server.log
+summary.md
+targets.txt
+vegeta.bin
+vegeta.json
+vegeta.txt
+```
+
+Each matrix result root contains:
+
+```text
+runs.tsv
+matrix-summary.json
+matrix-summary.md
+<scenario>/rate-<rate>/run-<n>/...
+```
