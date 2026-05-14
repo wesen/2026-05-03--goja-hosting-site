@@ -20,12 +20,27 @@ RelatedFiles:
       Note: Existing per-VM runtime bindings to extend with current-call context
     - Path: ../../../../../../../../../go/pkg/mod/github.com/go-go-golems/go-go-goja@v0.4.16/pkg/runtimeowner/runner.go
       Note: Owner Call/Post scheduling and owner context marking
+    - Path: go.mod
+      Note: temporary local replace for development go-go-goja checkout
+    - Path: pkg/app/database.go
+      Note: simpleDB now implements context-aware database execution
+    - Path: pkg/app/observability_test.go
+      Note: end-to-end trace parentage regression test
+    - Path: pkg/dbguard/metered.go
+      Note: guarded DB wrapper now forwards request context into sql.DB
+    - Path: pkg/observability/sql.go
+      Note: goja-site DB spans now start from propagated request context
 ExternalSources: []
 Summary: Analysis and implementation guide for propagating request context through go-go-goja owner calls, JavaScript handlers, native modules, database calls, and OpenTelemetry spans.
 LastUpdated: 2026-05-14T16:45:00-04:00
 WhatFor: Use this before changing go-go-goja or goja-site to make DB, guard, Kanban, and native-module spans children of the originating HTTP request.
 WhenToUse: When implementing Phase 6 tracing context propagation, context-aware database operations, or native module access to current request context.
 ---
+
+
+
+
+
 
 
 

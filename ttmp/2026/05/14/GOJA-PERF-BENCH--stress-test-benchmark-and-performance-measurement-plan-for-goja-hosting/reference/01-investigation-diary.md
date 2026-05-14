@@ -1926,3 +1926,194 @@ changelog.md
 03-goja-request-context-propagation-across-javascript-and-native-modules.md
 01-investigation-diary.md
 ```
+
+## Step 17: Implement go-go-goja current request context propagation and wire goja-site DB spans
+
+I implemented the Phase 6A context propagation design in the local `go-go-goja` checkout at `../go-go-golems/go-go-goja`, then wired `goja-site` to use that local checkout through a temporary `replace` directive. The implementation now lets JavaScript native modules retrieve the active owner-call context from `runtimebridge.CurrentContext(vm)`, and the database module uses that context for `QueryContext`/`ExecContext` when available.
+
+### Prompt Context
+
+**User prompt (verbatim):** "The go-go-goja code is in ../go-go-golems/go-go-goja/ btw . Let's implement this, you can use replace in go.mod for now to use the local development go-go-goja.
+
+Keep a detailed diary as you go, commit at appropriate intervals."
+
+**Assistant interpretation:** Implement the context propagation design across the upstream local `go-go-goja` repo and this `goja-site` repo, validate with tests, document each step, and commit focused changes.
+
+**Inferred user intent:** The user wants the previously designed context propagation mechanism moved from design to working code so `goja-site` DB spans become children of HTTP request spans.
+
+**Commit (code):** `4b7aa26c86eae3692551bd05f32713fa5dd12880` in `../go-go-golems/go-go-goja` — "feat: propagate owner call context to native modules".
+
+### What I did
+
+In `../go-go-golems/go-go-goja`:
+
+- Added `runtimebridge.CurrentContext(vm)`.
+- Added `runtimebridge.WithCallContext(...)` and `WithCallContextVoid(...)`.
+- Added a per-VM current-call context stack with push/pop/peek behavior.
+- Updated `runtimebridge.Delete(vm)` to also delete current-call context state.
+- Broke the prior `runtimebridge -> runtimeowner` import dependency by replacing `Bindings.Owner runtimeowner.Runner` with a local `runtimebridge.OwnerRunner` interface that exposes only `Post(...)`.
+- Added an `engine.runtimebridgeOwner` adapter so the engine can still store a runtime owner in `runtimebridge.Bindings` without an import cycle.
+- Wrapped `runtimeowner.runner.invoke` and `invokePost` with `runtimebridge.WithCallContext` / `WithCallContextVoid`.
+- Added `modules/database.QueryExecerContext`.
+- Added `DBModule.QueryContext` and `DBModule.ExecContext`.
+- Changed the database module loader to export closures that close over `vm`, call `runtimebridge.CurrentContext(vm)`, and then call the context-aware DB methods.
+- Kept `DBModule.Query` and `Exec` as compatibility wrappers around `context.Background()`.
+- Added tests for runtimebridge fallback/nesting/panic cleanup.
+- Added a runtimeowner test proving `Runner.Call(ctx, ...)` makes the same context visible through `runtimebridge.CurrentContext(vm)`.
+- Added database module tests proving JS `db.exec(...)` receives the owner-call context and legacy `QueryExecer` fallback still works.
+
+In `goja-site`:
+
+- Added a temporary local module replacement:
+
+```text
+replace github.com/go-go-golems/go-go-goja => ../go-go-golems/go-go-goja
+```
+
+- Added `QueryContext`/`ExecContext` to `simpleDB` using `*sql.DB.QueryContext` and `ExecContext`.
+- Added `QueryContext`/`ExecContext` to `dbguard.MeteredDB`, preserving guard checks while using context-aware SQL execution.
+- Added `QueryContext`/`ExecContext` to `observability.InstrumentedQueryExecer`.
+- Changed DB span creation to start from the incoming context rather than `context.Background()`.
+- Added context-aware fallback helpers for legacy `databasemod.QueryExecer` implementations.
+- Added `TestServerDBSpansAreChildrenOfHTTPSpan`, using an in-memory OpenTelemetry exporter to prove a JS route's `db.query(...)` span has the HTTP request span as parent.
+
+### Why
+
+The previous Phase 6 tracing slice emitted DB spans, but those spans were disconnected because the DB instrumentation had to use `context.Background()`. This step fixes the actual propagation gap:
+
+```text
+HTTP request context -> gojahttp.Host -> runtimeowner.Call -> JavaScript handler -> database module -> goja-site DB instrumentation -> sql.DB QueryContext/ExecContext
+```
+
+### What worked
+
+- The design direction was correct: `gojahttp.Host` was already passing `r.Context()` into `runtimeowner.Call`, so the missing implementation was at the owner/native-module boundary.
+- A per-VM stack in `runtimebridge` gives native modules a simple API: `runtimebridge.CurrentContext(vm)`.
+- Exporting database JS functions as loader closures solved the problem that `DBModule.Query`/`Exec` did not otherwise receive `*goja.Runtime`.
+- The local `replace` directive let `goja-site` consume the development version immediately.
+- The in-memory trace exporter test now proves parent-child trace structure instead of relying only on visual Jaeger inspection.
+
+### What didn't work
+
+My first implementation attempt made `runtimeowner` import `runtimebridge` while `runtimebridge` still imported `runtimeowner` for the `Bindings.Owner` field. That created an import-cycle risk. I fixed it by decoupling `runtimebridge` from `runtimeowner`:
+
+```text
+runtimebridge.OwnerRunner interface { Post(...) error }
+engine.runtimebridgeOwner adapter wraps runtimeowner.Runner
+```
+
+The first trace parentage test also failed because `otelhttp.NewHandler` uses the global OpenTelemetry tracer provider, while the DB instrumentation used the explicit `obs.Tracer`. The failure showed only root DB spans and no HTTP span. I fixed the test by temporarily setting the global provider with `otel.SetTracerProvider(provider)` and restoring the previous provider in cleanup.
+
+### Validation
+
+In `../go-go-golems/go-go-goja`:
+
+```text
+go test ./pkg/runtimebridge ./pkg/runtimeowner ./modules/database
+```
+
+Result: passed.
+
+```text
+go test ./...
+```
+
+Result: passed.
+
+The `go-go-goja` pre-commit hook also ran:
+
+```text
+golangci-lint run -v
+go generate ./...
+go test ./...
+```
+
+Result: passed, then commit `4b7aa26c86eae3692551bd05f32713fa5dd12880` was created.
+
+In `goja-site`:
+
+```text
+go test ./pkg/app -run 'TestServerDBSpansAreChildrenOfHTTPSpan' -count=1
+```
+
+Result: passed after setting the global test trace provider.
+
+```text
+go test ./...
+```
+
+Result: passed.
+
+### What I learned
+
+- The trace gap was exactly where expected: request context was present at `Runner.Call`, but native modules could not access it before this change.
+- `otelhttp` and explicit DB tracers can accidentally use different providers in tests; for parentage tests, both sides must use the same provider.
+- Avoiding an import cycle required making `runtimebridge` own only the minimal owner scheduling interface it needs.
+
+### What was tricky to build
+
+The subtle part was keeping `runtimebridge` as the package native modules import while also making `runtimeowner` call into it. That required removing the direct `runtimebridge` dependency on `runtimeowner` and adding a small engine adapter.
+
+The second tricky part was maintaining backwards compatibility. The database module still accepts old `QueryExecer` implementations, and the new context-aware path is optional via `QueryExecerContext`.
+
+### What warrants a second pair of eyes
+
+- The public API change from `runtimebridge.Bindings.Owner runtimeowner.Runner` to `runtimebridge.OwnerRunner` is source-compatible for typical module uses that only call `Post`, but consumers that expected the full `runtimeowner.Runner` from `bindings.Owner` would need to adapt.
+- The context stack uses a mutex even though owner calls are serialized; this is intentionally defensive but could be reviewed for simplicity.
+- `dbguard` now executes SQL with request context, but guard measurement internals still use non-context `QueryRow`; adding `QueryRowContext` can be a follow-up.
+
+### What should be done in the future
+
+- Add guard check spans now that DB execution context is propagated.
+- Add Kanban action/dispatch/render spans using the same propagated request context pattern.
+- Decide whether to keep the `replace` directive until a tagged `go-go-goja` release exists, or switch to a pseudo-version once pushed.
+- Consider adding a go-go-goja HTTP-level integration test that proves `gojahttp.Host` + database module gives DB calls the HTTP request context directly.
+
+### Code review instructions
+
+Review in two repos.
+
+First, `../go-go-golems/go-go-goja` commit:
+
+```text
+4b7aa26c86eae3692551bd05f32713fa5dd12880 feat: propagate owner call context to native modules
+```
+
+Focus files:
+
+```text
+pkg/runtimebridge/runtimebridge.go
+pkg/runtimeowner/runner.go
+engine/factory.go
+modules/database/database.go
+pkg/runtimebridge/runtimebridge_test.go
+pkg/runtimeowner/runner_test.go
+modules/database/database_test.go
+```
+
+Then review `goja-site` local changes:
+
+```text
+go.mod
+pkg/app/database.go
+pkg/dbguard/metered.go
+pkg/observability/sql.go
+pkg/app/observability_test.go
+```
+
+Pay special attention to `TestServerDBSpansAreChildrenOfHTTPSpan`; it is the proof that the feature works end-to-end from HTTP through JavaScript into DB instrumentation.
+
+### Technical details
+
+The new working context flow is:
+
+```text
+otelhttp starts HTTP span in r.Context()
+gojahttp.Host passes r.Context() to owner.Call(...)
+runtimeowner.invoke calls runtimebridge.WithCallContext(vm, ctx, ...)
+JS handler calls db.query/db.exec
+modules/database loader closure calls runtimebridge.CurrentContext(vm)
+DBModule.QueryContext/ExecContext calls QueryExecerContext if available
+go-site InstrumentedQueryExecer starts DB span from incoming ctx
+sql.DB QueryContext/ExecContext receives the request context
+```

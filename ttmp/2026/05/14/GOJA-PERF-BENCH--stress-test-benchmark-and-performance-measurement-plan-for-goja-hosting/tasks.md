@@ -116,11 +116,11 @@ Goal: design the upstream go-go-goja changes needed for native modules to access
 
 - [x] Inspect go-go-goja runtimeowner, runtimebridge, gojahttp, and database module context behavior.
 - [x] Write dedicated request-context propagation analysis and implementation guide.
-- [ ] Implement runtimebridge current-call context stack in go-go-goja.
-- [ ] Wrap runtimeowner invoke/invokePost with current-call context.
-- [ ] Add QueryExecerContext support to go-go-goja database module.
-- [ ] Update goja-site DB wrappers to QueryContext/ExecContext after go-go-goja change is available.
-- [ ] Add trace parentage tests proving DB spans are children of HTTP request spans.
+- [x] Implement runtimebridge current-call context stack in go-go-goja.
+- [x] Wrap runtimeowner invoke/invokePost with current-call context.
+- [x] Add QueryExecerContext support to go-go-goja database module.
+- [x] Update goja-site DB wrappers to QueryContext/ExecContext after go-go-goja change is available.
+- [x] Add trace parentage tests proving DB spans are children of HTTP request spans.
 
 ## Phase 7 — Benchmark scenarios and production dashboards
 

@@ -190,3 +190,12 @@ Uploaded refreshed bundle with context propagation guide to reMarkable.
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 16 upload evidence
 
+
+## 2026-05-14
+
+Implemented local go-go-goja request context propagation and wired goja-site DB spans to request context.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 17 implementation diary
+
