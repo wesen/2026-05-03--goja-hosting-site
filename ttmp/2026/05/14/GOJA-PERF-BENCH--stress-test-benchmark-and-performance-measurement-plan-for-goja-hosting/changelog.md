@@ -99,3 +99,13 @@ Committed Phase 2 Vegeta load harness as 48743a178f37978ffa3dde04841241207b3ea3a
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/scripts/bench-vegeta.sh — Phase 2 committed load harness
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Diary Step 9 updated with code commit hash
 
+
+## 2026-05-14
+
+Ran Vegeta null-route smoke test, fixed readiness race on port collision, and confirmed metrics snapshots are captured.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/scripts/bench-vegeta.sh — Readiness check fix after Vegeta smoke
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 10 smoke evidence
+

@@ -179,12 +179,16 @@ wait_ready() {
     curl_args=(-fsS -H 'Host: site-a.bench.example.test' "$url")
   fi
   for _ in $(seq 1 100); do
-    if curl "${curl_args[@]}" >/dev/null 2>&1; then
-      return 0
-    fi
     if ! kill -0 "$SERVER_PID" 2>/dev/null; then
       echo "goja-site exited before becoming ready" >&2
       return 1
+    fi
+    if curl "${curl_args[@]}" >/dev/null 2>&1; then
+      if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+        echo "goja-site exited during readiness check" >&2
+        return 1
+      fi
+      return 0
     fi
     sleep 0.1
   done

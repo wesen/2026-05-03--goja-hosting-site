@@ -1048,3 +1048,136 @@ vegeta.txt
 metrics-before.prom
 metrics-after.prom
 ```
+
+## Step 10: Run Vegeta smoke test and fix readiness race
+
+After Vegeta was installed, I ran the Phase 2 smoke test. The first run exposed a useful harness bug: port `18080` was already serving something, so the readiness curl succeeded against the wrong listener while the newly started `goja-site` process exited with `bind: address already in use`. The harness still ran Vegeta and metrics scraping failed because the diagnostics listener from the failed process was not available.
+
+I fixed the readiness check to verify that the child server process is still alive before and after the curl readiness probe. I then reran the smoke test on alternate ports, and the load run completed with non-empty metrics snapshots.
+
+### Prompt Context
+
+**User prompt (verbatim):** "installed vegeta"
+
+**Assistant interpretation:** Now that the load tool is available, run the smoke test that was previously skipped, fix issues if they appear, and record results.
+
+**Inferred user intent:** The user wants confirmation that the newly added Vegeta harness actually works locally.
+
+**Commit (code):** pending — script fix and diary update will be committed after validation.
+
+### What I did
+
+- Verified Vegeta is installed:
+
+```text
+/home/manuel/go/bin/vegeta
+Version:
+Commit:
+Runtime: go1.26.2 linux/amd64
+Date:
+```
+
+- Ran the default smoke:
+
+```text
+scripts/bench-vegeta.sh --scenario null --duration 2s --rate 5/s
+```
+
+- Found that app port `18080` was already occupied and the harness readiness check could be fooled by an existing listener.
+- Updated `scripts/bench-vegeta.sh` so `wait_ready` checks `kill -0 "$SERVER_PID"` before curling and again after a successful curl.
+- Reran the smoke on alternate ports:
+
+```text
+scripts/bench-vegeta.sh --scenario null --duration 2s --rate 5/s --port 18180 --metrics-port 19190
+```
+
+### Why
+
+- The Phase 2 task list still had a pending short smoke test.
+- A load harness must fail fast if the server it started exits, especially when a previous process or unrelated listener is already bound to the requested port.
+
+### What worked
+
+The rerun succeeded:
+
+```text
+Requests      [total, rate, throughput]         10, 5.55, 5.55
+Duration      [total, attack, wait]             1.801s, 1.801s, 597.318µs
+Latencies     [min, mean, 50, 90, 95, 99, max]  367.446µs, 718.41µs, 668.721µs, 1.172ms, 1.491ms, 1.491ms, 1.491ms
+Bytes In      [total, mean]                     20, 2.00
+Bytes Out     [total, mean]                     0, 0.00
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:10
+Error Set:
+benchmark complete: /home/manuel/code/wesen/2026-05-03--goja-hosting-site/bench/results/20260514T183706Z-null
+```
+
+Metrics snapshots were non-empty:
+
+```text
+11529 bench/results/20260514T183706Z-null/metrics-before.prom
+11550 bench/results/20260514T183706Z-null/metrics-after.prom
+23079 total
+```
+
+The final metrics included the expected counters/gauges:
+
+```text
+goja_site_hosts_configured{mode="single"} 1
+goja_site_http_requests_total{method="GET",route="/",site="default",status_class="2xx"} 11
+goja_site_site_up{site="default"} 1
+```
+
+### What didn't work
+
+The first smoke run failed as a true harness correctness test even though it produced a Vegeta report. The server log showed:
+
+```text
+Error: listen tcp 127.0.0.1:18080: bind: address already in use
+```
+
+Metrics scraping also failed in that run:
+
+```text
+curl: (7) Failed to connect to 127.0.0.1 port 19090 after 0 ms: Couldn't connect to server
+```
+
+### What I learned
+
+- Readiness checks must verify the intended child process, not just any successful HTTP response on the target port.
+- The load harness should probably get a future `--strict-metrics` option so failed metrics scraping can fail the run rather than only leaving empty files.
+- The first successful smoke had 11 HTTP requests in metrics because readiness probing contributes one request before the 10 Vegeta requests.
+
+### What was tricky to build
+
+The subtle bug was caused by a port collision. A simple curl readiness probe cannot distinguish between the server started by the harness and an unrelated process already listening on that port. Checking the child PID before and after the curl catches the common bind-failure case.
+
+### What warrants a second pair of eyes
+
+- Whether the harness should proactively check that app and metrics ports are free before starting.
+- Whether failed metrics scraping should be fatal by default now that metrics are part of the benchmark contract.
+
+### What should be done in the future
+
+- Add optional strict mode for metrics scrape failures.
+- Consider defaulting to less common ports or choosing random free ports.
+- Continue with Phase 3 database and `db.guard` metrics.
+
+### Code review instructions
+
+- Review the `wait_ready` change in `scripts/bench-vegeta.sh`.
+- Reproduce with:
+
+```text
+scripts/bench-vegeta.sh --scenario null --duration 2s --rate 5/s --port 18180 --metrics-port 19190
+```
+
+### Technical details
+
+Successful smoke result directory:
+
+```text
+bench/results/20260514T183706Z-null
+```
+
+This directory is ignored by git through `bench/results/.gitignore`.

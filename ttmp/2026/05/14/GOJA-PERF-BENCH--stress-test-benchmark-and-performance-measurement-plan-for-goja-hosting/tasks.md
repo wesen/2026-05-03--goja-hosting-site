@@ -49,7 +49,7 @@ Goal: create a repeatable load harness that can use the new `/metrics` endpoint 
 - [x] Record metadata: commit, dirty status, Go version, OS/arch, scenario, rate, duration, concurrency/worker settings, observability mode.
 - [x] Write Markdown and JSON summaries under `bench/results/`.
 - [x] Document how to install/use Vegeta and alternatives (`fortio`, `hey`, `bombardier`, `k6`).
-- [ ] Run a short local smoke load test.
+- [x] Run a short local smoke load test.
 - [x] Commit Phase 2.
 
 ## Phase 3 — Database and db.guard metrics
