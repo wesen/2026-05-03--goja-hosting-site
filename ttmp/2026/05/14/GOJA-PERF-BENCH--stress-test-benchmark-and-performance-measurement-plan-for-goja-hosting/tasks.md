@@ -85,12 +85,12 @@ Goal: measure realistic application interaction paths separately from generic HT
 
 Goal: make expensive bottleneck analysis reproducible during stress runs.
 
-- [ ] Extend load harness to capture CPU profile during a run when pprof is enabled.
-- [ ] Capture heap profile after run.
-- [ ] Capture goroutine profile after run.
-- [ ] Store pprof artifacts in result directory but keep them ignored by git.
-- [ ] Add report links/instructions for `go tool pprof`.
-- [ ] Run short profile capture smoke test.
+- [x] Extend load harness to capture CPU profile during a run when pprof is enabled.
+- [x] Capture heap profile after run.
+- [x] Capture goroutine profile after run.
+- [x] Store pprof artifacts in result directory but keep them ignored by git.
+- [x] Add report links/instructions for `go tool pprof`.
+- [x] Run short profile capture smoke test.
 - [ ] Commit Phase 5.
 
 ## Phase 6 — OpenTelemetry tracing

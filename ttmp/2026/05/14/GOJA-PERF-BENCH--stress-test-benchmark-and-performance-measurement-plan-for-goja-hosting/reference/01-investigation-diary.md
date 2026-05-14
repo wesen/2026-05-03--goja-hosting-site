@@ -1442,3 +1442,140 @@ goja_site_kanban_render_duration_seconds{site,board,reason}
 goja_site_kanban_rendered_html_bytes{site,board,reason}
 goja_site_kanban_errors_total{site,board,action,phase,error_class}
 ```
+
+## Step 13: Implement Phase 5 pprof capture automation
+
+I implemented Phase 5 by extending the Vegeta harness with optional pprof capture. The harness can now start `goja-site` with pprof enabled on the private diagnostics listener, capture a CPU profile during the load run, and capture heap, goroutine, and allocs profiles after the run.
+
+This phase makes performance debugging more reproducible: a benchmark result directory can now contain the external load report, Prometheus snapshots, server logs, and Go runtime profiles for offline analysis with `go tool pprof`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Continue to the next planned phase, which is pprof capture automation in the load harness.
+
+**Inferred user intent:** The user wants the benchmark/observability work to keep moving without additional prompting, while preserving diary and commits.
+
+**Commit (code):** pending at diary draft time — this step will be updated after the Phase 5 commit.
+
+### What I did
+
+- Added `--pprof` to `scripts/bench-vegeta.sh`.
+- Added `--pprof-seconds N` to control CPU profile duration.
+- When `--pprof` is set, the harness now:
+  - passes `--pprof` to `goja-site serve` or `serve-multi`,
+  - starts CPU profile capture from `/debug/pprof/profile?seconds=N` while Vegeta runs,
+  - waits for CPU profile capture to finish,
+  - captures `/debug/pprof/heap` after the run,
+  - captures `/debug/pprof/goroutine?debug=1` after the run,
+  - captures `/debug/pprof/allocs` after the run,
+  - includes pprof metadata and artifact names in `summary.md`.
+- Kept pprof artifacts under `bench/results/...`, which is ignored by git.
+- Ran shell syntax validation.
+- Ran `go test ./...`.
+- Ran a short pprof-enabled smoke test.
+
+### Why
+
+- Metrics identify which subsystem is slow, but pprof helps explain why CPU, allocation, heap, or goroutine behavior looks wrong.
+- Capturing profiles inside the benchmark result directory keeps evidence tied to a specific run.
+- pprof should remain opt-in because it adds overhead and can expose internal details.
+
+### What worked
+
+Validation passed:
+
+```text
+bash -n scripts/bench-vegeta.sh
+go test ./...
+```
+
+The pprof smoke run succeeded:
+
+```text
+scripts/bench-vegeta.sh --scenario null --duration 2s --rate 5/s --port 18182 --metrics-port 19192 --pprof --pprof-seconds 1
+Requests      [total, rate, throughput]         10, 5.55, 5.55
+Success       [ratio]                           100.00%
+Status Codes  [code:count]                      200:10
+benchmark complete: /home/manuel/code/wesen/2026-05-03--goja-hosting-site/bench/results/20260514T195501Z-null
+```
+
+The result directory contains pprof artifacts:
+
+```text
+allocs.pprof
+cpu.pprof
+goroutine.txt
+heap.pprof
+metrics-after.prom
+metrics-before.prom
+server.log
+summary.md
+targets.txt
+vegeta.bin
+vegeta.json
+vegeta.txt
+```
+
+The profile files are valid gzip-compressed pprof data:
+
+```text
+allocs.pprof: gzip compressed data
+cpu.pprof: gzip compressed data
+heap.pprof: gzip compressed data
+goroutine.txt: ASCII text
+```
+
+### What didn't work
+
+- N/A for this step after fixing the shell argument handling before the smoke run.
+
+### What I learned
+
+- Bash `${VAR:+--pprof}` is not safe when the variable contains `0`, because non-empty strings still expand. The harness now builds an explicit `PPROF_ARGS` array only when `CAPTURE_PPROF == 1`.
+- Short CPU profiles on tiny smoke workloads are small but still valid. Real analysis should use longer runs.
+
+### What was tricky to build
+
+The tricky detail was coordinating CPU profile capture with the load run. The CPU profile endpoint blocks for its requested duration, so the harness starts that curl in the background before Vegeta and waits for it after Vegeta completes.
+
+The second tricky detail was preserving the safety invariant from Phase 1: pprof is still only exposed through the diagnostics listener, because the harness only passes `--pprof` together with `--metrics-addr`.
+
+### What warrants a second pair of eyes
+
+- Whether failed profile capture should fail the whole benchmark run instead of being best-effort.
+- Whether CPU profile duration should default to the Vegeta duration instead of a separate `--pprof-seconds` default.
+- Whether to add block/mutex profiles after enabling their runtime sampling rates.
+
+### What should be done in the future
+
+- Add `go tool pprof` convenience commands to generated summaries.
+- Consider strict mode for required metrics/profile artifacts.
+- Continue to Phase 6 OpenTelemetry tracing.
+
+### Code review instructions
+
+- Review `scripts/bench-vegeta.sh`, especially `PPROF_ARGS`, profile capture timing, and cleanup.
+- Reproduce with:
+
+```text
+scripts/bench-vegeta.sh --scenario null --duration 2s --rate 5/s --port 18182 --metrics-port 19192 --pprof --pprof-seconds 1
+```
+
+- Inspect:
+
+```text
+file bench/results/<run>/cpu.pprof bench/results/<run>/heap.pprof
+```
+
+### Technical details
+
+New pprof artifacts:
+
+```text
+cpu.pprof       # /debug/pprof/profile?seconds=N
+heap.pprof      # /debug/pprof/heap
+allocs.pprof    # /debug/pprof/allocs
+goroutine.txt   # /debug/pprof/goroutine?debug=1
+```

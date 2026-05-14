@@ -151,3 +151,13 @@ Committed Phase 4 Kanban metrics as a08e5848944e1c4e9eed7a78f712f865662ed679.
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/kanban.go — Phase 4 committed Kanban metrics
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Diary Step 12 updated with code commit hash
 
+
+## 2026-05-14
+
+Implemented Phase 5 pprof capture automation in the Vegeta harness and verified CPU/heap/goroutine artifacts.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/scripts/bench-vegeta.sh — Pprof capture automation
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 13 pprof smoke evidence
+

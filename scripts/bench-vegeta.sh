@@ -10,6 +10,8 @@ METRICS_PORT="19090"
 OUT_DIR=""
 BINARY=""
 KEEP_DB="0"
+CAPTURE_PPROF="0"
+PPROF_SECONDS="5"
 VEGETA_BIN="${VEGETA_BIN:-vegeta}"
 
 usage() {
@@ -24,6 +26,8 @@ Options:
   --metrics-port PORT   private metrics port (default: 19090)
   --out-dir DIR         result directory (default: bench/results/<timestamp>-<scenario>)
   --binary PATH         existing goja-site binary to use instead of building tmp binary
+  --pprof               enable diagnostics pprof and capture CPU/heap/goroutine profiles
+  --pprof-seconds N     CPU profile duration in seconds when --pprof is set (default: 5)
   --keep-db             keep temporary DB files
   -h, --help            show this help
 
@@ -40,6 +44,8 @@ while [[ $# -gt 0 ]]; do
     --metrics-port) METRICS_PORT="$2"; shift 2 ;;
     --out-dir) OUT_DIR="$2"; shift 2 ;;
     --binary) BINARY="$2"; shift 2 ;;
+    --pprof) CAPTURE_PPROF="1"; shift ;;
+    --pprof-seconds) PPROF_SECONDS="$2"; shift 2 ;;
     --keep-db) KEEP_DB="1"; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -63,6 +69,10 @@ APP_ADDR="127.0.0.1:${PORT}"
 BASE_URL="http://${APP_ADDR}"
 METRICS_ADDR="127.0.0.1:${METRICS_PORT}"
 METRICS_URL="http://${METRICS_ADDR}/metrics"
+PPROF_ARGS=()
+if [[ "$CAPTURE_PPROF" == "1" ]]; then
+  PPROF_ARGS=(--pprof)
+fi
 LOG_PATH="$OUT_DIR/server.log"
 TARGETS_PATH="$TMP_DIR/targets.txt"
 DB_PATH="$TMP_DIR/app.db"
@@ -137,13 +147,13 @@ EOF_TARGETS
 start_server() {
   case "$SCENARIO" in
     null)
-      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/null-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/null-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     render)
-      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/render-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/render-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     db-read|db-write)
-      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/db-read-write --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/db-read-write --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     multi)
       local cfg="$TMP_DIR/sites.yaml"
@@ -166,7 +176,7 @@ sites:
     scripts:
       - bench/scripts/render-route
 EOF_CFG
-      "$BINARY" serve-multi --config "$cfg" --metrics-addr "$METRICS_ADDR" >"$LOG_PATH" 2>&1 &
+      "$BINARY" serve-multi --config "$cfg" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
   esac
   SERVER_PID=$!
@@ -201,6 +211,15 @@ scrape_metrics() {
   curl -fsS "$METRICS_URL" >"$dest" || true
 }
 
+capture_pprof_after_run() {
+  if [[ "$CAPTURE_PPROF" != "1" ]]; then
+    return 0
+  fi
+  curl -fsS "http://${METRICS_ADDR}/debug/pprof/heap" -o "$OUT_DIR/heap.pprof" || true
+  curl -fsS "http://${METRICS_ADDR}/debug/pprof/goroutine?debug=1" -o "$OUT_DIR/goroutine.txt" || true
+  curl -fsS "http://${METRICS_ADDR}/debug/pprof/allocs" -o "$OUT_DIR/allocs.pprof" || true
+}
+
 write_targets
 start_server
 wait_ready
@@ -210,11 +229,20 @@ RESULT_BIN="$OUT_DIR/vegeta.bin"
 RESULT_JSON="$OUT_DIR/vegeta.json"
 RESULT_TEXT="$OUT_DIR/vegeta.txt"
 
+if [[ "$CAPTURE_PPROF" == "1" ]]; then
+  curl -fsS "http://${METRICS_ADDR}/debug/pprof/profile?seconds=${PPROF_SECONDS}" -o "$OUT_DIR/cpu.pprof" &
+  PPROF_PID=$!
+fi
+
 "$VEGETA_BIN" attack -targets="$TARGETS_PATH" -rate="$RATE" -duration="$DURATION" \
   | tee "$RESULT_BIN" \
   | "$VEGETA_BIN" report | tee "$RESULT_TEXT"
+if [[ -n "${PPROF_PID:-}" ]]; then
+  wait "$PPROF_PID" || true
+fi
 "$VEGETA_BIN" report -type=json "$RESULT_BIN" >"$RESULT_JSON"
 scrape_metrics "$OUT_DIR/metrics-after.prom"
+capture_pprof_after_run
 
 cat >"$OUT_DIR/summary.md" <<EOF_SUMMARY
 # goja-site Vegeta benchmark
@@ -224,6 +252,8 @@ cat >"$OUT_DIR/summary.md" <<EOF_SUMMARY
 - Rate: ${RATE}
 - Base URL: ${BASE_URL}
 - Metrics URL: ${METRICS_URL}
+- pprof capture: ${CAPTURE_PPROF}
+- pprof seconds: ${PPROF_SECONDS}
 - Commit: $(git rev-parse HEAD)
 - Dirty worktree: $(if [[ -n "$(git status --porcelain)" ]]; then echo true; else echo false; fi)
 - Go version: $(go version)
@@ -244,6 +274,9 @@ $(cat "$RESULT_TEXT")
 - Metrics after: metrics-after.prom
 - Server log: server.log
 - Targets: targets.txt
+- CPU profile: cpu.pprof (when --pprof is set)
+- Heap profile: heap.pprof (when --pprof is set)
+- Goroutine profile: goroutine.txt (when --pprof is set)
 EOF_SUMMARY
 cp "$TARGETS_PATH" "$OUT_DIR/targets.txt"
 
