@@ -165,3 +165,43 @@ The result confirms the pprof diagnosis: eager precise move forms were creating 
 ### Remaining work
 
 The performance change is validated by Go tests and load tests. The accessibility behavior still needs browser-level testing for keyboard navigation, focus restoration, and live-region announcements.
+
+## Step 5: Add and run Playwright accessibility validation
+
+Added a dedicated Playwright accessibility smoke test for the new frontend card action menu.
+
+### Script
+
+```text
+scripts/03-run-kanban-accessibility-playwright.sh
+```
+
+The script starts `goja-site` against `bench/scripts/kanban-board`, installs Playwright in a temporary directory, opens the benchmark board, and verifies:
+
+- card 1 has `role="listitem"`, `tabindex="0"`, and an informative `aria-label`,
+- keyboard focus on the card plus Enter opens the action menu,
+- the menu has `role="menu"`,
+- ArrowDown and Escape work inside the menu,
+- clicking `Move to Done` posts the action,
+- the refreshed DOM shows card 1 in the `done` column,
+- focus is restored to card 1,
+- the live region announces `Moved card 1`,
+- the browser console has no warnings, errors, or page errors.
+
+I also updated the existing `scripts/playwright-kanban-smoke.sh` and `examples/kanban/scripts/app.js` so the older example site uses the new compact action menu rather than removed `preciseMove()` forms.
+
+### Validation commands
+
+```text
+ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/scripts/03-run-kanban-accessibility-playwright.sh
+scripts/playwright-kanban-smoke.sh
+go test ./...
+```
+
+### Results
+
+```text
+kanban accessibility playwright smoke passed: http://127.0.0.1:19220
+kanban playwright smoke passed: http://127.0.0.1:19111
+go test ./... passed
+```

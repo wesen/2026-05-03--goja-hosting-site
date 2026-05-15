@@ -42,3 +42,13 @@ Ran post-simplification benchmarks; 4VM kanban-fragment 400/s improved to 399.76
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/02-post-simplification-benchmark-report.md — post-simplification benchmark report
 
+
+## 2026-05-15
+
+Added Playwright accessibility smoke test for the new Kanban card action menu and updated the example Kanban smoke test.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/scripts/playwright-kanban-smoke.sh — updated existing smoke test for action menu movement
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/scripts/03-run-kanban-accessibility-playwright.sh — dedicated accessibility Playwright smoke
+

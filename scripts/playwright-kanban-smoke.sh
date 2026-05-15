@@ -110,8 +110,9 @@ async function visibleText(locator) {
   await assertColumnCount(page, 'Done', '0');
 
   const card = page.locator('article', { hasText: 'Playwright E2E card' });
-  await card.getByLabel('Destination column').selectOption('done');
-  await card.getByRole('button', { name: 'Move' }).click();
+  await card.focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('menuitem', { name: 'Move to Done' }).click();
   await page.waitForTimeout(500);
   await page.goto(baseURL + '/', { waitUntil: 'networkidle' });
   await assertVisible(page, 'Playwright E2E card');
