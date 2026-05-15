@@ -49,3 +49,12 @@ Fixed multi-VM pprof capture so CPU profiling overlaps the measured Vegeta attac
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/01-run-multi-vm-vegeta.sh — pprof timing fix
 
+
+## 2026-05-15
+
+Captured valid pprof for degraded kanban-fragment 4 VM 400/s multi-VM cell; rendering and GC dominate CPU.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/reference/04-multi-vm-kanban-fragment-pprof-report.md — multi-VM pprof report
+

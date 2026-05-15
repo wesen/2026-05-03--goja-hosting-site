@@ -19,7 +19,7 @@
 
 ## Phase 2 — Follow-up stress experiments
 
-- [ ] Decide whether to add pprof runs for multi-VM cases.
+- [x] Decide whether to add pprof runs for multi-VM cases.
 - [x] Add a longer even-hot run if quick sweep is healthy.
 - [ ] Add a one-hot idle-VM overhead run with larger VM counts.
 - [ ] Add kanban-action only after choosing safe rates below the known single-VM knee.
@@ -31,3 +31,10 @@
 - [x] Generate and inspect saturation sweep report.
 - [x] Record saturation findings in diary/changelog.
 - [x] Commit saturation sweep results.
+
+## Phase 4 — Multi-VM pprof
+
+- [x] Fix CPU pprof capture to overlap measured load.
+- [x] Capture pprof for degraded `kanban-fragment` 4 VM 400/s cell.
+- [x] Generate pprof Markdown report.
+- [x] Commit pprof artifacts and report.

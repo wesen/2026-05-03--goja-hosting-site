@@ -1,0 +1,15 @@
+{
+  "created_at_utc": "2026-05-15T17:02:10Z",
+  "git_commit": "39dc6828bc8f08154331c38c548ebf3ad76a5559",
+  "git_dirty": false,
+  "vm_count": 4,
+  "scenario": "kanban-fragment",
+  "distribution": "even-hot",
+  "rate": "400/s",
+  "duration": "10s",
+  "warmup_duration": "3s",
+  "app_addr": "127.0.0.1:19001",
+  "metrics_addr": "127.0.0.1:20001",
+  "config_path": "/home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/archive/pprof-kanban-fragment-4vm-400rps-20260515T170138Z/sites.yaml",
+  "targets_path": "/home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/archive/pprof-kanban-fragment-4vm-400rps-20260515T170138Z/targets.txt"
+}

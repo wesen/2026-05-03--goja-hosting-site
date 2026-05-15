@@ -1,0 +1,70 @@
+File: goja-site
+Build ID: bd4d3eddaf689cd88eb53eb8b410887003b656da
+Type: alloc_space
+Time: 2026-05-15 13:02:10 EDT
+Showing nodes accounting for 22751.80MB, 97.73% of 23280.72MB total
+Dropped 295 nodes (cum <= 116.40MB)
+      flat  flat%   sum%        cum   cum%
+13642.94MB 58.60% 58.60% 13759.44MB 59.10%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).preciseMoveForm
+ 2640.53MB 11.34% 69.94%  2640.53MB 11.34%  bytes.growSlice
+ 1274.91MB  5.48% 75.42%  1274.91MB  5.48%  bytes.(*Buffer).String (inline)
+ 1250.31MB  5.37% 80.79%  1253.81MB  5.39%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).writeString
+  598.10MB  2.57% 83.36%   753.61MB  3.24%  github.com/dop251/goja.(*Runtime).toValue
+  580.10MB  2.49% 85.85% 16761.42MB 72.00%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).renderCard
+  567.59MB  2.44% 88.29%   567.59MB  2.44%  github.com/dop251/goja.(*valueStack).expand (inline)
+  391.59MB  1.68% 89.97%   767.65MB  3.30%  github.com/dop251/goja.(*baseObject).export
+  316.55MB  1.36% 91.33%   316.55MB  1.36%  github.com/dop251/goja.(*objectExportCtx).put
+  221.50MB  0.95% 92.28%      222MB  0.95%  fmt.Sprint
+  214.06MB  0.92% 93.20%   214.06MB  0.92%  github.com/dop251/goja.(*baseObject)._put
+  201.01MB  0.86% 94.07%  1762.61MB  7.57%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderAttrs
+  179.19MB  0.77% 94.84% 17527.07MB 75.29%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).Render
+  175.51MB  0.75% 95.59%  1068.66MB  4.59%  github.com/go-go-golems/go-go-goja/modules/uidsl.elementFromCall
+  157.51MB  0.68% 96.27%   157.51MB  0.68%  github.com/dop251/goja.(*baseObject).init (inline)
+     139MB   0.6% 96.86%      139MB   0.6%  github.com/dop251/goja.asciiString.Concat
+   64.03MB  0.28% 97.14% 16832.95MB 72.30%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).renderColumn
+   59.37MB  0.26% 97.39%   506.93MB  2.18%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).loadCards
+      29MB  0.12% 97.52%   796.65MB  3.42%  github.com/dop251/goja.(*Object).Export
+      27MB  0.12% 97.63%   125.51MB  0.54%  github.com/dop251/goja.(*Runtime).newBaseObject (inline)
+      20MB 0.086% 97.72%   246.53MB  1.06%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.callString
+       1MB 0.0043% 97.72%  2641.53MB 11.35%  bytes.(*Buffer).grow
+    0.50MB 0.0021% 97.73% 23128.33MB 99.35%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).Mount.func2
+    0.50MB 0.0021% 97.73% 23170.84MB 99.53%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Host).ServeHTTP.func1
+         0     0% 97.73%  2617.95MB 11.25%  bytes.(*Buffer).WriteString
+         0     0% 97.73%   125.51MB  0.54%  github.com/dop251/goja.(*Runtime).NewObject (inline)
+         0     0% 97.73%   753.61MB  3.24%  github.com/dop251/goja.(*Runtime).ToValue (partial-inline)
+         0     0% 97.73% 23128.33MB 99.35%  github.com/dop251/goja.(*Runtime).newWrappedFunc.(*Runtime).wrapReflectFunc.func1
+         0     0% 97.73% 23128.33MB 99.35%  github.com/dop251/goja.(*Runtime).runWrapped
+         0     0% 97.73%  2683.91MB 11.53%  github.com/dop251/goja.(*arrowFuncObject).Call
+         0     0% 97.73%  2683.91MB 11.53%  github.com/dop251/goja.(*baseJsFuncObject).__call
+         0     0% 97.73%  2683.91MB 11.53%  github.com/dop251/goja.(*baseJsFuncObject)._call (inline)
+         0     0% 97.73%   203.05MB  0.87%  github.com/dop251/goja.(*baseObject)._putProp
+         0     0% 97.73%  1653.25MB  7.10%  github.com/dop251/goja.(*nativeFuncObject).vmCall
+         0     0% 97.73%   266.56MB  1.14%  github.com/dop251/goja.(*vm).push (inline)
+         0     0% 97.73%  2383.38MB 10.24%  github.com/dop251/goja.(*vm).run
+         0     0% 97.73%  2383.38MB 10.24%  github.com/dop251/goja.(*vm).runTryInner
+         0     0% 97.73% 23159.84MB 99.48%  github.com/dop251/goja.(*vm).try
+         0     0% 97.73% 23128.33MB 99.35%  github.com/dop251/goja.AssertFunction.func1
+         0     0% 97.73% 23128.33MB 99.35%  github.com/dop251/goja.AssertFunction.func1.1
+         0     0% 97.73%      139MB   0.6%  github.com/dop251/goja._add.exec
+         0     0% 97.73%   124.01MB  0.53%  github.com/dop251/goja._newObject.exec
+         0     0% 97.73%  1653.25MB  7.10%  github.com/dop251/goja.call.exec
+         0     0% 97.73%   156.04MB  0.67%  github.com/dop251/goja.loadVal.exec
+         0     0% 97.73%   200.55MB  0.86%  github.com/dop251/goja.putProp.exec
+         0     0% 97.73% 23172.84MB 99.54%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).RunOnLoop.func1
+         0     0% 97.73% 23172.84MB 99.54%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).run
+         0     0% 97.73% 23172.84MB 99.54%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).runAux
+         0     0% 97.73%  1653.25MB  7.10%  github.com/go-go-golems/go-go-goja/modules/uidsl.Loader.func1
+         0     0% 97.73%  4338.95MB 18.64%  github.com/go-go-golems/go-go-goja/modules/uidsl.RenderAny
+         0     0% 97.73%   221.50MB  0.95%  github.com/go-go-golems/go-go-goja/modules/uidsl.attrValue
+         0     0% 97.73%   393.07MB  1.69%  github.com/go-go-golems/go-go-goja/modules/uidsl.isAttrs
+         0     0% 97.73%  3064.04MB 13.16%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderNode
+         0     0% 97.73%  5593.26MB 24.03%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).HTML
+         0     0% 97.73%  5593.26MB 24.03%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).JSObject.func6
+         0     0% 97.73% 23171.34MB 99.53%  github.com/go-go-golems/go-go-goja/pkg/runtimebridge.WithCallContext
+         0     0% 97.73% 23172.84MB 99.54%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).Call.func1
+         0     0% 97.73% 23171.34MB 99.53%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke
+         0     0% 97.73% 23171.34MB 99.53%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke.func1
+         0     0% 97.73% 23171.34MB 99.53%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke.func1.1
+         0     0% 97.73%  5593.76MB 24.03%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.callMethod
+         0     0% 97.73% 23128.33MB 99.35%  reflect.Value.Call
+         0     0% 97.73% 23128.33MB 99.35%  reflect.Value.call

@@ -209,4 +209,55 @@ The first pprof attempt for `kanban-fragment` 4 VMs at 400/s produced a CPU prof
 
 I fixed the harness so CPU profiling starts just before the measured Vegeta attack and overlaps the load window. Heap, allocs, and goroutine snapshots still run after the attack.
 
-The unusable zero-sample profile directory was left in the archive for evidence, but the raw `vegeta.bin` was removed to avoid keeping a ~940 MiB artifact.
+The unusable zero-sample profile directory was later removed from the archive to avoid committing misleading pprof artifacts; the raw `vegeta.bin` had already been removed to avoid keeping a ~940 MiB artifact.
+
+## Step 6: Capture valid pprof for degraded Kanban fragment multi-VM cell
+
+After fixing pprof timing, I reran the degraded `kanban-fragment` cell with 4 VMs at 400/s and captured CPU, heap, allocs, goroutine, metrics, target, and config artifacts.
+
+### Command
+
+```text
+scripts/01-run-multi-vm-vegeta.sh --scenario kanban-fragment --vm-count 4 --distribution even-hot --rate 400/s --duration 10s --warmup-duration 3s --port 19001 --metrics-port 20001 --out-dir archive/pprof-kanban-fragment-4vm-400rps-20260515T170138Z --pprof --pprof-seconds 10
+```
+
+### Result
+
+```text
+3999 requests
+400/s offered
+214.66/s achieved throughput
+100% success
+HTTP 200 only
+p50 4.725s
+p95 8.066s
+p99 8.516s
+max 8.632s
+```
+
+The raw `vegeta.bin` was about 940 MiB and was removed before commit.
+
+### CPU profile
+
+This profile contains 41.10 seconds of samples over a 10 second wall-clock profile, which means the run used roughly four cores during profiling.
+
+Top cumulative costs:
+
+```text
+uidsl.renderNode                                      12.57s cumulative, 30.58%
+kanbanddsl.(*Board).preciseMoveForm                   11.57s cumulative, 28.15%
+uidsl.renderAttrs                                     10.09s cumulative, 24.55%
+runtime.mallocgc                                       9.42s cumulative, 22.92%
+runtime.gcDrain                                        9.09s cumulative, 22.12%
+runtime.mallocgcSmallScanNoHeader                      7.11s cumulative, 17.30%
+```
+
+### Interpretation
+
+The degraded multi-VM cell is dominated by rendering and allocation/GC work, not by Host-header dispatch. Multiple VMs let several owner loops run at once, but each request still renders and returns a large ~246 KB Kanban fragment. The profile points to `uidsl.renderNode`, `uidsl.renderAttrs`, `attrValue`, and `preciseMoveForm` as optimization targets.
+
+### Report
+
+```text
+reference/04-multi-vm-kanban-fragment-pprof-report.md
+```
