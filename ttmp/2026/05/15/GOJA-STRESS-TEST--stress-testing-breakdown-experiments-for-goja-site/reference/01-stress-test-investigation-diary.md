@@ -348,3 +348,51 @@ The Markdown report uploaded cleanly as a PDF bundle. The report includes the SQ
 ### What should be done in the future
 
 Before running the hour-scale sweep, add a targeted knee-search script around `kanban-action` 60-100/s or run the existing quick script with environment overrides.
+
+## Step 4: Add targeted Kanban action knee-search script
+
+After the quick stress sweep showed that `kanban-action` bends between 50/s and 100/s, I added a targeted knee-search script instead of immediately running the broad hour-scale sweep.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Continue with the recommended next stress step: targeted `kanban-action` knee search around 60-100/s.
+
+**Inferred user intent:** Narrow down where the first observed breakdown begins before spending time on an hour-scale experiment.
+
+**Commit (code):** pending at time of this entry.
+
+### What I added
+
+```text
+scripts/run-stress-kanban-action-knee.sh
+```
+
+Default shape:
+
+```text
+scenario: kanban-action
+rates:    60/s,70/s,80/s,90/s,100/s
+repeat:   3
+duration: 30s measured
+warmup:   5s
+```
+
+The script:
+
+1. builds `goja-site` once,
+2. runs `scripts/bench-matrix.sh`,
+3. imports results into `archive/stress-benchmarks.sqlite`,
+4. renders `reference/03-kanban-action-knee-sqlite-report.md` with embedded SQL queries.
+
+### Validation
+
+I ran:
+
+```text
+bash -n run-stress-kanban-action-knee.sh
+python3 -m py_compile render-stress-report-from-sqlite.py import-benchmark-matrix-to-sqlite.py
+```
+
+Both passed.
