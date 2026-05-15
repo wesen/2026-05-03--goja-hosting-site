@@ -239,14 +239,24 @@ if [[ "$WARMUP_DURATION" != "0s" && "$WARMUP_DURATION" != "0" ]]; then
 fi
 
 curl -fsS "$METRICS_URL" >"$OUT_DIR/metrics-before.prom"
+CPU_PPROF_PID=""
+if [[ "$CAPTURE_PPROF" == "1" ]]; then
+  # Start CPU profiling before the measured attack so samples overlap the load,
+  # not the post-run idle drain period.
+  curl -fsS "http://${METRICS_ADDR}/debug/pprof/profile?seconds=${PPROF_SECONDS}" -o "$OUT_DIR/cpu.pprof" &
+  CPU_PPROF_PID=$!
+  sleep 0.2
+fi
 "$VEGETA_BIN" attack -duration="$DURATION" -rate="$RATE" -targets="$TARGETS_PATH" -output="$OUT_DIR/vegeta.bin"
+if [[ -n "$CPU_PPROF_PID" ]]; then
+  wait "$CPU_PPROF_PID"
+fi
 "$VEGETA_BIN" report "$OUT_DIR/vegeta.bin" | tee "$OUT_DIR/vegeta.txt"
 "$VEGETA_BIN" report -type=json "$OUT_DIR/vegeta.bin" >"$OUT_DIR/vegeta.json"
 curl -fsS "$METRICS_URL" >"$OUT_DIR/metrics-after.prom"
 capture_metrics_delta
 
 if [[ "$CAPTURE_PPROF" == "1" ]]; then
-  curl -fsS "http://${METRICS_ADDR}/debug/pprof/profile?seconds=${PPROF_SECONDS}" -o "$OUT_DIR/cpu.pprof"
   curl -fsS "http://${METRICS_ADDR}/debug/pprof/heap" -o "$OUT_DIR/heap.pprof"
   curl -fsS "http://${METRICS_ADDR}/debug/pprof/allocs" -o "$OUT_DIR/allocs.pprof"
   curl -fsS "http://${METRICS_ADDR}/debug/pprof/goroutine?debug=2" -o "$OUT_DIR/goroutine.txt"

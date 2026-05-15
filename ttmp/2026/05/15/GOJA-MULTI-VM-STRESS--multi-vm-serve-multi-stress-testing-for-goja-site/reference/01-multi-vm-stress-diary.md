@@ -202,3 +202,11 @@ Important cells:
 The multi-VM model improves the Kanban fragment capacity compared with one VM, but it does not scale linearly. The 400/s rows cluster around roughly 240-250 achieved requests per second with multi-second p95 latency. That suggests a process-level or shared-resource ceiling for this fixture, not just per-VM owner-loop serialization.
 
 This fixture returns about 246 KB per request. At high rates, the system is paying for Goja route execution, UI DSL rendering, allocation/GC, and response writing. The next diagnostic step should be pprof on a degraded multi-VM cell, probably `kanban-fragment` 4 VMs or 8 VMs at 400/s.
+
+## Step 5: Fix multi-VM pprof timing
+
+The first pprof attempt for `kanban-fragment` 4 VMs at 400/s produced a CPU profile with zero samples. The reason was script timing: `01-run-multi-vm-vegeta.sh` captured `/debug/pprof/profile` after the Vegeta attack had completed, so the process was mostly idle while the CPU profile was collected.
+
+I fixed the harness so CPU profiling starts just before the measured Vegeta attack and overlaps the load window. Heap, allocs, and goroutine snapshots still run after the attack.
+
+The unusable zero-sample profile directory was left in the archive for evidence, but the raw `vegeta.bin` was removed to avoid keeping a ~940 MiB artifact.

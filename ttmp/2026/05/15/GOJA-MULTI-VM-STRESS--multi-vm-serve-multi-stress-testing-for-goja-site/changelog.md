@@ -40,3 +40,12 @@ Ran higher-rate multi-VM saturation sweep; null stayed healthy through 2000/s, k
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/reference/03-multi-vm-saturation-sweep-report.md — saturation sweep report
 
+
+## 2026-05-15
+
+Fixed multi-VM pprof capture so CPU profiling overlaps the measured Vegeta attack.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/01-run-multi-vm-vegeta.sh — pprof timing fix
+
