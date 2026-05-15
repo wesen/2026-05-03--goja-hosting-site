@@ -2587,3 +2587,61 @@ The report is the human-readable artifact; it includes every SQL query used to p
 ### What should be done in the future
 
 If source scripts should be read on reMarkable too, create a Markdown appendix that embeds the scripts in fenced code blocks, then bundle that appendix with the report.
+
+## Step 21: Prepare short matrix script for real baseline run
+
+The user said "go ahead", which I interpreted as permission to run the next recommended benchmark step: the short matrix through the SQLite pipeline. Before starting the long run, I updated `run-phase7-short-matrix.sh` so it builds the `goja-site` binary once and reuses it across all matrix cells. The original runner builds a binary per cell when no `--binary` is supplied; for the short matrix that would add avoidable build noise and runtime.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Run the short benchmark matrix through SQLite, then generate/upload the resulting report.
+
+**Inferred user intent:** Proceed from smoke validation to real baseline collection.
+
+**Commit (code):** pending at the time this diary entry was written.
+
+### What I changed
+
+`run-phase7-short-matrix.sh` now supports environment overrides:
+
+```text
+BENCH_MATRIX_ID
+BENCH_OUT_ROOT
+BENCH_SQLITE_DB
+BENCH_REPORT_MD
+BENCH_SCENARIOS
+BENCH_RATES
+BENCH_DURATION
+BENCH_WARMUP_DURATION
+BENCH_REPEAT
+BENCH_START_PORT
+BENCH_START_METRICS_PORT
+```
+
+It also now builds one temporary binary:
+
+```text
+go build -o "$BINARY" ./cmd/goja-site
+```
+
+and passes it into:
+
+```text
+scripts/bench-matrix.sh --binary "$BINARY"
+```
+
+### Why
+
+This keeps the benchmark matrix focused on request handling, not repeated compilation overhead. It also makes it possible to run smaller comparison matrices with the same script by setting environment variables, while preserving the default short profile of 7 scenarios × 3 rates × 3 repeats.
+
+### Validation
+
+I ran:
+
+```text
+bash -n run-phase7-short-matrix.sh
+```
+
+Result: passed.
