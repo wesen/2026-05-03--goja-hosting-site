@@ -28,12 +28,11 @@ type DataSpec struct {
 }
 
 type FeatureSpec struct {
-	Search      SearchSpec
-	PreciseMove bool
-	DragDrop    bool
-	CreateCard  bool
-	CardMenu    bool
-	ReadOnly    bool
+	Search     SearchSpec
+	DragDrop   bool
+	CreateCard bool
+	CardMenu   bool
+	ReadOnly   bool
 }
 
 type SearchSpec struct {

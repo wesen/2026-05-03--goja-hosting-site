@@ -149,8 +149,8 @@ func (b *BoardBuilder) Build() (*Board, error) {
 	if b.cfg.Data.Column == nil {
 		errs = append(errs, "data.column(fn) is required")
 	}
-	if (b.cfg.Features.DragDrop || b.cfg.Features.PreciseMove) && !b.cfg.Features.ReadOnly && b.cfg.Actions.CardMoved == nil {
-		errs = append(errs, "features.dragDrop()/preciseMove() require actions.cardMoved(fn) unless readOnly() is enabled")
+	if b.cfg.Features.DragDrop && !b.cfg.Features.ReadOnly && b.cfg.Actions.CardMoved == nil {
+		errs = append(errs, "features.dragDrop() requires actions.cardMoved(fn) unless readOnly() is enabled")
 	}
 	if b.cfg.Features.CreateCard && b.cfg.Actions.CardCreated == nil {
 		errs = append(errs, "features.createCard() requires actions.cardCreated(fn)")
@@ -254,7 +254,6 @@ func (f *FeatureBuilder) JSObject() *goja.Object {
 		}
 		return obj
 	})
-	_ = obj.Set("preciseMove", func() goja.Value { f.board.cfg.Features.PreciseMove = true; return obj })
 	_ = obj.Set("dragDrop", func() goja.Value { f.board.cfg.Features.DragDrop = true; return obj })
 	_ = obj.Set("createCard", func() goja.Value { f.board.cfg.Features.CreateCard = true; return obj })
 	_ = obj.Set("cardMenu", func() goja.Value { f.board.cfg.Features.CardMenu = true; return obj })

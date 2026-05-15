@@ -23,3 +23,13 @@ Uploaded the Kanban render optimization and holistic architecture guides to reMa
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/design/02-holistic-goja-hosting-performance-architecture-guide.md — included in reMarkable bundle
 
+
+## 2026-05-15
+
+Removed eager preciseMove form rendering and added frontend card action accessibility controls.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/client_runtime.go — added frontend accessible action menu and live-region announcements
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/kanbanddsl/render.go — removed preciseMoveForm and added compact card Actions button/ARIA card labels
+

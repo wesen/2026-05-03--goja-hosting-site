@@ -63,3 +63,54 @@ remarquee upload bundle design/01-kanban-render-optimization-implementation-guid
 ```text
 OK: uploaded GOJA KANBAN RENDER OPT Design Guides.pdf -> /ai/2026/05/15/GOJA-KANBAN-RENDER-OPT
 ```
+
+## Step 3: Remove eager precise move forms and add frontend accessibility actions
+
+The user clarified that backward compatibility is not required and that the DSL should remain opinionated and tight. Based on that, I changed direction from configurable `preciseMove` modes to removing the eager precise move form path from the core DSL.
+
+### What changed
+
+Implementation files changed:
+
+```text
+pkg/kanbanddsl/types.go
+pkg/kanbanddsl/builder.go
+pkg/kanbanddsl/render.go
+pkg/kanbanddsl/client_runtime.go
+pkg/kanbanddsl/builder_test.go
+pkg/kanbanddsl/mount_test.go
+bench/scripts/kanban-board/app.js
+```
+
+Concrete changes:
+
+- Removed `FeatureSpec.PreciseMove`.
+- Removed `features.preciseMove()` from the builder API.
+- Removed server-rendered per-card `preciseMoveForm` generation.
+- Updated the benchmark fixture to use `.features(features => features.search().dragDrop())`.
+- Added a small default `Actions` button per movable card instead of a full form.
+- Added card accessibility attributes: `role="listitem"`, `tabindex="0"`, and an `aria-label` with card, column, and position.
+- Added list semantics to the card list container.
+- Added frontend action menu behavior in `client_runtime.go`:
+  - click `Actions` to open a menu,
+  - keyboard Enter/Space on focused card opens the menu,
+  - Escape closes and restores focus,
+  - ArrowUp/ArrowDown navigate menu items,
+  - menu supports Move up, Move down, Move to top, Move to bottom, and Move to another column,
+  - results are announced through an `aria-live` region,
+  - focus returns to the moved card after the server response refreshes HTML.
+
+### Why this direction
+
+The previous design would have added modes such as `preciseMove("none")`, `preciseMove("button")`, and `preciseMove("lazy")`. That would preserve compatibility, but it would make the DSL expose render strategy choices. The updated direction makes the DSL more opinionated: movement is a semantic Kanban action, and accessibility belongs primarily in the client runtime rather than in hundreds of server-rendered forms.
+
+### Validation
+
+Ran:
+
+```text
+go test ./pkg/kanbanddsl
+go test ./...
+```
+
+Both passed.

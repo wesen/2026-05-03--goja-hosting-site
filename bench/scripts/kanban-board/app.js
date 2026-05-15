@@ -33,7 +33,7 @@ const board = kanban.board("bench")
     .column(card => card.status)
     .position(card => card.position)
     .searchText(card => card.title + " " + card.status + " " + card.size))
-  .features(features => features.search().preciseMove().dragDrop())
+  .features(features => features.search().dragDrop())
   .render(render => render
     .card(card => ui.div(
       { class: "bench-card-body" },

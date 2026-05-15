@@ -42,7 +42,7 @@ func TestBuilderRendersBoardAndClientScriptURL(t *testing.T) {
 		    .column(card => card.status)
 		    .position(card => card.position)
 		    .searchText(card => card.title))
-		  .features(features => features.search().preciseMove().dragDrop())
+		  .features(features => features.search().dragDrop())
 		  .render(render => render.card(card => ui.fragment(ui.h3(card.title))))
 		  .actions(actions => actions.cardMoved(event => ({ ok: true, refresh: true, moved: event.cardId })))
 		  .build();
@@ -52,7 +52,7 @@ func TestBuilderRendersBoardAndClientScriptURL(t *testing.T) {
 		t.Fatalf("run JS: %v", err)
 	}
 	html := value.String()
-	for _, want := range []string{`data-kb-board-id="test"`, `data-kb-card-id="1"`, `draggable="true"`, `To Do`, `Done`, `data-kb-move-form`} {
+	for _, want := range []string{`data-kb-board-id="test"`, `data-kb-card-id="1"`, `draggable="true"`, `role="listitem"`, `data-kb-card-actions`, `aria-haspopup="menu"`, `To Do`, `Done`} {
 		if !strings.Contains(html, want) {
 			t.Fatalf("rendered html missing %q:\n%s", want, html)
 		}
@@ -86,7 +86,7 @@ func TestDispatchNormalizesCardMovedEvent(t *testing.T) {
 		const board = kanban.board("dispatch")
 		  .columns(cols => cols.column("todo").title("To Do").done().column("done").title("Done").done())
 		  .data(data => data.cards(() => []).id(card => String(card.id)).column(card => card.status))
-		  .features(features => features.preciseMove())
+		  .features(features => features.dragDrop())
 		  .actions(actions => actions.cardMoved(event => { seen = event; return { ok: true, refresh: false }; }))
 		  .build();
 		board.dispatch("cardMoved", { cardId: "7", fromColumnId: "todo", fromIndex: 1, toColumnId: "done", toIndex: 0 });
