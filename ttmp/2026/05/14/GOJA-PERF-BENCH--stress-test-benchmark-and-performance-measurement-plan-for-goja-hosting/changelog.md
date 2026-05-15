@@ -244,3 +244,12 @@ Uploaded SQLite-backed benchmark report to reMarkable.
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 20 reMarkable upload evidence
 
+
+## 2026-05-15
+
+Ran the full short benchmark matrix through SQLite and uploaded the SQL-backed report to reMarkable.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/04-phase7-short-sqlite-benchmark-report.md — Short matrix SQL-backed benchmark report
+

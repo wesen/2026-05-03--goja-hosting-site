@@ -2645,3 +2645,194 @@ bash -n run-phase7-short-matrix.sh
 ```
 
 Result: passed.
+
+## Step 22: Run the short SQLite-backed benchmark matrix and upload report
+
+I ran the full short benchmark matrix through the SQLite pipeline and uploaded the resulting SQL-backed Markdown report to reMarkable. This is the first useful local baseline matrix beyond smoke validation.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Proceed with the next step stated in the prior summary: run the short matrix through SQLite, generate the report, and upload it to reMarkable.
+
+**Inferred user intent:** Collect a real baseline across the defined scenario/rate/repeat matrix, not just smoke-test route validity.
+
+**Commit (code):** `d111109733062a5c7a40c8059c483b53385871f8` — "chore: reuse binary for short benchmark matrix".
+
+### What I ran
+
+Command:
+
+```text
+ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/scripts/run-phase7-short-matrix.sh
+```
+
+The script ran the default short matrix:
+
+```text
+7 scenarios × 3 rates × 3 repeats = 63 measured runs
+```
+
+Scenarios:
+
+```text
+null
+render
+db-read
+db-write
+kanban-fragment
+kanban-action
+kanban-mixed
+```
+
+Rates:
+
+```text
+5/s
+10/s
+25/s
+```
+
+Per run:
+
+```text
+10s warmup
+60s measured
+```
+
+Output matrix ID:
+
+```text
+phase7-short-20260515T125010Z
+```
+
+Result root:
+
+```text
+bench/results/phase7-short-20260515T125010Z
+```
+
+SQLite DB:
+
+```text
+ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/archive/phase7-benchmarks.sqlite
+```
+
+Generated report:
+
+```text
+ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/04-phase7-short-sqlite-benchmark-report.md
+```
+
+### What worked
+
+- All 63 runs completed.
+- Every run reported 100% success.
+- The report's "Runs with non-100% success or errors" section returned no rows.
+- The mixed Kanban workload hit all expected route classes at each rate:
+  - page route,
+  - fragment route,
+  - valid `cardMoved` action route.
+- The SQLite report includes every SQL query before its result table.
+
+### Headline results
+
+Aggregate p95 averages from the report:
+
+```text
+null:           ~0.91–1.18 ms p95 average across 5–25/s
+render:         ~2.91–3.39 ms p95 average across 5–25/s
+db-read:        ~3.17–3.57 ms p95 average across 5–25/s
+db-write:       ~4.87–5.96 ms p95 average across 5–25/s
+kanban-fragment:~19.81–20.71 ms p95 average across 5–25/s
+kanban-action:  ~26.71–35.24 ms p95 average across 5–25/s
+kanban-mixed:   ~21.29–24.52 ms p95 average across 5–25/s
+```
+
+Slowest individual run by p95:
+
+```text
+kanban-action 25/s run 3: p95 51.73 ms, p99 98.07 ms, max 130.76 ms, success 100%
+```
+
+### Upload
+
+I uploaded the short SQLite-backed report to reMarkable.
+
+Dry-run evidence:
+
+```text
+DRY: bundle name=GOJA PERF BENCH Short SQLite Report
+DRY: upload GOJA_PERF_BENCH_Short_SQLite_Report.pdf -> /ai/2026/05/14/GOJA-PERF-BENCH
+```
+
+Real upload evidence:
+
+```text
+OK: uploaded GOJA_PERF_BENCH_Short_SQLite_Report.pdf -> /ai/2026/05/14/GOJA-PERF-BENCH
+```
+
+Remote path:
+
+```text
+/ai/2026/05/14/GOJA-PERF-BENCH/GOJA_PERF_BENCH_Short_SQLite_Report.pdf
+```
+
+### What didn't work
+
+No benchmark run failed. One caveat: the report metadata says `git_dirty = 1`. This is because the repository has a pre-existing unrelated untracked `tmp/` directory and generated ignored `bench/results` directories. The committed code used for the run was:
+
+```text
+d111109733062a5c7a40c8059c483b53385871f8
+```
+
+### What I learned
+
+- Up to 25/s, the benchmark does not show errors or obvious saturation.
+- The Kanban action path is the heaviest short-matrix scenario, especially in one 25/s repeat.
+- The 120-card board produces large responses, so Kanban benchmark interpretation should consider response bytes as well as latency.
+- `db-read` executes 10 selects per HTTP request, which is confirmed by metric deltas.
+
+### What warrants a second pair of eyes
+
+- Whether 25/s is high enough for the first saturation pass; it likely is not.
+- Whether `kanban-action` should be profiled next because it is the slowest scenario in the short matrix.
+- Whether the untracked `tmp/` directory should be cleaned or ignored so future metadata does not report `git_dirty = 1`.
+
+### What should be done in the future
+
+- Run a targeted pprof benchmark for `kanban-action` at 25/s.
+- Run a saturation matrix at higher rates, possibly only for `kanban-action`, `kanban-fragment`, `db-write`, and `render`.
+- Add comparison queries across matrix IDs now that the SQLite DB contains multiple matrices.
+
+### Code review instructions
+
+Start with the report:
+
+```text
+reference/04-phase7-short-sqlite-benchmark-report.md
+```
+
+Then inspect the stored SQLite rows:
+
+```text
+sqlite3 archive/phase7-benchmarks.sqlite \
+  "select matrix_id, count(*) from benchmark_runs group by matrix_id order by matrix_id;"
+```
+
+Expected relevant row:
+
+```text
+phase7-short-20260515T125010Z|63
+```
+
+### Technical details
+
+The report was generated by:
+
+```text
+scripts/render-benchmark-report-from-sqlite.py
+```
+
+Each report table is derived from SQL embedded directly in the Markdown report.
