@@ -53,7 +53,9 @@
 ## Phase 5 — render-attrs-1000 investigation and optimization
 
 - [x] Write detailed `render-attrs-1000` performance investigation.
-- [ ] Add focused `ui.dsl` microbenchmarks in `go-go-goja`.
-- [ ] Add `ui.dsl` attribute compatibility tests before optimization.
-- [ ] Implement first optimization slice: avoid double `Export()` in attrs detection/extraction.
-- [ ] Re-run `render-attrs-1000` pprof and anti-overfit subset after optimization.
+- [x] Add focused `ui.dsl` microbenchmarks in `go-go-goja`.
+- [x] Add `ui.dsl` attribute compatibility tests before optimization.
+- [x] Implement first optimization slice: avoid double `Export()` in attrs detection/extraction.
+- [x] Re-run `render-attrs-1000` pprof after first optimization slice.
+
+- [ ] Design and implement `Element.AttrList` fast path.

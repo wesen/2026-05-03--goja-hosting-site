@@ -1,0 +1,71 @@
+goroutine profile: total 12
+2 @ 0x49242e 0x46e2c5 0x10f1ec9 0x49a821
+#	0x10f1ec8	database/sql.(*DB).connectionOpener+0x88	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/database/sql/sql.go:1261
+
+2 @ 0x49242e 0x46e2c5 0x9af57c 0x49a821
+#	0x9af57b	os/signal.NotifyContext.func1+0x7b	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/os/signal/signal.go:292
+
+1 @ 0x427169 0x494c98 0x9afa93 0x49a821
+#	0x494c97	os/signal.signal_recv+0x97	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/runtime/sigqueue.go:152
+#	0x9afa92	os/signal.loop+0x12		/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/os/signal/signal_unix.go:23
+
+1 @ 0x44fc11 0x4911fd 0x1569071 0x1568ea5 0x1565d29 0x158000a 0x94aa27 0x96930e 0x946d10 0x49a821
+#	0x1569070	runtime/pprof.writeRuntimeProfile+0xb0	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/runtime/pprof/pprof.go:851
+#	0x1568ea4	runtime/pprof.writeGoroutine+0x44	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/runtime/pprof/pprof.go:784
+#	0x1565d28	runtime/pprof.(*Profile).WriteTo+0x148	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/runtime/pprof/pprof.go:408
+#	0x1580009	net/http/pprof.handler.ServeHTTP+0x529	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/pprof/pprof.go:273
+#	0x94aa26	net/http.(*ServeMux).ServeHTTP+0x1c6	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:2828
+#	0x96930d	net/http.serverHandler.ServeHTTP+0x8d	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:3311
+#	0x946d0f	net/http.(*conn).serve+0x64f		/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:2073
+
+1 @ 0x49242e 0x42088e 0x4203b2 0x17e705c 0x49a821
+#	0x17e705b	github.com/go-go-golems/goja-site/pkg/observability.StartDiagnostics.func1+0x3b	/home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/diagnostics.go:39
+
+1 @ 0x49242e 0x453617 0x491605 0x5127e7 0x51786c 0x51785a 0x5923c9 0x5a99fb 0x5a8c90 0x94c50c 0x94c0f2 0x17e6fa5 0x49a821
+#	0x491604	internal/poll.runtime_pollWait+0x84						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/runtime/netpoll.go:351
+#	0x5127e6	internal/poll.(*pollDesc).wait+0x26						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_poll_runtime.go:84
+#	0x51786b	internal/poll.(*pollDesc).waitRead+0x28b					/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_poll_runtime.go:89
+#	0x517859	internal/poll.(*FD).Accept+0x279						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_unix.go:613
+#	0x5923c8	net.(*netFD).accept+0x28							/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/fd_unix.go:150
+#	0x5a99fa	net.(*TCPListener).accept+0x1a							/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/tcpsock_posix.go:159
+#	0x5a8c8f	net.(*TCPListener).Accept+0x2f							/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/tcpsock.go:387
+#	0x94c50b	net/http.(*Server).Serve+0x30b							/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:3434
+#	0x94c0f1	net/http.(*Server).ListenAndServe+0x71						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:3360
+#	0x17e6fa4	github.com/go-go-golems/goja-site/pkg/observability.StartDiagnostics.func2+0x24	/home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/observability/diagnostics.go:47
+
+1 @ 0x49242e 0x453617 0x491605 0x5127e7 0x51786c 0x51785a 0x5923c9 0x5a99fb 0x5a8c90 0x94c50c 0x94c0f2 0x17fd64b 0x49a821
+#	0x491604	internal/poll.runtime_pollWait+0x84					/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/runtime/netpoll.go:351
+#	0x5127e6	internal/poll.(*pollDesc).wait+0x26					/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_poll_runtime.go:84
+#	0x51786b	internal/poll.(*pollDesc).waitRead+0x28b				/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_poll_runtime.go:89
+#	0x517859	internal/poll.(*FD).Accept+0x279					/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_unix.go:613
+#	0x5923c8	net.(*netFD).accept+0x28						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/fd_unix.go:150
+#	0x5a99fa	net.(*TCPListener).accept+0x1a						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/tcpsock_posix.go:159
+#	0x5a8c8f	net.(*TCPListener).Accept+0x2f						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/tcpsock.go:387
+#	0x94c50b	net/http.(*Server).Serve+0x30b						/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:3434
+#	0x94c0f1	net/http.(*Server).ListenAndServe+0x71					/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:3360
+#	0x17fd64a	github.com/go-go-golems/goja-site/pkg/app.(*Server).Run.func1+0x2a	/home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go:115
+
+1 @ 0x49242e 0x46e2c5 0x14e780a 0x49a821
+#	0x14e7809	github.com/dop251/goja_nodejs/eventloop.(*EventLoop).run+0xa9	/home/manuel/go/pkg/mod/github.com/dop251/goja_nodejs@v0.0.0-20250409162600-f7acab6894b0/eventloop/eventloop.go:342
+
+1 @ 0x49242e 0x46e2c5 0x17fd53f 0x18008e5 0x10c8f7d 0x10c7cfc 0x631bfb 0x632545 0x17fe43d 0x17fe441 0x45ab15 0x49a821
+#	0x17fd53e	github.com/go-go-golems/goja-site/pkg/app.(*Server).Run+0x19e						/home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go:122
+#	0x18008e4	main.(*serveCommand).Run+0x784										/home/manuel/code/wesen/2026-05-03--goja-hosting-site/cmd/goja-site/serve.go:119
+#	0x10c8f7c	github.com/go-go-golems/glazed/pkg/cli.BuildCobraCommandFromCommand.func1+0x15c				/home/manuel/go/pkg/mod/github.com/go-go-golems/glazed@v1.2.5/pkg/cli/cobra.go:396
+#	0x10c7cfb	github.com/go-go-golems/glazed/pkg/cli.BuildCobraCommandFromCommandAndFunc.runCobraCommand.func1+0xa3b	/home/manuel/go/pkg/mod/github.com/go-go-golems/glazed@v1.2.5/pkg/cli/cobra.go:224
+#	0x631bfa	github.com/spf13/cobra.(*Command).execute+0xafa								/home/manuel/go/pkg/mod/github.com/spf13/cobra@v1.10.2/command.go:1019
+#	0x632544	github.com/spf13/cobra.(*Command).ExecuteC+0x464							/home/manuel/go/pkg/mod/github.com/spf13/cobra@v1.10.2/command.go:1148
+#	0x17fe43c	github.com/spf13/cobra.(*Command).Execute+0x55c								/home/manuel/go/pkg/mod/github.com/spf13/cobra@v1.10.2/command.go:1071
+#	0x17fe440	main.main+0x560												/home/manuel/code/wesen/2026-05-03--goja-hosting-site/cmd/goja-site/main.go:73
+#	0x45ab14	runtime.main+0x2d4											/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/runtime/proc.go:290
+
+1 @ 0x4f3ce5 0x4f1e98 0x51397d 0x513965 0x5138a1 0x590685 0x5a0465 0x9408f3 0x49a821
+#	0x4f3ce4	syscall.Syscall+0x24				/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/syscall/syscall_linux.go:74
+#	0x4f1e97	syscall.read+0x37				/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/syscall/zsyscall_linux_amd64.go:736
+#	0x51397c	syscall.Read+0x21c				/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/syscall/syscall_unix.go:183
+#	0x513964	internal/poll.ignoringEINTRIO+0x204		/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_unix.go:738
+#	0x5138a0	internal/poll.(*FD).Read+0x140			/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/internal/poll/fd_unix.go:161
+#	0x590684	net.(*netFD).Read+0x24				/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/fd_posix.go:68
+#	0x5a0464	net.(*conn).Read+0x44				/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/net.go:196
+#	0x9408f2	net/http.(*connReader).backgroundRead+0x32	/home/manuel/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.2.linux-amd64/src/net/http/server.go:702
+

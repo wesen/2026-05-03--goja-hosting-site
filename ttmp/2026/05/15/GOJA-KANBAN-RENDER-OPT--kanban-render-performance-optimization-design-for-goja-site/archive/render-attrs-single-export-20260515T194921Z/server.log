@@ -1,0 +1,1 @@
+goja-site serving addr=127.0.0.1:28082 db=/tmp/goja-site-bench.5Gz1oV/app.db scripts=[bench/scripts/render-shapes] dbPolicy=simple readonly=false allowWrites=true metricsAddr=127.0.0.1:29092 pprof=true otel=false

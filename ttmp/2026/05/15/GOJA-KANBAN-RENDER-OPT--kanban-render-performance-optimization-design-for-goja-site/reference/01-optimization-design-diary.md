@@ -342,3 +342,36 @@ design/04-render-attrs-1000-performance-investigation.md
 The bottleneck is a UI DSL bridge problem, not a Kanban-specific problem. The current `ui.dsl` path uses generic Goja `Value.Export()` in the hot path for attribute detection and extraction. In `elementFromCall`, attrs are effectively exported twice: first through `isAttrs(args[0])`, then again through `args[0].Export()` to obtain the map. The pprof line listings show this as two large cumulative branches under `elementFromCall`.
 
 The recommended first implementation slice is to replace `isAttrs` plus second `Export()` with one `attrsFromValue` path, then add focused microbenchmarks and compatibility tests around attrs and child disambiguation.
+
+## Step 12: Implement first render-attrs optimization slice
+
+Implemented the conservative first slice in `../go-go-golems/go-go-goja`: avoid double `Export()` for `ui.dsl` attrs detection/extraction.
+
+### Commit
+
+```text
+2bc72d5f04f2ea3c47b2394484d523b4c26bbf1c
+perf: avoid double export for ui attrs
+```
+
+### Changes
+
+- Added attr compatibility tests.
+- Added child-vs-attrs disambiguation tests.
+- Added `ui.dsl` microbenchmarks for attr element calls and 1000-node render pages.
+- Replaced `isAttrs` plus second `Export()` with `attrsFromValue`, which exports once and returns the attrs map.
+- Avoided allocating an empty attrs map for elements without attrs.
+
+### Validation
+
+`go-go-goja` pre-commit passed `golangci-lint`, `go generate ./...`, and `go test ./...`.
+
+### Macro result
+
+The follow-up `render-attrs-1000` 100/s pprof run did not improve end-to-end throughput/latency. It reduced alloc-space shape (`Object.Export` and `elementFromCall` roughly halved), but the path still saturated badly. This means the next useful slice should be a render-ready attr representation rather than more small changes around `attrsFromValue`.
+
+Report:
+
+```text
+reference/05-render-attrs-first-optimization-report.md
+```
