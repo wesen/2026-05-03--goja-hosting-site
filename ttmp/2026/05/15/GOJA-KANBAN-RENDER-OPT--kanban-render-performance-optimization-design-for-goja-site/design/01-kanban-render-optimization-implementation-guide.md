@@ -36,6 +36,12 @@ This guide explains the concrete optimization work recommended after the single-
 
 The immediate recommendation is to reduce the cost of rendering full Kanban board HTML, starting with `preciseMoveForm`. The broader recommendation is to measure every change with the existing benchmark harness before treating it as a performance improvement.
 
+## Implementation update: opinionated simplification
+
+After this guide was first written, the project decision changed: backward compatibility is not required, and the Kanban DSL should remain strongly opinionated. The implemented direction is therefore simpler than the original mode-based proposal. The core DSL no longer exposes `features.preciseMove()` and no longer renders full movement forms on every card. Movement remains a semantic `cardMoved` action. The frontend runtime now provides the accessible card action surface with a compact `Actions` button, keyboard menu behavior, live-region announcements, and focus restoration.
+
+The earlier mode names in this document (`eager`, `none`, `button`, `lazy`) should be read as design history, not as the current implementation target. The current target is: no eager per-card precise forms in the core DSL.
+
 ## 1. The system being optimized
 
 `goja-site` hosts trusted JavaScript sites inside Goja runtimes. A JavaScript site can import modules such as `express`, `ui.dsl`, `database`, and `kanban.dsl`. The Kanban DSL lets a site author describe a board in JavaScript and mount it as HTTP routes.

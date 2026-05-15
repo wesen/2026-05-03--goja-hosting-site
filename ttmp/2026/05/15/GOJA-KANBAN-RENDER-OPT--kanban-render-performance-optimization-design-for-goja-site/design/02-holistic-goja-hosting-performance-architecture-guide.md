@@ -32,6 +32,12 @@ This guide looks beyond one function-level optimization. The pprof data identifi
 
 The central design choice is where work should happen. A hosted site can do all rendering on the server and return full HTML. It can return partial HTML. It can return structured patches. It can ask the browser to own more interaction state. It can precompile route and render functions. It can run multiple VMs. Each choice changes performance, isolation, implementation complexity, and the programming model exposed to site authors.
 
+## Implementation update: simplification first
+
+The first implemented optimization follows the opinionated path described later in this guide: reduce repeated server work before adding more parallel execution. The implementation removed eager per-card precise movement forms from the server-rendered DSL and moved the accessible movement surface into the frontend runtime. This preserves a compact DSL and reduces server-rendered markup while still giving keyboard users a card action menu.
+
+The post-simplification benchmark shows why this direction is important. The multi-VM `kanban-fragment` 4VM/400s cell improved from multi-second p95 latency and throughput shortfall to 399.76/s throughput with p95 7.76 ms.
+
 ## 1. Current architecture in one request
 
 The current single-site path is:

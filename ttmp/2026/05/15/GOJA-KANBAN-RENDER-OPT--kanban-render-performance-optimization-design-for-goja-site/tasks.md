@@ -13,12 +13,12 @@
 
 ## Phase 1 — First implementation slice
 
-- [ ] Add precise move render mode to `FeatureSpec` and builder API.
-- [ ] Implement `preciseMove("none")` while preserving eager default.
-- [ ] Add tests for eager and no-precise rendering.
-- [ ] Add optimized benchmark fixture.
-- [ ] Run before/after single-VM benchmark.
-- [ ] Run before/after multi-VM benchmark.
+- [x] Remove precise move form support from `FeatureSpec` and builder API.
+- [x] Remove eager server-rendered precise move forms instead of adding render modes.
+- [x] Update tests for compact accessible card action controls.
+- [x] Update Kanban benchmark fixture to use the simplified DSL.
+- [x] Run post-simplification single-VM benchmark.
+- [x] Run post-simplification multi-VM benchmark.
 - [ ] Capture pprof for baseline and optimized degraded cells.
 
 ## Phase 2 — Broader architecture experiments
@@ -27,3 +27,9 @@
 - [ ] Prototype partial HTML patch response mode.
 - [ ] Evaluate optional client-side site code API.
 - [ ] Decide whether same-host VM pooling is worth designing after render-cost reductions.
+
+## Phase 1A — Accessibility follow-up
+
+- [x] Add frontend action menu, keyboard navigation, live region, and focus restoration.
+- [ ] Add browser/Playwright accessibility interaction tests.
+- [ ] Manually review keyboard-only workflow in a browser.

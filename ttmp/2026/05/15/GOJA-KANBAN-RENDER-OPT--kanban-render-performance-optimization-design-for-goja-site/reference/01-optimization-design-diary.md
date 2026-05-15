@@ -114,3 +114,54 @@ go test ./...
 ```
 
 Both passed.
+
+## Step 4: Run post-simplification benchmarks
+
+I added and ran a focused post-simplification benchmark script.
+
+### Script
+
+```text
+scripts/02-run-post-simplification-benchmarks.sh
+```
+
+### Command
+
+```text
+ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/scripts/02-run-post-simplification-benchmarks.sh
+```
+
+### Result root
+
+```text
+bench/results/kanban-simplified-20260515T173954Z
+```
+
+### Results
+
+```text
+single kanban-fragment 200/s:
+  throughput 200.03/s
+  p95 9.887 ms
+  mean response bytes 60,831
+
+single kanban-action 100/s:
+  throughput 100.06/s
+  p95 8.165 ms
+  mean response bytes 77,035
+
+multi 4VM kanban-fragment 400/s:
+  throughput 399.76/s
+  p95 7.760 ms
+  mean response bytes 60,831
+```
+
+### Interpretation
+
+This is a large improvement. The previous multi-VM 4VM `kanban-fragment` 400/s cell had p95 around 5.86 seconds and throughput around 246.53/s. After removing eager precise move forms, the same shape reached the offered 400/s with p95 under 8 ms.
+
+The result confirms the pprof diagnosis: eager precise move forms were creating a large amount of repeated UI DSL node/attribute/rendering work and large responses.
+
+### Remaining work
+
+The performance change is validated by Go tests and load tests. The accessibility behavior still needs browser-level testing for keyboard navigation, focus restoration, and live-region announcements.
