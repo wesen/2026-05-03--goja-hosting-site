@@ -134,3 +134,71 @@ kanban-fragment even-hot:
 Each run defaults to 3s warmup and 10s measured duration. This is intentionally still a bounded sweep, but it is high enough to find whether the cheap route or Kanban fragment route bends in the tested range.
 
 I intentionally left `kanban-action` out of this first multi-VM saturation script because the single-VM ticket already showed an action-refresh knee around 80/s. `kanban-fragment` is safer for first multi-VM saturation because it stresses real render work without action refresh state mutation.
+
+## Step 4: Run higher-rate multi-VM saturation sweep
+
+Ran the higher-rate `serve-multi` saturation sweep.
+
+### Command
+
+```text
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/04-run-multi-vm-saturation-sweep.sh
+```
+
+### Matrix ID
+
+```text
+multi-vm-saturation-20260515T164805Z
+```
+
+### Shape
+
+```text
+null even-hot:
+  vm_count: 1,2,4,8
+  rates:    400/s,800/s,1200/s,2000/s
+
+kanban-fragment even-hot:
+  vm_count: 1,2,4,8
+  rates:    100/s,200/s,400/s
+```
+
+Each run used 3s warmup and 10s measured load.
+
+### Result root
+
+```text
+bench/results/multi-vm-saturation-20260515T164805Z
+```
+
+### Report
+
+```text
+reference/03-multi-vm-saturation-sweep-report.md
+```
+
+### Result summary
+
+All 28 runs returned HTTP 200 only, 100% Vegeta success, and no Vegeta error sets.
+
+The minimal `null` route did not saturate through 2000/s total offered rate for 1, 2, 4, or 8 VMs. p95 stayed below 0.6 ms in every `null` cell.
+
+The `kanban-fragment` route did show a clear inflection point. At 100/s total, all VM counts stayed usable. At 200/s total, 1 VM saturated badly, 2 VMs showed strong queueing, 4 VMs stayed much healthier, and 8 VMs showed high p95 despite keeping throughput near target. At 400/s total, every VM count saturated heavily.
+
+Important cells:
+
+```text
+1 VM, 100/s: p95 58.91 ms, throughput 100.04/s
+1 VM, 200/s: p95 5901.66 ms, throughput 124.64/s
+2 VM, 200/s: p95 720.15 ms, throughput 183.80/s
+4 VM, 200/s: p95 179.41 ms, throughput 199.87/s
+8 VM, 200/s: p95 564.94 ms, throughput 198.41/s
+4 VM, 400/s: p95 5861.77 ms, throughput 246.53/s
+8 VM, 400/s: p95 5559.25 ms, throughput 249.44/s
+```
+
+### Interpretation
+
+The multi-VM model improves the Kanban fragment capacity compared with one VM, but it does not scale linearly. The 400/s rows cluster around roughly 240-250 achieved requests per second with multi-second p95 latency. That suggests a process-level or shared-resource ceiling for this fixture, not just per-VM owner-loop serialization.
+
+This fixture returns about 246 KB per request. At high rates, the system is paying for Goja route execution, UI DSL rendering, allocation/GC, and response writing. The next diagnostic step should be pprof on a degraded multi-VM cell, probably `kanban-fragment` 4 VMs or 8 VMs at 400/s.
