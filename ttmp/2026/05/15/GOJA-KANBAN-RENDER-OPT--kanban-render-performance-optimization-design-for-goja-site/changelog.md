@@ -133,3 +133,21 @@ Cut over ui.dsl Element attrs to render-ready []Attr and recorded render-attrs v
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/06-render-attrs-attr-list-cutover-report.md — attr-list cutover report
 
+
+## 2026-05-15
+
+Added intern-ready Goja UI DSL export-boundary internals and next optimization design.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/design/05-goja-ui-dsl-export-boundary-internals-and-next-optimization-design.md — Goja export-boundary internals guide
+
+
+## 2026-05-15
+
+Uploaded Goja UI DSL export-boundary internals guide to reMarkable.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/design/05-goja-ui-dsl-export-boundary-internals-and-next-optimization-design.md — uploaded Goja export-boundary guide
+

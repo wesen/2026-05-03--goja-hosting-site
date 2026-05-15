@@ -59,3 +59,12 @@
 - [x] Re-run `render-attrs-1000` pprof after first optimization slice.
 
 - [x] Cut over `Element.Attrs` to render-ready `[]uidsl.Attr` without compatibility map path.
+
+## Phase 6 — Goja export boundary research
+
+- [x] Study `/home/manuel/code/others/goja` internals for `Value.Export`, object export, array export, key enumeration, and object construction.
+- [x] Write intern-ready UI DSL export-boundary internals and next optimization design.
+- [x] Upload export-boundary internals/design guide to reMarkable.
+- [ ] Later prototype `ui.attrs(...)` Go-owned attrs wrapper.
+- [ ] Later prototype flat-pair constructor / Go-side builder variants.
+- [ ] Later consider Goja internals API only after microbenchmarks justify it.

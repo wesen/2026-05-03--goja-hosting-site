@@ -420,3 +420,27 @@ p99: 11.714s
 ```
 
 This is better than the single-export slice (`59.70/s`, p95 `19.337s`) and slightly better than the original follow-up pprof (`67.91/s`, p95 `13.357s`), but still not enough to make `render-attrs-1000` healthy at `100/s`. The next bottleneck is still dominated by JS object construction / generic export / GC, not only render-time attr sorting.
+
+## Step 15: Study Goja export internals and write boundary design
+
+The user asked to pause invasive implementation and write up the profiler explanation, proposals, and Goja internals. I studied `/home/manuel/code/others/goja`, focusing on `Value.Export`, `Object.Export`, ordinary object export, array export, object property storage, key enumeration, and `Runtime.toReflectValue`.
+
+### Document
+
+```text
+design/05-goja-ui-dsl-export-boundary-internals-and-next-optimization-design.md
+```
+
+### Main conclusion
+
+The remaining `render-attrs-1000` bottleneck is not final HTML attr writing. It is repeated construction and export of many small JavaScript object literals across the Goja -> Go native-module boundary. `Value.Export()` is correct and general, but it enumerates keys, allocates Go maps/slices, recursively exports values, and maintains cycle caches. Public `Object.Keys()` plus property reads is not obviously better; a quick earlier experiment shifted cost into key iteration and per-property conversion.
+
+The design recommends stopping implementation here and later prototyping representation-level alternatives: `ui.attrs(...)` returning a Go-owned attrs wrapper, flat-pair constructors, Go-side builders, and only then a possible Goja internals API for fast ordinary-object property iteration.
+
+## Step 16: Upload Goja export-boundary internals guide to reMarkable
+
+Uploaded the intern-ready Goja export-boundary internals and next optimization design.
+
+```text
+/ai/2026/05/15/GOJA-KANBAN-RENDER-OPT/GOJA KANBAN RENDER OPT Goja Export Boundary Internals.pdf
+```
