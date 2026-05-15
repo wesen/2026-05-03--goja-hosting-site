@@ -12,10 +12,10 @@
 
 ## Phase 1 — Quick multi-VM validation sweep
 
-- [ ] Run quick multi-VM sweep.
-- [ ] Generate quick sweep Markdown report.
-- [ ] Record results in diary/changelog.
-- [ ] Commit quick sweep results.
+- [x] Run quick multi-VM sweep.
+- [x] Generate quick sweep Markdown report.
+- [x] Record results in diary/changelog.
+- [x] Commit quick sweep results.
 
 ## Phase 2 — Follow-up stress experiments
 

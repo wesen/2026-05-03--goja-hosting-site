@@ -58,3 +58,53 @@ kanban-fragment even-hot:  1,2,4,8 VMs at 50/s
 ### Validation pending
 
 Next steps are shell/Python validation, `docmgr doctor`, commit setup, then run the quick sweep.
+
+## Step 2: Run quick multi-VM validation sweep
+
+Ran the first `serve-multi` multi-VM stress validation sweep.
+
+### Command
+
+```text
+ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/02-run-multi-vm-quick-sweep.sh
+```
+
+### Matrix ID
+
+```text
+multi-vm-quick-20260515T163935Z
+```
+
+### Shape
+
+```text
+null even-hot:             1,2,4,8 VMs at 200/s
+null one-hot:              2,4,8 VMs at 200/s
+kanban-fragment even-hot:  1,2,4,8 VMs at 50/s
+```
+
+Every run used 3s warmup and 10s measured load.
+
+### Result root
+
+```text
+bench/results/multi-vm-quick-20260515T163935Z
+```
+
+### Report
+
+```text
+reference/02-multi-vm-quick-sweep-report.md
+```
+
+### Findings
+
+All 11 runs completed with 100% success, HTTP 200 only, and no Vegeta error sets.
+
+`null` at 200/s stayed below 1 ms p95 for 1, 2, 4, and 8 VMs in even-hot distribution. The one-hot idle-VM check also stayed below 1 ms p95 with 2, 4, and 8 loaded VMs.
+
+`kanban-fragment` at 50/s stayed healthy across 1, 2, 4, and 8 VMs. p95 ranged from 16.95 ms to 20.31 ms.
+
+### Interpretation
+
+This validates the `serve-multi` generated config approach, Host-header target generation, metrics capture, and result rendering. It does not yet find a multi-VM saturation point. The next useful experiment is a higher-rate sweep for `null` and `kanban-fragment`, plus a carefully bounded `kanban-action` sweep below or around the known single-VM knee.
