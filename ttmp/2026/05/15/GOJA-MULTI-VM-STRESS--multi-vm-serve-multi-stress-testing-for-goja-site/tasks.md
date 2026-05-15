@@ -20,6 +20,14 @@
 ## Phase 2 — Follow-up stress experiments
 
 - [ ] Decide whether to add pprof runs for multi-VM cases.
-- [ ] Add a longer even-hot run if quick sweep is healthy.
+- [x] Add a longer even-hot run if quick sweep is healthy.
 - [ ] Add a one-hot idle-VM overhead run with larger VM counts.
 - [ ] Add kanban-action only after choosing safe rates below the known single-VM knee.
+
+## Phase 3 — Saturation sweep
+
+- [x] Add higher-rate multi-VM saturation sweep script.
+- [ ] Run higher-rate multi-VM saturation sweep.
+- [ ] Generate and inspect saturation sweep report.
+- [ ] Record saturation findings in diary/changelog.
+- [ ] Commit saturation sweep results.

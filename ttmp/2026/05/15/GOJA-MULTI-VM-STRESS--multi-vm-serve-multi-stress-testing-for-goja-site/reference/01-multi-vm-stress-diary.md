@@ -108,3 +108,29 @@ All 11 runs completed with 100% success, HTTP 200 only, and no Vegeta error sets
 ### Interpretation
 
 This validates the `serve-multi` generated config approach, Host-header target generation, metrics capture, and result rendering. It does not yet find a multi-VM saturation point. The next useful experiment is a higher-rate sweep for `null` and `kanban-fragment`, plus a carefully bounded `kanban-action` sweep below or around the known single-VM knee.
+
+## Step 3: Add higher-rate saturation sweep script
+
+After the quick validation sweep passed, I added a higher-rate saturation sweep to look for an inflection point under `serve-multi`.
+
+### Script
+
+```text
+scripts/04-run-multi-vm-saturation-sweep.sh
+```
+
+### Default shape
+
+```text
+null even-hot:
+  vm_count: 1,2,4,8
+  rates:    400/s,800/s,1200/s,2000/s
+
+kanban-fragment even-hot:
+  vm_count: 1,2,4,8
+  rates:    100/s,200/s,400/s
+```
+
+Each run defaults to 3s warmup and 10s measured duration. This is intentionally still a bounded sweep, but it is high enough to find whether the cheap route or Kanban fragment route bends in the tested range.
+
+I intentionally left `kanban-action` out of this first multi-VM saturation script because the single-VM ticket already showed an action-refresh knee around 80/s. `kanban-fragment` is safer for first multi-VM saturation because it stresses real render work without action refresh state mutation.

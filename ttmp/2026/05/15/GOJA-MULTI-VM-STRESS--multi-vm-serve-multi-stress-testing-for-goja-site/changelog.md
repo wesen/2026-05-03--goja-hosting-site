@@ -22,3 +22,12 @@ Ran quick multi-VM serve-multi validation sweep; all 11 runs succeeded with HTTP
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/reference/02-multi-vm-quick-sweep-report.md — quick multi-VM stress report
 
+
+## 2026-05-15
+
+Added higher-rate multi-VM saturation sweep script for null and kanban-fragment even-hot runs.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-MULTI-VM-STRESS--multi-vm-serve-multi-stress-testing-for-goja-site/scripts/04-run-multi-vm-saturation-sweep.sh — saturation sweep script
+
