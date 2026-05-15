@@ -1,0 +1,20 @@
+{
+  "base_url": "http://127.0.0.1:26081",
+  "binary": "/tmp/goja-site-pprof-both.LFJEjy",
+  "created_at_utc": "2026-05-15T19:15:08Z",
+  "duration": "30s",
+  "git_commit": "4013051f64f3d76e22ead76ebd4075fb41a1206a",
+  "git_dirty": true,
+  "go_version": "go version go1.26.2 linux/amd64",
+  "hostname": "f",
+  "metrics_url": "http://127.0.0.1:27091/metrics",
+  "otel_enabled": false,
+  "otel_endpoint": "http://127.0.0.1:4318/v1/traces",
+  "otel_sample_ratio": "0.01",
+  "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.39",
+  "pprof_capture": true,
+  "pprof_seconds": "10",
+  "rate": "100/s",
+  "scenario": "kanban-fragment-500",
+  "warmup_duration": "5s"
+}

@@ -42,3 +42,10 @@
 - [ ] Decide which optimization class to pursue next from broader benchmark evidence.
 
 - [x] Upload Anti-overfit matrix v1 report to reMarkable.
+
+## Phase 4 — Anti-overfit follow-up pprof
+
+- [x] Capture pprof for `render-attrs-1000` at `100/s`.
+- [x] Capture pprof for `kanban-fragment-500` at `100/s`.
+- [x] Write comparative follow-up pprof report.
+- [x] Decide whether next implementation target is generic UI attr rendering, large Kanban/full-tree rendering, or action response protocol.

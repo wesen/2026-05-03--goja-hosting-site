@@ -1,0 +1,73 @@
+File: goja-site-pprof-both.LFJEjy
+Build ID: 787c48678e9fdc573cd90fe9fc7522fed03f32e5
+Type: alloc_space
+Time: 2026-05-15 15:14:31 EDT
+Showing nodes accounting for 30973.39MB, 98.37% of 31485.84MB total
+Dropped 214 nodes (cum <= 157.43MB)
+      flat  flat%   sum%        cum   cum%
+ 6647.65MB 21.11% 21.11% 15511.81MB 49.27%  github.com/dop251/goja.(*baseObject).export
+ 5685.87MB 18.06% 39.17%  5685.87MB 18.06%  github.com/dop251/goja.(*baseObject)._put
+ 3408.08MB 10.82% 50.00%  3408.08MB 10.82%  github.com/dop251/goja.(*objectExportCtx).put
+ 3345.55MB 10.63% 60.62%  4412.06MB 14.01%  github.com/dop251/goja.(*baseObject).stringKeys
+ 1758.82MB  5.59% 66.21%  2090.84MB  6.64%  github.com/dop251/goja.(*Runtime).toValue
+ 1722.23MB  5.47% 71.68%  1722.23MB  5.47%  bytes.growSlice
+ 1094.02MB  3.47% 75.15%  1094.02MB  3.47%  github.com/dop251/goja.asciiString.Export
+ 1067.02MB  3.39% 78.54%  1067.02MB  3.39%  github.com/dop251/goja.stringValueFromRaw (inline)
+  850.89MB  2.70% 81.24%   850.89MB  2.70%  bytes.(*Buffer).String (inline)
+  846.58MB  2.69% 83.93%   849.58MB  2.70%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).writeString
+  705.58MB  2.24% 86.17%  1010.59MB  3.21%  github.com/dop251/goja.newBaseObjectObj (inline)
+  629.53MB  2.00% 88.17% 16718.55MB 53.10%  github.com/go-go-golems/go-go-goja/modules/uidsl.elementFromCall
+  616.53MB  1.96% 90.13%   616.53MB  1.96%  github.com/dop251/goja.(*baseObject).init (inline)
+  590.51MB  1.88% 92.01%   590.51MB  1.88%  github.com/dop251/goja.asciiString.Concat
+  496.57MB  1.58% 93.58%  2564.39MB  8.14%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderAttrs
+  402.51MB  1.28% 94.86%   405.51MB  1.29%  fmt.Sprint
+  379.01MB  1.20% 96.07%   458.51MB  1.46%  github.com/dop251/goja.valueInt.toString
+  336.02MB  1.07% 97.13%  1346.60MB  4.28%  github.com/dop251/goja.(*Runtime).newBaseObject (inline)
+  161.46MB  0.51% 97.65%   475.21MB  1.51%  github.com/go-go-golems/go-go-goja/modules/uidsl.nodesFromArgs
+     129MB  0.41% 98.05% 15705.29MB 49.88%  github.com/dop251/goja.(*Object).Export
+   55.50MB  0.18% 98.23%   173.27MB  0.55%  github.com/go-go-golems/go-go-goja/modules/uidsl.NormalizeExport
+      44MB  0.14% 98.37%   202.87MB  0.64%  github.com/dop251/goja.(*Runtime).generic_push
+    0.50MB 0.0016% 98.37%  1722.73MB  5.47%  bytes.(*Buffer).grow
+         0     0% 98.37%   444.91MB  1.41%  bytes.(*Buffer).WriteByte
+         0     0% 98.37%  1277.81MB  4.06%  bytes.(*Buffer).WriteString
+         0     0% 98.37%  1346.60MB  4.28%  github.com/dop251/goja.(*Runtime).NewObject (inline)
+         0     0% 98.37%  2090.84MB  6.64%  github.com/dop251/goja.(*Runtime).ToValue (inline)
+         0     0% 98.37%   202.87MB  0.64%  github.com/dop251/goja.(*Runtime).arrayproto_push
+         0     0% 98.37%  4326.27MB 13.74%  github.com/dop251/goja.(*Runtime).newWrappedFunc.(*Runtime).wrapReflectFunc.func1
+         0     0% 98.37% 31389.51MB 99.69%  github.com/dop251/goja.(*Runtime).runWrapped
+         0     0% 98.37%   158.87MB   0.5%  github.com/dop251/goja.(*arrayObject)._setOwnIdx
+         0     0% 98.37%   158.87MB   0.5%  github.com/dop251/goja.(*arrayObject).setOwnIdx
+         0     0% 98.37% 31389.51MB 99.69%  github.com/dop251/goja.(*arrowFuncObject).Call
+         0     0% 98.37% 31389.51MB 99.69%  github.com/dop251/goja.(*baseJsFuncObject).__call
+         0     0% 98.37% 31389.51MB 99.69%  github.com/dop251/goja.(*baseJsFuncObject)._call (inline)
+         0     0% 98.37%  5676.36MB 18.03%  github.com/dop251/goja.(*baseObject)._putProp
+         0     0% 98.37% 23457.53MB 74.50%  github.com/dop251/goja.(*nativeFuncObject).vmCall
+         0     0% 98.37%   310.01MB  0.98%  github.com/dop251/goja.(*objectGoReflect).init
+         0     0% 98.37% 31389.01MB 99.69%  github.com/dop251/goja.(*vm).run
+         0     0% 98.37% 31389.01MB 99.69%  github.com/dop251/goja.(*vm).runTryInner
+         0     0% 98.37% 31412.52MB 99.77%  github.com/dop251/goja.(*vm).try
+         0     0% 98.37% 31389.51MB 99.69%  github.com/dop251/goja.AssertFunction.func1
+         0     0% 98.37% 31389.51MB 99.69%  github.com/dop251/goja.AssertFunction.func1.1
+         0     0% 98.37%   908.02MB  2.88%  github.com/dop251/goja._add.exec
+         0     0% 98.37%  1348.11MB  4.28%  github.com/dop251/goja._newObject.exec
+         0     0% 98.37% 23457.53MB 74.50%  github.com/dop251/goja.call.exec
+         0     0% 98.37%  1045.02MB  3.32%  github.com/dop251/goja.exportValue
+         0     0% 98.37%  5672.36MB 18.02%  github.com/dop251/goja.putProp.exec
+         0     0% 98.37% 31417.02MB 99.78%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).RunOnLoop.func1
+         0     0% 98.37% 31417.02MB 99.78%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).run
+         0     0% 98.37% 31417.02MB 99.78%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).runAux
+         0     0% 98.37% 18787.38MB 59.67%  github.com/go-go-golems/go-go-goja/modules/uidsl.Loader.func1
+         0     0% 98.37%  3475.69MB 11.04%  github.com/go-go-golems/go-go-goja/modules/uidsl.RenderAny
+         0     0% 98.37%   405.51MB  1.29%  github.com/go-go-golems/go-go-goja/modules/uidsl.attrValue
+         0     0% 98.37%  7813.89MB 24.82%  github.com/go-go-golems/go-go-goja/modules/uidsl.isAttrs
+         0     0% 98.37%  2624.80MB  8.34%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderNode
+         0     0% 98.37% 31416.02MB 99.78%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Host).ServeHTTP.func1
+         0     0% 98.37%  4325.77MB 13.74%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).HTML
+         0     0% 98.37%  4325.77MB 13.74%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).JSObject.func6
+         0     0% 98.37% 31416.02MB 99.78%  github.com/go-go-golems/go-go-goja/pkg/runtimebridge.WithCallContext
+         0     0% 98.37% 31417.02MB 99.78%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).Call.func1
+         0     0% 98.37% 31416.02MB 99.78%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke
+         0     0% 98.37% 31416.02MB 99.78%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke.func1
+         0     0% 98.37% 31416.02MB 99.78%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke.func1.1
+         0     0% 98.37%  4325.77MB 13.74%  reflect.Value.Call
+         0     0% 98.37%  4325.77MB 13.74%  reflect.Value.call

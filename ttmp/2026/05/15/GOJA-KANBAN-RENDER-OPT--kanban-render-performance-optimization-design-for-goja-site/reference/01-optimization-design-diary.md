@@ -293,3 +293,36 @@ Uploaded the anti-overfit benchmark plan and Anti-overfit matrix v1 report as on
 ```text
 /ai/2026/05/15/GOJA-KANBAN-RENDER-OPT/GOJA KANBAN RENDER OPT Anti Overfit Benchmarks.pdf
 ```
+
+## Step 9: Profile both anti-overfit follow-up candidates
+
+The user asked, "why not both," so I profiled both candidate cells from the anti-overfit matrix.
+
+### Captures
+
+```text
+archive/pprof-anti-overfit-20260515T191339Z/render-attrs-1000-100_s
+archive/pprof-anti-overfit-20260515T191339Z/kanban-fragment-500-100_s
+```
+
+Both used `30s` measured duration, `5s` warmup, and `10s` CPU profile capture. Raw `vegeta.bin` files were removed after generating JSON/text/profile artifacts.
+
+### Report
+
+```text
+reference/04-anti-overfit-follow-up-pprof-report.md
+```
+
+### Finding
+
+`render-attrs-1000` reproduced severe queueing at `100/s` and points strongly at Goja object export, UI DSL element conversion, attribute rendering, allocation, and GC. `kanban-fragment-500` did not reproduce the short matrix's severe 100/s queueing in this longer profile run; it held `100/s` with p95 around `66 ms`, making it a useful regression workload but a weaker immediate optimization target.
+
+Recommendation: optimize generic UI DSL object/attribute conversion first, then keep both workloads in the validation set.
+
+## Step 10: Upload follow-up pprof report to reMarkable
+
+Uploaded the comparative follow-up pprof report.
+
+```text
+/ai/2026/05/15/GOJA-KANBAN-RENDER-OPT/GOJA KANBAN RENDER OPT Follow Up Pprof.pdf
+```

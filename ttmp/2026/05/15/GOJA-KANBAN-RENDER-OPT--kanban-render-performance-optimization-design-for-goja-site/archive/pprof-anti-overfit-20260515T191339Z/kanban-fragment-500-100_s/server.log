@@ -1,0 +1,1 @@
+goja-site serving addr=127.0.0.1:26081 db=/tmp/goja-site-bench.Jen7ok/app.db scripts=[bench/scripts/kanban-board-500] dbPolicy=simple readonly=false allowWrites=true metricsAddr=127.0.0.1:27091 pprof=true otel=false
