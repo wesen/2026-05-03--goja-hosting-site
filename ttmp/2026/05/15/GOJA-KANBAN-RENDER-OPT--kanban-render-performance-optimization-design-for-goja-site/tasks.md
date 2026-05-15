@@ -58,4 +58,4 @@
 - [x] Implement first optimization slice: avoid double `Export()` in attrs detection/extraction.
 - [x] Re-run `render-attrs-1000` pprof after first optimization slice.
 
-- [ ] Design and implement `Element.AttrList` fast path.
+- [x] Cut over `Element.Attrs` to render-ready `[]uidsl.Attr` without compatibility map path.

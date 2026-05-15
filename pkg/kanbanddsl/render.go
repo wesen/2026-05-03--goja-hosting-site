@@ -66,7 +66,7 @@ func (b *Board) Render(ctx goja.Value) (uidsl.Node, error) {
 
 	children := []uidsl.Node{}
 	if b.mounted != "" {
-		children = append(children, &uidsl.Element{Tag: "script", Attrs: map[string]any{"src": cleanJoin(b.mounted, "client.js"), "defer": true}})
+		children = append(children, &uidsl.Element{Tag: "script", Attrs: uidsl.Attrs(map[string]any{"src": cleanJoin(b.mounted, "client.js"), "defer": true})})
 	}
 	if b.cfg.Render.Toolbar != nil {
 		v, err := b.cfg.Render.Toolbar(goja.Undefined(), ctx)
@@ -92,8 +92,8 @@ func (b *Board) Render(ctx goja.Value) (uidsl.Node, error) {
 		"data-kb-board-id":    b.cfg.ID,
 		"data-kb-action-base": b.actionBase(),
 	})
-	children = append(children, &uidsl.Element{Tag: "div", Attrs: boardAttrs, Children: columnNodes})
-	root := &uidsl.Element{Tag: "section", Attrs: map[string]any{"class": "kb-root", "data-kb-root": b.cfg.ID}, Children: children}
+	children = append(children, &uidsl.Element{Tag: "div", Attrs: uidsl.Attrs(boardAttrs), Children: columnNodes})
+	root := &uidsl.Element{Tag: "section", Attrs: uidsl.Attrs(map[string]any{"class": "kb-root", "data-kb-root": b.cfg.ID}), Children: children}
 	if b.cfg.Render.BoardShell != nil {
 		v, err := b.cfg.Render.BoardShell(goja.Undefined(), b.vm.ToValue(root), ctx)
 		if err != nil {
@@ -105,9 +105,9 @@ func (b *Board) Render(ctx goja.Value) (uidsl.Node, error) {
 }
 
 func (b *Board) renderColumn(ctx goja.Value, col ColumnSpec, cards []renderedCard) uidsl.Node {
-	header := uidsl.Node(&uidsl.Element{Tag: "div", Attrs: map[string]any{"class": "kb-column-header column-header"}, Children: []uidsl.Node{
+	header := uidsl.Node(&uidsl.Element{Tag: "div", Attrs: uidsl.Attrs(map[string]any{"class": "kb-column-header column-header"}), Children: []uidsl.Node{
 		&uidsl.Element{Tag: "h2", Children: []uidsl.Node{&uidsl.Text{Value: col.Title}}},
-		&uidsl.Element{Tag: "span", Attrs: map[string]any{"class": "kb-count count", "data-kb-count": col.ID}, Children: []uidsl.Node{&uidsl.Text{Value: strconv.Itoa(len(cards))}}},
+		&uidsl.Element{Tag: "span", Attrs: uidsl.Attrs(map[string]any{"class": "kb-count count", "data-kb-count": col.ID}), Children: []uidsl.Node{&uidsl.Text{Value: strconv.Itoa(len(cards))}}},
 	}})
 	if b.cfg.Render.ColumnHeader != nil {
 		v, err := b.cfg.Render.ColumnHeader(goja.Undefined(), b.vm.ToValue(col), ctx)
@@ -127,20 +127,20 @@ func (b *Board) renderColumn(ctx goja.Value, col ColumnSpec, cards []renderedCar
 				}
 			}
 		} else {
-			listChildren = append(listChildren, &uidsl.Element{Tag: "div", Attrs: map[string]any{"class": "kb-empty empty"}, Children: []uidsl.Node{&uidsl.Text{Value: "No visible cards"}}})
+			listChildren = append(listChildren, &uidsl.Element{Tag: "div", Attrs: uidsl.Attrs(map[string]any{"class": "kb-empty empty"}), Children: []uidsl.Node{&uidsl.Text{Value: "No visible cards"}}})
 		}
 	}
 	for i, card := range cards {
 		listChildren = append(listChildren, b.renderCard(ctx, card, i, len(cards)))
 	}
-	listChildren = append(listChildren, &uidsl.Element{Tag: "div", Attrs: map[string]any{"class": "kb-drop-sentinel", "data-kb-drop-sentinel": true}})
+	listChildren = append(listChildren, &uidsl.Element{Tag: "div", Attrs: uidsl.Attrs(map[string]any{"class": "kb-drop-sentinel", "data-kb-drop-sentinel": true})})
 	attrs := mergeAttrs(col.Attrs, map[string]any{
 		"class":                classList("kb-column", "column", col.ClassName),
 		"data-kb-column-id":    col.ID,
 		"data-kb-column-title": col.Title,
 		"data-kb-limit":        positiveOrEmpty(col.Limit),
 	})
-	return &uidsl.Element{Tag: "section", Attrs: attrs, Children: []uidsl.Node{header, &uidsl.Element{Tag: "div", Attrs: map[string]any{"class": "kb-card-list card-list", "role": "list", "aria-label": col.Title + " cards", "data-kb-drop-column": col.ID}, Children: listChildren}}}
+	return &uidsl.Element{Tag: "section", Attrs: uidsl.Attrs(attrs), Children: []uidsl.Node{header, &uidsl.Element{Tag: "div", Attrs: uidsl.Attrs(map[string]any{"class": "kb-card-list card-list", "role": "list", "aria-label": col.Title + " cards", "data-kb-drop-column": col.ID}), Children: listChildren}}}
 }
 
 func (b *Board) renderCard(ctx goja.Value, card renderedCard, index, columnCount int) uidsl.Node {
@@ -181,18 +181,18 @@ func (b *Board) renderCard(ctx goja.Value, card renderedCard, index, columnCount
 		// reliably start native HTML5 drag operations.
 		attrs["draggable"] = "true"
 	}
-	return &uidsl.Element{Tag: "article", Attrs: attrs, Children: children}
+	return &uidsl.Element{Tag: "article", Attrs: uidsl.Attrs(attrs), Children: children}
 }
 
 func (b *Board) cardActionsButton(card renderedCard) uidsl.Node {
-	return &uidsl.Element{Tag: "button", Attrs: map[string]any{
+	return &uidsl.Element{Tag: "button", Attrs: uidsl.Attrs(map[string]any{
 		"type":                 "button",
 		"class":                "kb-card-actions",
 		"data-kb-card-actions": true,
 		"aria-haspopup":        "menu",
 		"aria-expanded":        "false",
 		"aria-label":           "Actions for card " + card.ID,
-	}, Children: []uidsl.Node{&uidsl.Text{Value: "Actions"}}}
+	}), Children: []uidsl.Node{&uidsl.Text{Value: "Actions"}}}
 }
 
 func (b *Board) cardAriaLabel(card renderedCard, index, columnCount int) string {
@@ -281,8 +281,8 @@ func valueOrUndefined(call goja.FunctionCall, index int) goja.Value {
 }
 
 func defaultToolbar() uidsl.Node {
-	return &uidsl.Element{Tag: "div", Attrs: map[string]any{"class": "kb-toolbar"}, Children: []uidsl.Node{
-		&uidsl.Element{Tag: "input", Attrs: map[string]any{"type": "search", "name": "search", "placeholder": "Search cards...", "data-kb-search": true, "autocomplete": "off"}},
+	return &uidsl.Element{Tag: "div", Attrs: uidsl.Attrs(map[string]any{"class": "kb-toolbar"}), Children: []uidsl.Node{
+		&uidsl.Element{Tag: "input", Attrs: uidsl.Attrs(map[string]any{"type": "search", "name": "search", "placeholder": "Search cards...", "data-kb-search": true, "autocomplete": "off"})},
 	}}
 }
 

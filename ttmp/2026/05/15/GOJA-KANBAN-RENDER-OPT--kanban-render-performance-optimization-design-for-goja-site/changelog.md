@@ -124,3 +124,12 @@ Uploaded render-attrs investigation and first optimization report to reMarkable.
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/05-render-attrs-first-optimization-report.md — uploaded render-attrs optimization report
 
+
+## 2026-05-15
+
+Cut over ui.dsl Element attrs to render-ready []Attr and recorded render-attrs validation.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/06-render-attrs-attr-list-cutover-report.md — attr-list cutover report
+

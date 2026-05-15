@@ -383,3 +383,40 @@ Uploaded the detailed investigation and first optimization report.
 ```text
 /ai/2026/05/15/GOJA-KANBAN-RENDER-OPT/GOJA KANBAN RENDER OPT Render Attrs Investigation.pdf
 ```
+
+## Step 14: Cut over Element.Attrs to render-ready attr list
+
+The user clarified: no compatibility path. I changed `go-go-goja/modules/uidsl.Element.Attrs` from `map[string]any` to `[]Attr` and updated internal constructors plus `goja-site` Kanban server-rendered nodes to use `uidsl.Attrs(map[string]any{...})` at construction boundaries.
+
+### go-go-goja commit
+
+```text
+9083b8f3bad9f8807c5e4c3c0076c74f2c33a196
+perf: render ui attrs from attr list
+```
+
+Pre-commit passed lint, `go generate ./...`, and `go test ./...`.
+
+### goja-site changes
+
+Updated `pkg/kanbanddsl/render.go` for the new `[]uidsl.Attr` representation.
+
+### render-attrs-1000 validation
+
+Artifact root:
+
+```text
+archive/render-attrs-attrlist-20260515T200104Z
+```
+
+Result at `100/s`, `30s` measured, `5s` warmup:
+
+```text
+throughput: 71.79/s
+success: 100%
+p50: 5.271s
+p95: 11.222s
+p99: 11.714s
+```
+
+This is better than the single-export slice (`59.70/s`, p95 `19.337s`) and slightly better than the original follow-up pprof (`67.91/s`, p95 `13.357s`), but still not enough to make `render-attrs-1000` healthy at `100/s`. The next bottleneck is still dominated by JS object construction / generic export / GC, not only render-time attr sorting.
