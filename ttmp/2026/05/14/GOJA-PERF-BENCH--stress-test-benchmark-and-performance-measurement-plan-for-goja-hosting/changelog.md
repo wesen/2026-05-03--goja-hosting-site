@@ -235,3 +235,12 @@ Switched benchmark matrix persistence to SQLite, imported smoke matrix results, 
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/03-phase7-smoke-sqlite-benchmark-report.md — SQLite-backed benchmark report with embedded SQL queries
 
+
+## 2026-05-15
+
+Uploaded SQLite-backed benchmark report to reMarkable.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/14/GOJA-PERF-BENCH--stress-test-benchmark-and-performance-measurement-plan-for-goja-hosting/reference/01-investigation-diary.md — Step 20 reMarkable upload evidence
+

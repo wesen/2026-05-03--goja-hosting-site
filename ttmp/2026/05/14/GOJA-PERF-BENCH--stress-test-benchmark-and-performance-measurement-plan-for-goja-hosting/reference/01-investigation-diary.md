@@ -2539,3 +2539,51 @@ ORDER BY ...;
 ```
 
 The Markdown report includes the SQL text before each generated result table.
+
+## Step 20: Upload SQLite benchmark report to reMarkable
+
+I uploaded the SQLite-backed benchmark report to reMarkable as a standalone PDF bundle.
+
+### Prompt Context
+
+**User prompt:** Upload the resulting report to reMarkable after switching the benchmark matrix persistence to SQLite.
+
+**Assistant interpretation:** Deliver the generated Markdown report with embedded SQL queries to the tablet. The SQLite database itself remains in the ticket archive in the repository; the tablet receives the readable PDF report.
+
+**Commit (code/docs):** `f06fb7e6da2fb137d3dd1d1579157e6870b84aa5` — "feat: store benchmark matrices in sqlite".
+
+### What I did
+
+I first tried to include the `.sql`, `.py`, and `.sh` scripts in a `remarquee upload bundle`, but the bundle command only accepts Markdown files. I then uploaded the generated Markdown report alone.
+
+Dry-run evidence:
+
+```text
+DRY: bundle name=GOJA PERF BENCH SQLite Report
+DRY: remote-dir=/ai/2026/05/14/GOJA-PERF-BENCH
+DRY: include .../reference/03-phase7-smoke-sqlite-benchmark-report.md
+DRY: upload GOJA_PERF_BENCH_SQLite_Report.pdf -> /ai/2026/05/14/GOJA-PERF-BENCH
+```
+
+Real upload evidence:
+
+```text
+OK: uploaded GOJA_PERF_BENCH_SQLite_Report.pdf -> /ai/2026/05/14/GOJA-PERF-BENCH
+```
+
+### Why
+
+The report is the human-readable artifact; it includes every SQL query used to produce every table. The scripts and SQLite database remain in the repo for exact reproduction.
+
+### What worked
+
+- The Markdown report uploaded successfully as `GOJA_PERF_BENCH_SQLite_Report.pdf`.
+- The report contains the SQL queries inline.
+
+### What didn't work
+
+- `remarquee upload bundle` rejected `.sql` source files because bundle inputs must be Markdown files.
+
+### What should be done in the future
+
+If source scripts should be read on reMarkable too, create a Markdown appendix that embeds the scripts in fenced code blocks, then bundle that appendix with the report.

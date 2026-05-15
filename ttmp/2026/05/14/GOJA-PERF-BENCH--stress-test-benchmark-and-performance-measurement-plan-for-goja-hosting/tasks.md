@@ -146,5 +146,5 @@ Goal: persist matrix results in a queryable local database and generate Markdown
 - [x] Add report renderer that embeds every SQL query used to produce the Markdown report.
 - [x] Update ticket smoke/short matrix scripts to import into SQLite and render reports.
 - [x] Run smoke matrix end-to-end through SQLite and render report.
-- [ ] Upload SQLite-backed report bundle to reMarkable.
+- [x] Upload SQLite-backed report bundle to reMarkable.
 
