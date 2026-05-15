@@ -31,3 +31,21 @@ Uploaded quick stress sweep report to reMarkable.
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-STRESS-TEST--stress-testing-breakdown-experiments-for-goja-site/reference/01-stress-test-investigation-diary.md — Step 3 upload evidence
 
+
+## 2026-05-15
+
+Ran targeted kanban-action knee search, identified first clear knee at 80/s, and captured pprof at 80/s.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-STRESS-TEST--stress-testing-breakdown-experiments-for-goja-site/reference/03-kanban-action-knee-sqlite-report.md — Kanban action knee report
+
+
+## 2026-05-15
+
+Uploaded the kanban-action knee-search and pprof reports to reMarkable.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-STRESS-TEST--stress-testing-breakdown-experiments-for-goja-site/reference/04-kanban-action-pprof-report.md — pprof report included in reMarkable bundle
+

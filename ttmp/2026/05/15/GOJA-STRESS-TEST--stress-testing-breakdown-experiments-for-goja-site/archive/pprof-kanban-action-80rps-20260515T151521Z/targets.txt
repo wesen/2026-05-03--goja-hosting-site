@@ -1,0 +1,4 @@
+POST http://127.0.0.1:18700/_kanban/bench/action/cardMoved
+Content-Type: application/json
+Cookie: goja_session=bench-session
+@/tmp/goja-site-bench.KLkbms/kanban-move.json

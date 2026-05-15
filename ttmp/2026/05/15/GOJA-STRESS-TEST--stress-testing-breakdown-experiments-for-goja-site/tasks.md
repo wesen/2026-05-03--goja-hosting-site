@@ -20,6 +20,17 @@
 ## Phase 2 — Follow-up decisions
 
 - [ ] Decide whether the hour-scale experiment is safe to run.
-- [ ] If needed, tune stress rates/scenarios based on quick sweep behavior.
+- [x] If needed, tune stress rates/scenarios based on quick sweep behavior.
 - [ ] Optionally add explicit multi-site / many-VM stress scenarios.
-- [ ] Run targeted pprof on the first scenario that bends.
+- [x] Run targeted pprof on the first scenario that bends.
+
+## Phase 3 — Kanban action knee search
+
+- [x] Add targeted `kanban-action` knee-search script.
+- [x] Run targeted `kanban-action` knee search from 60/s to 100/s.
+- [x] Import knee-search results into SQLite.
+- [x] Generate knee-search Markdown report with embedded SQL queries.
+- [x] Run targeted pprof at the first bending rate.
+- [x] Upload knee-search and pprof reports to reMarkable.
+- [ ] Commit knee-search and pprof artifacts.
+
