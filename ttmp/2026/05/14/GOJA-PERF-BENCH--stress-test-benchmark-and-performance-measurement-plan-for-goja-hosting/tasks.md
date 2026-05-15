@@ -136,3 +136,15 @@ Goal: turn raw metrics into usable engineering and operations artifacts.
 - [x] Append measured baseline report to ticket.
 - [ ] Upload refreshed bundle to reMarkable.
 - [x] Commit Phase 7.
+
+## Phase 7A — SQLite-backed benchmark result storage
+
+Goal: persist matrix results in a queryable local database and generate Markdown reports from SQL.
+
+- [x] Add SQLite schema for benchmark matrices, runs, and metric deltas.
+- [x] Add import script that loads `bench-matrix` output into SQLite.
+- [x] Add report renderer that embeds every SQL query used to produce the Markdown report.
+- [x] Update ticket smoke/short matrix scripts to import into SQLite and render reports.
+- [x] Run smoke matrix end-to-end through SQLite and render report.
+- [ ] Upload SQLite-backed report bundle to reMarkable.
+
