@@ -33,3 +33,10 @@
 - [x] Add frontend action menu, keyboard navigation, live region, and focus restoration.
 - [x] Add browser/Playwright accessibility interaction tests.
 - [x] Validate keyboard-only workflow with Playwright.
+
+## Phase 3 — Anti-overfit benchmark planning
+
+- [x] Write detailed anti-overfit benchmark plan.
+- [ ] Build Anti-overfit matrix v1 fixtures.
+- [ ] Run Anti-overfit matrix v1.
+- [ ] Decide which optimization class to pursue next from broader benchmark evidence.

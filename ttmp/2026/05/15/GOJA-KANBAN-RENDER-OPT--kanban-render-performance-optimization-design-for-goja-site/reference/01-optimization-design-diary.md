@@ -205,3 +205,47 @@ kanban accessibility playwright smoke passed: http://127.0.0.1:19220
 kanban playwright smoke passed: http://127.0.0.1:19111
 go test ./... passed
 ```
+
+## Step 6: Write anti-overfit benchmark plan
+
+The user asked for a detailed document listing the benchmark classes we should add so we do not overfit to the Kanban fixture, plus a second section prioritizing benchmark construction and execution order by ease, instrumentation effort, and value.
+
+### Document
+
+```text
+design/03-anti-overfit-benchmark-plan.md
+```
+
+### Contents
+
+The plan covers:
+
+- Kanban size scaling,
+- UI shape benchmarks,
+- interaction benchmarks,
+- database-heavy benchmarks,
+- mixed multi-site/multi-VM benchmarks,
+- startup and reload benchmarks,
+- memory and soak benchmarks,
+- browser/frontend benchmarks,
+- error and pathological benchmarks,
+- observability overhead benchmarks.
+
+It then prioritizes implementation order, starting with formalizing the post-simplification regression benchmarks, then adding Kanban size scaling, UI shape renderer fixtures, DB-heavy fixtures, mixed multi-site runs, browser timings, observability overhead, startup/reload, soak, and error-path tests.
+
+### Recommended immediate deliverable
+
+The proposed first anti-overfit matrix is:
+
+```text
+kanban-fragment-10
+kanban-fragment-120
+kanban-fragment-500
+render-flat-1000
+render-attrs-1000
+db-read-100
+db-write-batch-10
+
+rates: 25/s, 100/s, 250/s
+repeat: 3
+```
