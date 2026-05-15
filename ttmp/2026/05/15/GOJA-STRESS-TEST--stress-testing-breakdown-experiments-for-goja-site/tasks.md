@@ -10,12 +10,12 @@
 
 ## Phase 1 — Quick stress validation
 
-- [ ] Run quick stress sweep.
-- [ ] Import quick stress results into SQLite.
-- [ ] Generate quick stress Markdown report with embedded SQL queries.
-- [ ] Record quick stress findings in diary and changelog.
-- [ ] Upload quick stress report to reMarkable.
-- [ ] Commit quick stress results.
+- [x] Run quick stress sweep.
+- [x] Import quick stress results into SQLite.
+- [x] Generate quick stress Markdown report with embedded SQL queries.
+- [x] Record quick stress findings in diary and changelog.
+- [x] Upload quick stress report to reMarkable.
+- [x] Commit quick stress results.
 
 ## Phase 2 — Follow-up decisions
 
