@@ -61,3 +61,21 @@ Added anti-overfit benchmark plan with workload classes and prioritized build/ru
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/design/03-anti-overfit-benchmark-plan.md — anti-overfit benchmark plan
 
+
+## 2026-05-15
+
+Built and ran Anti-overfit matrix v1, then wrote the benchmark report.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/03-anti-overfit-benchmark-report.md — Anti-overfit matrix v1 report
+
+
+## 2026-05-15
+
+Uploaded anti-overfit benchmark plan and report bundle to reMarkable.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/03-anti-overfit-benchmark-report.md — uploaded in reMarkable bundle
+

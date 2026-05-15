@@ -249,3 +249,47 @@ db-write-batch-10
 rates: 25/s, 100/s, 250/s
 repeat: 3
 ```
+
+## Step 7: Build and run Anti-overfit matrix v1
+
+Built the first anti-overfit benchmark fixtures and runner.
+
+### Fixtures and harness changes
+
+- Added `bench/scripts/render-shapes/app.js` with `render-flat-1000` and `render-attrs-1000` routes.
+- Added generated Kanban fixtures under `bench/scripts/kanban-board-10` and `bench/scripts/kanban-board-500`.
+- Extended `scripts/bench-vegeta.sh` with scenarios for Kanban sizes, render shapes, `db-read-100`, and `db-write-batch-10`.
+- Added `scripts/04-run-anti-overfit-matrix.sh` and `scripts/05-render-anti-overfit-report.py` to this ticket.
+
+### Run
+
+```text
+MATRIX_ID=anti-overfit-v1-20260515T182902Z \
+  ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/scripts/04-run-anti-overfit-matrix.sh
+```
+
+Shape: seven scenarios, three rates, three repeats, for 63 measured runs. Each run used `15s` measured duration and `3s` warmup.
+
+### Report
+
+```text
+reference/03-anti-overfit-benchmark-report.md
+archive/anti-overfit-v1-20260515T182902Z/01-matrix-summary.json
+archive/anti-overfit-v1-20260515T182902Z/01-matrix-summary.md
+```
+
+### Main findings
+
+- `kanban-fragment-10` stayed cheap through `250/s`: p95 avg `2.14 ms`.
+- `kanban-fragment` stayed healthy at `100/s`: p95 avg `9.43 ms`; at `250/s` it showed queueing but held near full throughput.
+- `kanban-fragment-500` was healthy at `25/s`, but saturated by `100/s`.
+- `render-attrs-1000` is the strongest next render bottleneck: it saturated at `100/s` and timed out at `250/s`.
+- `db-write-batch-10` queued already at `100/s`, indicating write-heavy SQLite behavior is a separate benchmark/optimization line.
+
+## Step 8: Upload anti-overfit benchmark bundle to reMarkable
+
+Uploaded the anti-overfit benchmark plan and Anti-overfit matrix v1 report as one PDF bundle.
+
+```text
+/ai/2026/05/15/GOJA-KANBAN-RENDER-OPT/GOJA KANBAN RENDER OPT Anti Overfit Benchmarks.pdf
+```

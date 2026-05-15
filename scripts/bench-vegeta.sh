@@ -23,7 +23,7 @@ usage() {
 Usage: scripts/bench-vegeta.sh [options]
 
 Options:
-  --scenario NAME       null | render | db-read | db-write | multi | kanban-page | kanban-fragment | kanban-action | kanban-mixed (default: null)
+  --scenario NAME       null | render | render-flat-1000 | render-attrs-1000 | db-read | db-read-100 | db-write | db-write-batch-10 | multi | kanban-page | kanban-fragment | kanban-fragment-10 | kanban-fragment-500 | kanban-action | kanban-mixed (default: null)
   --duration DURATION   Vegeta measurement duration, e.g. 30s (default: 30s)
   --warmup-duration D   Optional warmup before measured run, e.g. 10s (default: 0s)
   --rate RATE           Vegeta rate, e.g. 50/s or 100/1s (default: 50/s)
@@ -132,9 +132,24 @@ EOF_TARGETS
 GET ${BASE_URL}/render?n=100
 EOF_TARGETS
       ;;
+    render-flat-1000)
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+GET ${BASE_URL}/flat?n=1000
+EOF_TARGETS
+      ;;
+    render-attrs-1000)
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+GET ${BASE_URL}/attrs?n=1000
+EOF_TARGETS
+      ;;
     db-read)
       cat >"$TARGETS_PATH" <<EOF_TARGETS
 GET ${BASE_URL}/read?n=10
+EOF_TARGETS
+      ;;
+    db-read-100)
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+GET ${BASE_URL}/read?n=100
 EOF_TARGETS
       ;;
     db-write)
@@ -145,6 +160,16 @@ EOF_JSON
 POST ${BASE_URL}/write
 Content-Type: application/json
 @${TMP_DIR}/write-one.json
+EOF_TARGETS
+      ;;
+    db-write-batch-10)
+      cat >"$TMP_DIR/write-batch-10.json" <<'EOF_JSON'
+{"n":10}
+EOF_JSON
+      cat >"$TARGETS_PATH" <<EOF_TARGETS
+POST ${BASE_URL}/write
+Content-Type: application/json
+@${TMP_DIR}/write-batch-10.json
 EOF_TARGETS
       ;;
     multi)
@@ -161,7 +186,7 @@ EOF_TARGETS
 GET ${BASE_URL}/
 EOF_TARGETS
       ;;
-    kanban-fragment)
+    kanban-fragment|kanban-fragment-10|kanban-fragment-500)
       cat >"$TARGETS_PATH" <<EOF_TARGETS
 GET ${BASE_URL}/_kanban/bench/fragment
 EOF_TARGETS
@@ -216,11 +241,20 @@ start_server() {
     render)
       "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/render-route --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
-    db-read|db-write)
+    render-flat-1000|render-attrs-1000)
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/render-shapes --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      ;;
+    db-read|db-write|db-read-100|db-write-batch-10)
       "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/db-read-write --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     kanban-page|kanban-fragment|kanban-action|kanban-mixed)
       "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/kanban-board --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      ;;
+    kanban-fragment-10)
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/kanban-board-10 --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
+      ;;
+    kanban-fragment-500)
+      "$BINARY" serve --db "$DB_PATH" --scripts bench/scripts/kanban-board-500 --db-policy simple --allow-writes --addr "$APP_ADDR" --metrics-addr "$METRICS_ADDR" "${PPROF_ARGS[@]}" "${OTEL_ARGS[@]}" >"$LOG_PATH" 2>&1 &
       ;;
     multi)
       local cfg="$TMP_DIR/sites.yaml"

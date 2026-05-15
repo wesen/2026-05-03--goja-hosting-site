@@ -37,6 +37,8 @@
 ## Phase 3 — Anti-overfit benchmark planning
 
 - [x] Write detailed anti-overfit benchmark plan.
-- [ ] Build Anti-overfit matrix v1 fixtures.
-- [ ] Run Anti-overfit matrix v1.
+- [x] Build Anti-overfit matrix v1 fixtures and runner.
+- [x] Run Anti-overfit matrix v1 and write report.
 - [ ] Decide which optimization class to pursue next from broader benchmark evidence.
+
+- [x] Upload Anti-overfit matrix v1 report to reMarkable.
