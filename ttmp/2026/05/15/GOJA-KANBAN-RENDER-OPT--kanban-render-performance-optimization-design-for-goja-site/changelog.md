@@ -115,3 +115,12 @@ Implemented first render-attrs optimization slice in go-go-goja and recorded val
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/05-render-attrs-first-optimization-report.md — first optimization report
 
+
+## 2026-05-15
+
+Uploaded render-attrs investigation and first optimization report to reMarkable.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/05-render-attrs-first-optimization-report.md — uploaded render-attrs optimization report
+

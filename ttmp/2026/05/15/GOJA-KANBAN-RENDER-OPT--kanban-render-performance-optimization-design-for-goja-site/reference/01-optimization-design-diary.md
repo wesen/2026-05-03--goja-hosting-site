@@ -375,3 +375,11 @@ Report:
 ```text
 reference/05-render-attrs-first-optimization-report.md
 ```
+
+## Step 13: Upload render-attrs investigation bundle to reMarkable
+
+Uploaded the detailed investigation and first optimization report.
+
+```text
+/ai/2026/05/15/GOJA-KANBAN-RENDER-OPT/GOJA KANBAN RENDER OPT Render Attrs Investigation.pdf
+```
