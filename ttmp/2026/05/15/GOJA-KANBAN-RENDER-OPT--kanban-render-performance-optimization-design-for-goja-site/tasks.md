@@ -49,3 +49,11 @@
 - [x] Capture pprof for `kanban-fragment-500` at `100/s`.
 - [x] Write comparative follow-up pprof report.
 - [x] Decide whether next implementation target is generic UI attr rendering, large Kanban/full-tree rendering, or action response protocol.
+
+## Phase 5 — render-attrs-1000 investigation and optimization
+
+- [x] Write detailed `render-attrs-1000` performance investigation.
+- [ ] Add focused `ui.dsl` microbenchmarks in `go-go-goja`.
+- [ ] Add `ui.dsl` attribute compatibility tests before optimization.
+- [ ] Implement first optimization slice: avoid double `Export()` in attrs detection/extraction.
+- [ ] Re-run `render-attrs-1000` pprof and anti-overfit subset after optimization.

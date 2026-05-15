@@ -326,3 +326,19 @@ Uploaded the comparative follow-up pprof report.
 ```text
 /ai/2026/05/15/GOJA-KANBAN-RENDER-OPT/GOJA KANBAN RENDER OPT Follow Up Pprof.pdf
 ```
+
+## Step 11: Investigate render-attrs-1000 bottleneck in detail
+
+Created a source-level investigation for the `render-attrs-1000` performance issue.
+
+### Document
+
+```text
+design/04-render-attrs-1000-performance-investigation.md
+```
+
+### Core diagnosis
+
+The bottleneck is a UI DSL bridge problem, not a Kanban-specific problem. The current `ui.dsl` path uses generic Goja `Value.Export()` in the hot path for attribute detection and extraction. In `elementFromCall`, attrs are effectively exported twice: first through `isAttrs(args[0])`, then again through `args[0].Export()` to obtain the map. The pprof line listings show this as two large cumulative branches under `elementFromCall`.
+
+The recommended first implementation slice is to replace `isAttrs` plus second `Export()` with one `attrsFromValue` path, then add focused microbenchmarks and compatibility tests around attrs and child disambiguation.

@@ -97,3 +97,12 @@ Uploaded anti-overfit follow-up pprof report to reMarkable.
 
 - /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/reference/04-anti-overfit-follow-up-pprof-report.md — uploaded follow-up pprof report
 
+
+## 2026-05-15
+
+Added detailed render-attrs-1000 performance investigation and optimization plan.
+
+### Related Files
+
+- /home/manuel/code/wesen/2026-05-03--goja-hosting-site/ttmp/2026/05/15/GOJA-KANBAN-RENDER-OPT--kanban-render-performance-optimization-design-for-goja-site/design/04-render-attrs-1000-performance-investigation.md — render-attrs-1000 investigation
+
