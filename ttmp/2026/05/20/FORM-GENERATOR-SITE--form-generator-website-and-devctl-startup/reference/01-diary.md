@@ -51,7 +51,7 @@ Keep a diary, commit at appropriate intervals"
 
 **Inferred user intent:** Make the goja-site hosting repository operational through a repeatable local workflow, then use it to host a useful form-builder application.
 
-**Commit (code):** pending — first implementation not committed yet at diary-write time.
+**Commit (code):** 93e367cd2922293ea90cb9ca0caba6c1b7cea5c0 — "Add devctl form generator site"
 
 ### What I did
 
