@@ -1,0 +1,6 @@
+.devctl/
+tmp/
+.idea/
+*.db
+*.sqlite
+*.sqlite3
