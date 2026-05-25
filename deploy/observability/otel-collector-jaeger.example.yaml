@@ -1,0 +1,27 @@
+# Example OpenTelemetry Collector pipeline for goja-site traces.
+# goja-site exports OTLP HTTP traces to the collector. The collector forwards
+# traces to a Jaeger-compatible backend. Adjust exporter settings for the
+# collector version and Jaeger deployment you run.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch: {}
+
+exporters:
+  otlp/jaeger:
+    endpoint: jaeger-collector:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/jaeger]

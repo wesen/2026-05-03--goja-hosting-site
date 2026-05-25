@@ -23,7 +23,10 @@ func ClientScript() string {
       '  [data-kb-card-id][draggable="true"],\n' +
       '  [data-kb-card-id][draggable="true"] * { user-select: none; -webkit-user-select: none; }\n' +
       '  [data-kb-card-id].kb-dragging { opacity: .45; }\n' +
-      '  [data-kb-column-id].kb-drag-over { outline: 3px dashed currentColor; outline-offset: 4px; }\n';
+      '  [data-kb-column-id].kb-drag-over { outline: 3px dashed currentColor; outline-offset: 4px; }\n' +
+      '  .kb-action-menu { display: inline-flex; flex-direction: column; gap: .25rem; margin-top: .5rem; padding: .5rem; border: 1px solid currentColor; background: Canvas; color: CanvasText; z-index: 20; }\n' +
+      '  .kb-action-menu[hidden] { display: none; }\n' +
+      '  .kb-sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }\n';
     const parent = document.head || document.body || document.documentElement;
     if (parent) parent.appendChild(style);
   }
@@ -71,6 +74,43 @@ func ClientScript() string {
     if (input) applySearch(input);
   });
 
+  function liveRegion() {
+    let region = document.querySelector('[data-kb-live-region]');
+    if (region) return region;
+    region = document.createElement('div');
+    region.className = 'kb-sr-only';
+    region.setAttribute('data-kb-live-region', '');
+    region.setAttribute('aria-live', 'polite');
+    region.setAttribute('aria-atomic', 'true');
+    (document.body || document.documentElement).appendChild(region);
+    return region;
+  }
+
+  function announce(message) {
+    const region = liveRegion();
+    region.textContent = '';
+    window.setTimeout(() => { region.textContent = String(message || ''); }, 0);
+  }
+
+  function cardsInList(list) {
+    return [...list.querySelectorAll('[data-kb-card-id]')].filter(card => !card.hidden && !card.matches('[data-kb-drop-sentinel]'));
+  }
+
+  function cardListForColumn(board, columnId) {
+    if (!board || !columnId) return null;
+    return board.querySelector('[data-kb-drop-column="' + CSS.escape(columnId) + '"]');
+  }
+
+  function columnsFor(board) {
+    if (!board) return [];
+    return [...board.querySelectorAll('[data-kb-column-id]')].map(column => ({
+      id: column.dataset.kbColumnId || '',
+      title: column.dataset.kbColumnTitle || column.dataset.kbColumnId || '',
+      element: column,
+      list: cardListForColumn(board, column.dataset.kbColumnId || '')
+    })).filter(column => column.id && column.list);
+  }
+
   async function postAction(board, action, event) {
     const url = actionBase(board) + '/' + encodeURIComponent(action);
     debug('postAction', { boardId: board && board.dataset.kbBoardId, action, url, event });
@@ -93,29 +133,121 @@ func ClientScript() string {
     return payload;
   }
 
-  document.addEventListener('submit', async event => {
-    const form = event.target.closest('[data-kb-move-form]');
-    if (!form) return;
-    event.preventDefault();
-    const board = boardFor(form);
-    const card = form.closest('[data-kb-card-id]');
-    if (!board || !card) return;
-    const data = new FormData(form);
+  let openMenu = null;
+
+  function closeActionMenu({ restoreFocus = false } = {}) {
+    if (!openMenu) return;
+    const { menu, trigger } = openMenu;
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+    openMenu = null;
+    if (restoreFocus && trigger) trigger.focus();
+  }
+
+  async function moveCard(card, toColumnId, toIndex) {
+    const board = boardFor(card);
+    if (!board || !card || !toColumnId) return;
+    const cardId = card.dataset.kbCardId || '';
+    const fromColumnId = card.dataset.kbCardColumn || '';
+    const fromIndex = Number(card.dataset.kbCardIndex || 0);
     try {
-      await postAction(board, 'cardMoved', {
-        cardId: String(data.get('cardId') || card.dataset.kbCardId || ''),
-        from: {
-          columnId: String(data.get('fromColumnId') || card.dataset.kbCardColumn || ''),
-          index: Number(data.get('fromIndex') || card.dataset.kbCardIndex || 0)
-        },
-        to: {
-          columnId: String(data.get('toColumnId') || ''),
-          index: Number(data.get('toIndex') || 0)
-        }
+      const payload = await postAction(board, 'cardMoved', {
+        cardId,
+        from: { columnId: fromColumnId, index: fromIndex },
+        to: { columnId: toColumnId, index: toIndex }
       });
+      announce(payload.announcement || ('Moved card ' + cardId));
+      window.setTimeout(() => {
+        const moved = document.querySelector('[data-kb-card-id="' + CSS.escape(cardId) + '"]');
+        if (moved) moved.focus();
+      }, 0);
     } catch (error) {
       console.error('kanban move failed', error);
+      announce(error.message || String(error));
       alert(error.message || String(error));
+    }
+  }
+
+  function menuButton(label, onClick, disabled) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('role', 'menuitem');
+    button.textContent = label;
+    button.disabled = !!disabled;
+    button.addEventListener('click', async () => {
+      closeActionMenu();
+      await onClick();
+    });
+    return button;
+  }
+
+  function openActionMenu(trigger) {
+    const card = trigger && trigger.closest('[data-kb-card-id]');
+    const board = boardFor(card);
+    if (!card || !board) return;
+    closeActionMenu();
+    const currentColumnId = card.dataset.kbCardColumn || '';
+    const currentList = cardListForColumn(board, currentColumnId);
+    const currentCards = currentList ? cardsInList(currentList) : [];
+    const currentIndex = Math.max(0, currentCards.indexOf(card));
+    const menu = document.createElement('div');
+    menu.className = 'kb-action-menu';
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-label', 'Card actions');
+    menu.setAttribute('data-kb-action-menu', '');
+
+    menu.appendChild(menuButton('Move up', () => moveCard(card, currentColumnId, Math.max(0, currentIndex - 1)), currentIndex <= 0));
+    menu.appendChild(menuButton('Move down', () => moveCard(card, currentColumnId, Math.min(currentCards.length - 1, currentIndex + 1)), currentIndex >= currentCards.length - 1));
+    menu.appendChild(menuButton('Move to top', () => moveCard(card, currentColumnId, 0), currentIndex <= 0));
+    menu.appendChild(menuButton('Move to bottom', () => moveCard(card, currentColumnId, Math.max(0, currentCards.length - 1)), currentIndex >= currentCards.length - 1));
+
+    columnsFor(board).forEach(column => {
+      if (column.id === currentColumnId) return;
+      const targetIndex = cardsInList(column.list).length;
+      menu.appendChild(menuButton('Move to ' + column.title, () => moveCard(card, column.id, targetIndex), false));
+    });
+
+    trigger.setAttribute('aria-expanded', 'true');
+    card.appendChild(menu);
+    openMenu = { menu, trigger };
+    const first = menu.querySelector('button:not([disabled])') || menu.querySelector('button');
+    if (first) first.focus();
+  }
+
+  document.addEventListener('click', event => {
+    const trigger = event.target.closest('[data-kb-card-actions]');
+    if (trigger) {
+      event.preventDefault();
+      openActionMenu(trigger);
+      return;
+    }
+    if (openMenu && !event.target.closest('[data-kb-action-menu]')) closeActionMenu();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (openMenu && event.target.closest('[data-kb-action-menu]')) {
+      const items = [...openMenu.menu.querySelectorAll('button:not([disabled])')];
+      const index = items.indexOf(document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeActionMenu({ restoreFocus: true });
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        items[(index + 1 + items.length) % items.length]?.focus();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        items[(index - 1 + items.length) % items.length]?.focus();
+      }
+      return;
+    }
+    const card = event.target.closest('[data-kb-card-id]');
+    if (!card || event.target.closest('button, a, input, select, textarea')) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      const trigger = card.querySelector('[data-kb-card-actions]');
+      if (trigger) {
+        event.preventDefault();
+        openActionMenu(trigger);
+      }
     }
   });
 

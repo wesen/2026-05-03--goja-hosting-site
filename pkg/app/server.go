@@ -16,6 +16,7 @@ import (
 	"github.com/go-go-golems/go-go-goja/modules/uidsl"
 	"github.com/go-go-golems/go-go-goja/pkg/gojahttp"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
+	"github.com/go-go-golems/goja-site/pkg/observability"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -60,7 +61,11 @@ func NewServer(cfg Config) (*Server, error) {
 		_ = db.Close()
 		return nil, err
 	}
-	registrars := []engine.RuntimeModuleRegistrar{expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()}
+	var kanbanObserver kanbanddsl.Observer
+	if cfg.Observability != nil && cfg.Observability.Kanban != nil {
+		kanbanObserver = observability.NewKanbanObserver(cfg.SiteName, cfg.Observability.Kanban)
+	}
+	registrars := []engine.RuntimeModuleRegistrar{expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(kanbanObserver)}
 	registrars = append(registrars, dbRuntime.registrars...)
 
 	factory, err := engine.NewBuilder().
@@ -89,15 +94,22 @@ func NewServer(cfg Config) (*Server, error) {
 }
 
 func (s *Server) Handler() http.Handler {
-	return s.host
+	handler := http.Handler(s.host)
+	if s.cfg.Observability != nil && s.cfg.Observability.HTTP != nil {
+		handler = s.cfg.Observability.HTTP.Wrap(s.cfg.SiteName, handler)
+	}
+	if s.cfg.Observability != nil {
+		handler = s.cfg.Observability.WrapTrace(s.cfg.SiteName, handler)
+	}
+	return handler
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.host.ServeHTTP(w, r)
+	s.Handler().ServeHTTP(w, r)
 }
 
 func (s *Server) Run(ctx context.Context) error {
-	s.httpSrv = &http.Server{Addr: s.cfg.Addr, Handler: s.host, ReadHeaderTimeout: 5 * time.Second}
+	s.httpSrv = &http.Server{Addr: s.cfg.Addr, Handler: s.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	errCh := make(chan error, 1)
 	go func() {
 		err := s.httpSrv.ListenAndServe()

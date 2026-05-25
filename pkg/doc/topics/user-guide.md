@@ -108,7 +108,7 @@ const board = kanban.board("work")
     .column(card => card.status)
     .position(card => Number(card.position || 0))
     .searchText(card => `${card.title} ${card.description}`.toLowerCase()))
-  .features(features => features.search({ mode: "client" }).preciseMove().dragDrop())
+  .features(features => features.search({ mode: "client" }).dragDrop())
   .render(render => render.card(card => ui.div(ui.strong(card.title), ui.p(card.description))))
   .actions(actions => actions.cardMoved(event => {
     moveCard({ session: event.session, id: event.cardId, toStatus: event.to.columnId, toIndex: event.to.index });
@@ -119,7 +119,7 @@ const board = kanban.board("work")
 board.mount(app, "/_kanban");
 ```
 
-The board receives render contexts with `ctx.session` and action events with `event.session`. Use those values when querying the database. The browser runtime sends action envelopes, not arbitrary code; your JavaScript callback remains the place where domain rules are enforced.
+The board receives render contexts with `ctx.session` and action events with `event.session`. Use those values when querying the database. The browser runtime sends action envelopes, not arbitrary code; your JavaScript callback remains the place where domain rules are enforced. Card movement is exposed through drag/drop and the built-in accessible card action menu; the DSL does not generate per-card movement forms.
 
 ## Static assets
 

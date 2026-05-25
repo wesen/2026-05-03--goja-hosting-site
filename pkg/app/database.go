@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
 	"github.com/go-go-golems/goja-site/pkg/dbguard"
+	"github.com/go-go-golems/goja-site/pkg/observability"
 )
 
 type databaseRuntimeConfig struct {
@@ -28,10 +30,17 @@ func buildDatabaseRuntimeConfig(cfg Config, db *sql.DB) (databaseRuntimeConfig, 
 		queryExecer = &simpleDB{db: db, allowWrites: cfg.AllowWrites && !cfg.ReadOnly}
 	case DBPolicyGuarded:
 		guard := dbguard.New(db, cfg.DBPath)
+		if cfg.Observability != nil && cfg.Observability.Guard != nil {
+			guard.SetObserver(observability.NewGuardObserver(cfg.SiteName, cfg.Observability.Guard))
+		}
 		queryExecer = dbguard.NewMeteredDB(db, guard)
 		registrars = append(registrars, dbguard.NewRegistrar(guard))
 	default:
 		return databaseRuntimeConfig{}, fmt.Errorf("unsupported database policy %q", policy)
+	}
+
+	if cfg.Observability != nil && cfg.Observability.DB != nil {
+		queryExecer = observability.InstrumentQueryExecer(queryExecer, cfg.SiteName, string(policy), cfg.Observability.DB, cfg.Observability.Tracer)
 	}
 
 	databaseModule := databasemod.New(
@@ -59,23 +68,37 @@ type simpleDB struct {
 }
 
 func (s *simpleDB) Query(query string, args ...any) (*sql.Rows, error) {
+	return s.QueryContext(context.Background(), query, args...)
+}
+
+func (s *simpleDB) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	if s == nil || s.db == nil {
 		return nil, fmt.Errorf("database is not configured")
+	}
+	if ctx == nil {
+		ctx = context.Background()
 	}
 	if !s.allowWrites && !isReadOnlySQL(query) {
 		return nil, writesDisabledError()
 	}
-	return s.db.Query(query, args...)
+	return s.db.QueryContext(ctx, query, args...)
 }
 
 func (s *simpleDB) Exec(query string, args ...any) (sql.Result, error) {
+	return s.ExecContext(context.Background(), query, args...)
+}
+
+func (s *simpleDB) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	if s == nil || s.db == nil {
 		return nil, fmt.Errorf("database is not configured")
+	}
+	if ctx == nil {
+		ctx = context.Background()
 	}
 	if !s.allowWrites {
 		return nil, writesDisabledError()
 	}
-	return s.db.Exec(query, args...)
+	return s.db.ExecContext(ctx, query, args...)
 }
 
 func writesDisabledError() error {

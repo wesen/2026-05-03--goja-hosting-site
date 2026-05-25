@@ -1,0 +1,80 @@
+File: goja-site
+Build ID: 35e9c4fadae9962e9b5e97f4682ff8b24480cd72
+Type: cpu
+Time: 2026-05-15 11:15:30 EDT
+Duration: 20s, Total samples = 25.82s (129.10%)
+Showing nodes accounting for 20.43s, 79.12% of 25.82s total
+Dropped 476 nodes (cum <= 0.13s)
+      flat  flat%   sum%        cum   cum%
+     1.81s  7.01%  7.01%      2.49s  9.64%  runtime.tryDeferToSpanScan
+     1.18s  4.57% 11.58%      1.18s  4.57%  runtime.memmove
+     1.17s  4.53% 16.11%      2.06s  7.98%  encoding/json.appendString[go.shape.string]
+     1.06s  4.11% 20.22%      2.58s  9.99%  runtime.scanObject
+     0.75s  2.90% 23.12%      0.75s  2.90%  runtime.nextFreeFast (inline)
+     0.71s  2.75% 25.87%      0.71s  2.75%  runtime.memclrNoHeapPointers
+     0.56s  2.17% 28.04%      0.82s  3.18%  internal/runtime/maps.(*Iter).Next
+     0.49s  1.90% 29.94%      0.49s  1.90%  aeshashbody
+     0.48s  1.86% 31.80%      3.53s 13.67%  runtime.mallocgcSmallScanNoHeader
+     0.46s  1.78% 33.58%      0.58s  2.25%  runtime.(*mspan).writeHeapBitsSmall
+     0.43s  1.67% 35.24%      0.43s  1.67%  internal/runtime/syscall/linux.Syscall6
+     0.41s  1.59% 36.83%      0.43s  1.67%  internal/runtime/gc/scan.scanSpanPackedAVX512
+     0.41s  1.59% 38.42%      0.48s  1.86%  runtime.typePointers.next
+     0.37s  1.43% 39.85%      0.37s  1.43%  runtime.futex
+     0.37s  1.43% 41.29%      1.05s  4.07%  runtime.scanObjectsSmall
+     0.36s  1.39% 42.68%      5.79s 22.42%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderNode
+     0.36s  1.39% 44.07%      0.64s  2.48%  runtime.scanblock
+     0.35s  1.36% 45.43%      5.03s 19.48%  runtime.mallocgc
+     0.34s  1.32% 46.75%      4.62s 17.89%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderAttrs
+     0.34s  1.32% 48.06%      0.34s  1.32%  runtime.spanClass.sizeclass (inline)
+     0.30s  1.16% 49.23%      0.45s  1.74%  fmt.(*fmt).fmtInteger
+     0.29s  1.12% 50.35%      0.83s  3.21%  bytes.(*Buffer).WriteString
+     0.25s  0.97% 51.32%      3.10s 12.01%  runtime.scanSpan
+     0.23s  0.89% 52.21%      0.88s  3.41%  fmt.(*pp).printArg
+     0.23s  0.89% 53.10%      0.25s  0.97%  runtime.spanOf (inline)
+     0.22s  0.85% 53.95%      0.51s  1.98%  runtime.findObject
+     0.21s  0.81% 54.76%      0.21s  0.81%  strings.(*byteStringReplacer).Replace
+     0.20s  0.77% 55.54%      0.46s  1.78%  internal/runtime/maps.(*Map).getWithoutKeySmallFastStr
+     0.20s  0.77% 56.31%      0.88s  3.41%  runtime.mapaccess1_faststr
+     0.20s  0.77% 57.09%      0.38s  1.47%  sync.(*Pool).Get
+     0.19s  0.74% 57.82%      5.27s 20.41%  github.com/go-go-golems/goja-site/pkg/kanbanddsl.(*Board).preciseMoveForm
+     0.17s  0.66% 58.48%         2s  7.75%  github.com/dop251/goja.(*vm).run
+     0.17s  0.66% 59.14%      0.39s  1.51%  runtime.mallocgcTiny
+     0.17s  0.66% 59.80%      0.36s  1.39%  sync.(*Pool).Put
+     0.16s  0.62% 60.42%      0.16s  0.62%  internal/chacha8rand.block
+     0.16s  0.62% 61.04%      0.16s  0.62%  runtime.acquirem (inline)
+     0.15s  0.58% 61.62%      0.15s  0.58%  internal/runtime/maps.(*groupReference).key (inline)
+     0.15s  0.58% 62.20%      0.15s  0.58%  runtime.(*mspan).base (inline)
+     0.14s  0.54% 62.74%      0.14s  0.54%  bytes.(*Buffer).tryGrowByReslice (inline)
+     0.12s  0.46% 63.21%      2.26s  8.75%  runtime.newobject
+     0.12s  0.46% 63.67%      0.15s  0.58%  runtime.spanSetScans
+     0.11s  0.43% 64.10%      0.19s  0.74%  bytes.(*Buffer).WriteByte
+     0.11s  0.43% 64.52%      0.13s   0.5%  runtime.(*mspan).moveInlineMarks
+     0.11s  0.43% 64.95%      6.85s 26.53%  runtime.gcDrain
+     0.11s  0.43% 65.38%      0.17s  0.66%  slices.insertionSortOrdered[go.shape.string]
+     0.11s  0.43% 65.80%      0.31s  1.20%  sync.(*Pool).pin
+     0.10s  0.39% 66.19%      0.22s  0.85%  runtime.gcmarknewobject
+     0.10s  0.39% 66.58%      1.72s  6.66%  runtime.mapassign_faststr
+     0.09s  0.35% 66.92%      0.14s  0.54%  fmt.(*buffer).write (inline)
+     0.09s  0.35% 67.27%      0.47s  1.82%  fmt.(*pp).doPrintf
+     0.09s  0.35% 67.62%      0.39s  1.51%  gcWriteBarrier
+     0.09s  0.35% 67.97%      0.57s  2.21%  runtime.(*sweepLocked).sweep
+     0.09s  0.35% 68.32%      0.16s  0.62%  runtime.(*unwinder).resolveInternal
+     0.09s  0.35% 68.67%      0.15s  0.58%  runtime.lock2
+     0.09s  0.35% 69.02%      0.18s   0.7%  runtime.makeSpanClass (inline)
+     0.09s  0.35% 69.36%      0.40s  1.55%  runtime.wbBufFlush1
+     0.08s  0.31% 69.67%      1.56s  6.04%  fmt.Sprint
+     0.08s  0.31% 69.98%      0.20s  0.77%  internal/runtime/maps.(*Map).putSlotSmallFastStr
+     0.08s  0.31% 70.29%      0.22s  0.85%  runtime.pcvalue
+     0.08s  0.31% 70.60%      0.23s  0.89%  runtime.scanObjectSmall
+     0.08s  0.31% 70.91%      0.69s  2.67%  runtime.sweepone
+     0.08s  0.31% 71.22%      0.29s  1.12%  strings.(*Replacer).Replace
+     0.08s  0.31% 71.53%      0.15s  0.58%  sync.runtime_procPin
+     0.07s  0.27% 71.80%      0.21s  0.81%  runtime.(*spanSet).pop
+     0.07s  0.27% 72.08%      0.13s   0.5%  runtime.(*spanSet).push
+     0.07s  0.27% 72.35%      0.24s  0.93%  runtime.concatstrings
+     0.06s  0.23% 72.58%      0.16s  0.62%  fmt.(*buffer).writeString (inline)
+     0.06s  0.23% 72.81%      0.65s  2.52%  fmt.(*pp).doPrint
+     0.06s  0.23% 73.04%      1.07s  4.14%  fmt.Sprintf
+     0.06s  0.23% 73.28%      1.61s  6.24%  github.com/go-go-golems/go-go-goja/modules/uidsl.attrValue
+     0.06s  0.23% 73.51%      0.33s  1.28%  internal/runtime/maps.rand
+     0.06s  0.23% 73.74%      0.55s  2.13%  runtime.(*mcentral).cacheSpan

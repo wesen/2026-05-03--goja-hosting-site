@@ -1,0 +1,80 @@
+File: goja-site
+Build ID: 35e9c4fadae9962e9b5e97f4682ff8b24480cd72
+Type: inuse_space
+Time: 2026-05-15 11:16:01 EDT
+Showing nodes accounting for 9245.37kB, 100% of 9245.37kB total
+      flat  flat%   sum%        cum   cum%
+ 1801.08kB 19.48% 19.48%  1801.08kB 19.48%  encoding/json.appendString[go.shape.string]
+ 1538.25kB 16.64% 36.12%  1538.25kB 16.64%  runtime.mallocgc
+ 1048.19kB 11.34% 47.46%  1048.19kB 11.34%  regexp/syntax.(*compiler).inst (inline)
+ 1024.16kB 11.08% 58.53%  1548.25kB 16.75%  regexp.compile
+  727.78kB  7.87% 66.41%   727.78kB  7.87%  bytes.growSlice
+  544.67kB  5.89% 72.30%   544.67kB  5.89%  github.com/xuri/excelize/v2.init
+  512.50kB  5.54% 77.84%   512.50kB  5.54%  github.com/dop251/goja.(*Program).addSrcMap (inline)
+  512.44kB  5.54% 83.38%   512.44kB  5.54%  go/token.init.0
+  512.14kB  5.54% 88.92%   512.14kB  5.54%  github.com/dop251/goja.(*baseObject)._put
+  512.12kB  5.54% 94.46%   512.12kB  5.54%  github.com/spf13/pflag.NewFlagSet (inline)
+  512.05kB  5.54%   100%   512.05kB  5.54%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).Call
+         0     0%   100%   727.78kB  7.87%  bytes.(*Buffer).Write
+         0     0%   100%   727.78kB  7.87%  bytes.(*Buffer).grow
+         0     0%   100%  2528.86kB 27.35%  encoding/json.(*Encoder).Encode
+         0     0%   100%  2528.86kB 27.35%  encoding/json.(*encodeState).marshal
+         0     0%   100%  2528.86kB 27.35%  encoding/json.(*encodeState).reflectValue
+         0     0%   100%  2528.86kB 27.35%  encoding/json.interfaceEncoder
+         0     0%   100%  2528.86kB 27.35%  encoding/json.mapEncoder.encode
+         0     0%   100%  2528.86kB 27.35%  encoding/json.stringEncoder
+         0     0%   100%   512.14kB  5.54%  github.com/dop251/goja.(*Runtime).RunProgram
+         0     0%   100%  1024.64kB 11.08%  github.com/dop251/goja.(*Runtime).RunScript
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*Runtime).compile
+         0     0%   100%   512.14kB  5.54%  github.com/dop251/goja.(*Runtime).newArrowFunc
+         0     0%   100%  2528.86kB 27.35%  github.com/dop251/goja.(*Runtime).newWrappedFunc.(*Runtime).wrapReflectFunc.func1
+         0     0%   100%  2528.86kB 27.35%  github.com/dop251/goja.(*Runtime).runWrapped
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*baseCompiledExpr).addSrcMap (inline)
+         0     0%   100%   512.14kB  5.54%  github.com/dop251/goja.(*baseFuncObject).init
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiledAssignExpr).emitGetter
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiledCallExpr).emitGetter
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiledDotExpr).emitSetter
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiledFunctionLiteral).compile
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiledFunctionLiteral).emitGetter
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiledIdentifierExpr).emitGetter
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compile
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compileExpressionStatement
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compileLexicalBinding
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compileLexicalDeclaration (inline)
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compileReturnStatement
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compileStatement
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compileStatements
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).compileStatementsNeedResult
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).emitCallee
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).emitExpr
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).emitLexicalAssign
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).emitNamed
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.(*compiler).emitNamedOrConst
+         0     0%   100%   512.14kB  5.54%  github.com/dop251/goja.(*newArrowFunc).exec
+         0     0%   100%   512.14kB  5.54%  github.com/dop251/goja.(*vm).run
+         0     0%   100%   512.14kB  5.54%  github.com/dop251/goja.(*vm).runTry
+         0     0%   100%   512.14kB  5.54%  github.com/dop251/goja.(*vm).runTryInner
+         0     0%   100%  2528.86kB 27.35%  github.com/dop251/goja.(*vm).try
+         0     0%   100%  2528.86kB 27.35%  github.com/dop251/goja.AssertFunction.func1
+         0     0%   100%  2528.86kB 27.35%  github.com/dop251/goja.AssertFunction.func1.1
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.compile
+         0     0%   100%   512.50kB  5.54%  github.com/dop251/goja.compileAST
+         0     0%   100%  3553.50kB 38.44%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).RunOnLoop.func1
+         0     0%   100%  3553.50kB 38.44%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).run
+         0     0%   100%  3553.50kB 38.44%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).runAux
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cli.(*CobraParser).AddToCobraCommand
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cli.(*CobraParser).AddToCobraCommand.func1
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cli.BuildCobraCommand (inline)
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cli.BuildCobraCommandFromCommand
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cli.BuildCobraCommandFromCommandAndFunc
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cmds/fields.(*Definitions).AddFieldsToCobraCommand
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cmds/schema.(*Schema).ForEachE
+         0     0%   100%   512.12kB  5.54%  github.com/go-go-golems/glazed/pkg/cmds/schema.(*SectionImpl).AddSectionToCobraCommand
+         0     0%   100%   512.05kB  5.54%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Host).ServeHTTP
+         0     0%   100%  2528.86kB 27.35%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Host).ServeHTTP.func1
+         0     0%   100%  2528.86kB 27.35%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).JSON
+         0     0%   100%  2528.86kB 27.35%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).JSObject.func4
+         0     0%   100%  3553.50kB 38.44%  github.com/go-go-golems/go-go-goja/pkg/runtimebridge.WithCallContext
+         0     0%   100%  3553.50kB 38.44%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).Call.func1
+         0     0%   100%  3553.50kB 38.44%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke
+         0     0%   100%  3553.50kB 38.44%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke.func1

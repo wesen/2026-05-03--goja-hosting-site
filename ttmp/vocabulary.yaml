@@ -33,6 +33,18 @@ topics:
       description: Contributor-oriented architecture and implementation guidance.
     - slug: goja-site
       description: The goja-site trusted JavaScript website hosting project.
+    - slug: performance
+      description: Performance analysis, latency, throughput, and resource usage work.
+    - slug: benchmarking
+      description: Repeatable benchmark harnesses, measurements, and result comparison.
+    - slug: stress-testing
+      description: Sustained or high-load testing for capacity, stability, and failure behavior.
+    - slug: observability
+      description: Metrics, profiling, tracing, logging, and operational visibility.
+    - slug: architecture
+      description: Software architecture, system design, and component interaction topics.
+    - slug: optimization
+      description: Performance and implementation optimization topics.
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes

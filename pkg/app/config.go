@@ -1,6 +1,10 @@
 package app
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/go-go-golems/goja-site/pkg/observability"
+)
 
 type DBPolicy string
 
@@ -11,13 +15,15 @@ const (
 
 // Config describes one goja-site server process.
 type Config struct {
-	Addr        string
-	DBPath      string
-	ScriptDirs  []string
-	Dev         bool
-	DBPolicy    DBPolicy
-	ReadOnly    bool
-	AllowWrites bool
+	Addr          string
+	DBPath        string
+	ScriptDirs    []string
+	Dev           bool
+	DBPolicy      DBPolicy
+	ReadOnly      bool
+	AllowWrites   bool
+	SiteName      string
+	Observability *observability.Observability
 }
 
 func normalizeDBPolicy(policy DBPolicy) (DBPolicy, error) {

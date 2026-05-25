@@ -1,0 +1,239 @@
+File: goja-site
+Build ID: 68f8cc63bc21c891b9d483f30b9b42dd4869a71f
+Type: cpu
+Time: 2026-05-15 16:01:14 EDT
+Duration: 10s, Total samples = 15.52s (155.18%)
+Showing nodes accounting for 12.38s, 79.77% of 15.52s total
+Dropped 369 nodes (cum <= 0.08s)
+      flat  flat%   sum%        cum   cum%
+     1.23s  7.93%  7.93%      1.81s 11.66%  runtime.tryDeferToSpanScan
+     0.58s  3.74% 11.66%      9.79s 63.08%  github.com/dop251/goja.(*vm).run
+     0.53s  3.41% 15.08%      0.53s  3.41%  runtime.nextFreeFast (inline)
+     0.47s  3.03% 18.11%      0.47s  3.03%  aeshashbody
+     0.39s  2.51% 20.62%      1.19s  7.67%  runtime.scanObject
+     0.38s  2.45% 23.07%      0.38s  2.45%  runtime.memmove
+     0.37s  2.38% 25.45%      0.40s  2.58%  runtime.(*mspan).writeHeapBitsSmall
+     0.37s  2.38% 27.84%      0.37s  2.38%  runtime.memclrNoHeapPointers
+     0.35s  2.26% 30.09%      2.26s 14.56%  runtime.mallocgcSmallScanNoHeader
+     0.31s  2.00% 32.09%      0.32s  2.06%  internal/runtime/gc/scan.scanSpanPackedAVX512
+     0.29s  1.87% 33.96%      0.29s  1.87%  runtime.spanClass.sizeclass (inline)
+     0.28s  1.80% 35.76%      3.04s 19.59%  runtime.mallocgc
+     0.24s  1.55% 37.31%      0.67s  4.32%  runtime.mapaccess1_faststr
+     0.24s  1.55% 38.85%      2.02s 13.02%  runtime.scanSpan
+     0.22s  1.42% 40.27%      0.46s  2.96%  runtime.scanblock
+     0.21s  1.35% 41.62%      0.66s  4.25%  runtime.scanObjectsSmall
+     0.19s  1.22% 42.85%      0.32s  2.06%  runtime.findObject
+     0.17s  1.10% 43.94%      0.23s  1.48%  internal/runtime/maps.(*Iter).Next
+     0.17s  1.10% 45.04%      0.92s  5.93%  runtime.growslice
+     0.16s  1.03% 46.07%      0.17s  1.10%  runtime.typePointers.next
+     0.15s  0.97% 47.04%      0.15s  0.97%  runtime.futex
+     0.15s  0.97% 48.00%      0.31s  2.00%  slices.insertionSortOrdered[go.shape.string]
+     0.14s   0.9% 48.90%      0.30s  1.93%  internal/runtime/maps.(*Map).getWithoutKeySmallFastStr
+     0.14s   0.9% 49.81%      0.14s   0.9%  internal/runtime/maps.ctrlGroup.matchH2 (inline)
+     0.14s   0.9% 50.71%      0.33s  2.13%  runtime.pcvalue
+     0.13s  0.84% 51.55%      0.30s  1.93%  bytes.(*Buffer).WriteString
+     0.13s  0.84% 52.38%      0.99s  6.38%  runtime.mapassign_faststr
+     0.13s  0.84% 53.22%      0.13s  0.84%  strings.(*byteStringReplacer).Replace
+     0.12s  0.77% 53.99%      1.69s 10.89%  github.com/go-go-golems/go-go-goja/modules/uidsl.attrsFromMap
+     0.12s  0.77% 54.77%      0.12s  0.77%  runtime.heapArenaOf (inline)
+     0.11s  0.71% 55.48%      0.52s  3.35%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderAttrs
+     0.11s  0.71% 56.19%      0.11s  0.71%  internal/runtime/atomic.(*Uint32).Add (inline)
+     0.11s  0.71% 56.89%      0.22s  1.42%  runtime.mallocgcTiny
+     0.11s  0.71% 57.60%      0.11s  0.71%  runtime.spanOf (inline)
+     0.10s  0.64% 58.25%      0.10s  0.64%  cmpbody
+     0.10s  0.64% 58.89%      0.10s  0.64%  internal/runtime/syscall/linux.Syscall6
+     0.09s  0.58% 59.47%      0.10s  0.64%  github.com/dop251/goja.(*vm).restoreCtx (inline)
+     0.09s  0.58% 60.05%      0.69s  4.45%  github.com/dop251/goja._add.exec
+     0.09s  0.58% 60.63%      0.30s  1.93%  runtime.(*stkframe).getStackMap
+     0.09s  0.58% 61.21%      0.09s  0.58%  runtime.acquirem (inline)
+     0.08s  0.52% 61.73%      0.98s  6.31%  github.com/dop251/goja.(*baseObject).stringKeys
+     0.08s  0.52% 62.24%      6.17s 39.76%  github.com/dop251/goja.(*nativeFuncObject).vmCall
+     0.08s  0.52% 62.76%      0.08s  0.52%  runtime.(*spanScanOwnership).or (inline)
+     0.08s  0.52% 63.27%      0.13s  0.84%  runtime.(*spanSet).push
+     0.08s  0.52% 63.79%      0.08s  0.52%  runtime.bool2int (inline)
+     0.08s  0.52% 64.30%      4.54s 29.25%  runtime.gcDrain
+     0.08s  0.52% 64.82%      0.08s  0.52%  runtime.getMCache (inline)
+     0.08s  0.52% 65.34%      0.10s  0.64%  runtime.step
+     0.07s  0.45% 65.79%      2.21s 14.24%  github.com/dop251/goja.(*baseObject).export
+     0.07s  0.45% 66.24%      0.23s  1.48%  github.com/dop251/goja.exportValue
+     0.07s  0.45% 66.69%      1.49s  9.60%  github.com/dop251/goja.putProp.exec
+     0.07s  0.45% 67.14%      0.75s  4.83%  runtime.convTstring
+     0.06s  0.39% 67.53%      0.08s  0.52%  github.com/dop251/goja.(*baseObject).getStrWithOwnProp
+     0.06s  0.39% 67.91%      0.70s  4.51%  github.com/go-go-golems/go-go-goja/modules/uidsl.renderNode
+     0.06s  0.39% 68.30%      0.23s  1.48%  runtime.(*unwinder).resolveInternal
+     0.06s  0.39% 68.69%      0.14s   0.9%  runtime.makeSpanClass (inline)
+     0.06s  0.39% 69.07%      0.30s  1.93%  runtime.mapaccess2_faststr
+     0.06s  0.39% 69.46%      0.41s  2.64%  runtime.wbBufFlush1
+     0.05s  0.32% 69.78%      0.17s  1.10%  fmt.(*pp).doPrint
+     0.05s  0.32% 70.10%      0.55s  3.54%  fmt.Sprint
+     0.05s  0.32% 70.43%      0.60s  3.87%  github.com/go-go-golems/go-go-goja/modules/uidsl.attrValue
+     0.05s  0.32% 70.75%      0.10s  0.64%  runtime.gcmarknewobject
+     0.04s  0.26% 71.01%      0.13s  0.84%  fmt.(*pp).printArg
+     0.04s  0.26% 71.26%      0.37s  2.38%  gcWriteBarrier
+     0.04s  0.26% 71.52%      0.41s  2.64%  github.com/dop251/goja.(*Runtime).toValue
+     0.04s  0.26% 71.78%      0.25s  1.61%  github.com/dop251/goja.(*objectExportCtx).put
+     0.04s  0.26% 72.04%      0.08s  0.52%  github.com/go-go-golems/go-go-goja/modules/uidsl.NormalizeExport
+     0.04s  0.26% 72.29%      0.35s  2.26%  runtime.(*mcache).refill
+     0.04s  0.26% 72.55%      0.19s  1.22%  runtime.(*mcentral).cacheSpan
+     0.04s  0.26% 72.81%      0.12s  0.77%  runtime.(*spanInlineMarkBits).tryAcquire
+     0.04s  0.26% 73.07%      0.32s  2.06%  runtime.(*sweepLocked).sweep
+     0.04s  0.26% 73.32%      0.09s  0.58%  runtime.lock2
+     0.04s  0.26% 73.58%      0.74s  4.77%  runtime.newobject
+     0.03s  0.19% 73.78%      0.13s  0.84%  cmp.Less[go.shape.string] (inline)
+     0.03s  0.19% 73.97%      1.41s  9.09%  github.com/dop251/goja.(*baseObject)._put
+     0.03s  0.19% 74.16%      0.22s  1.42%  github.com/dop251/goja.(*objectGoReflect).init
+     0.03s  0.19% 74.36%      0.36s  2.32%  internal/runtime/maps.(*Map).growToSmall
+     0.03s  0.19% 74.55%      0.10s  0.64%  internal/runtime/maps.rand
+     0.03s  0.19% 74.74%      0.20s  1.29%  runtime.concatstrings
+     0.03s  0.19% 74.94%      0.44s  2.84%  runtime.scanframeworker
+     0.03s  0.19% 75.13%      0.28s  1.80%  runtime.slicebytetostring
+     0.03s  0.19% 75.32%      0.42s  2.71%  runtime.sweepone
+     0.02s  0.13% 75.45%      0.08s  0.52%  fmt.(*pp).fmtString
+     0.02s  0.13% 75.58%      0.08s  0.52%  fmt.(*pp).free
+     0.02s  0.13% 75.71%      2.29s 14.76%  github.com/dop251/goja.(*Object).Export
+     0.02s  0.13% 75.84%      0.09s  0.58%  github.com/dop251/goja.(*Runtime).builtin_String
+     0.02s  0.13% 75.97%      0.14s   0.9%  github.com/dop251/goja.(*arrayObject)._setOwnIdx
+     0.02s  0.13% 76.10%      0.40s  2.58%  github.com/dop251/goja.asciiString.Concat
+     0.02s  0.13% 76.22%      6.19s 39.88%  github.com/dop251/goja.call.exec
+     0.02s  0.13% 76.35%      0.19s  1.22%  github.com/dop251/goja.loadDynamicCallee.exec
+     0.02s  0.13% 76.48%      2.28s 14.69%  github.com/go-go-golems/go-go-goja/modules/uidsl.attrsMapFromValue
+     0.02s  0.13% 76.61%      4.28s 27.58%  github.com/go-go-golems/go-go-goja/modules/uidsl.elementFromCall
+     0.02s  0.13% 76.74%      0.40s  2.58%  internal/runtime/maps.(*Map).growToTable
+     0.02s  0.13% 76.87%      0.15s  0.97%  internal/runtime/maps.(*table).uncheckedPutSlot
+     0.02s  0.13% 77.00%      0.24s  1.55%  internal/runtime/maps.NewMap
+     0.02s  0.13% 77.13%      0.37s  2.38%  runtime.(*mcache).nextFree
+     0.02s  0.13% 77.26%      0.08s  0.52%  runtime.(*mheap).allocSpan
+     0.02s  0.13% 77.38%      0.09s  0.58%  runtime.(*spanSet).pop
+     0.02s  0.13% 77.51%      0.22s  1.42%  runtime.concatstring2
+     0.02s  0.13% 77.64%      0.28s  1.80%  runtime.findRunnable
+     0.02s  0.13% 77.77%      0.24s  1.55%  runtime.makemap_small
+     0.02s  0.13% 77.90%      0.23s  1.48%  runtime.makeslice
+     0.02s  0.13% 78.03%      0.49s  3.16%  runtime.newarray
+     0.02s  0.13% 78.16%      0.10s  0.64%  runtime.scanObjectSmall
+     0.02s  0.13% 78.29%      0.32s  2.06%  runtime.schedule
+     0.02s  0.13% 78.41%      0.33s  2.13%  slices.pdqsortOrdered[go.shape.string]
+     0.01s 0.064% 78.48%      0.20s  1.29%  github.com/dop251/goja.(*Runtime).arrayproto_push
+     0.01s 0.064% 78.54%      0.27s  1.74%  github.com/dop251/goja.(*Runtime).newBaseObject (inline)
+     0.01s 0.064% 78.61%      1.42s  9.15%  github.com/dop251/goja.(*baseObject)._putProp
+     0.01s 0.064% 78.67%      0.28s  1.80%  github.com/dop251/goja.(*baseObject).getStr
+     0.01s 0.064% 78.74%      0.09s  0.58%  github.com/dop251/goja.(*templatedObject).setForeignIdx
+     0.01s 0.064% 78.80%      0.12s  0.77%  github.com/dop251/goja.(*vm).popCtx (inline)
+     0.01s 0.064% 78.87%      0.15s  0.97%  github.com/dop251/goja.getPropCallee.exec
+     0.01s 0.064% 78.93%      4.70s 30.28%  github.com/go-go-golems/go-go-goja/modules/uidsl.Loader.func1
+     0.01s 0.064% 78.99%      0.19s  1.22%  internal/runtime/maps.(*table).reset
+     0.01s 0.064% 79.06%      0.22s  1.42%  internal/runtime/maps.NewEmptyMap (inline)
+     0.01s 0.064% 79.12%      0.08s  0.52%  internal/runtime/maps.typedmemmove
+     0.01s 0.064% 79.19%      0.11s  0.71%  runtime.(*mcentral).uncacheSpan
+     0.01s 0.064% 79.25%      0.09s  0.58%  runtime.mPark (inline)
+     0.01s 0.064% 79.32%      0.16s  1.03%  runtime.mallocgcSmallScanHeader
+     0.01s 0.064% 79.38%      0.18s  1.16%  runtime.mapIterNext
+     0.01s 0.064% 79.45%      1.11s  7.15%  runtime.markroot
+     0.01s 0.064% 79.51%      0.15s  0.97%  runtime.pcdatavalue
+     0.01s 0.064% 79.57%      0.11s  0.71%  runtime.rawstringtmp
+     0.01s 0.064% 79.64%      5.41s 34.86%  runtime.systemstack
+     0.01s 0.064% 79.70%      0.41s  2.64%  runtime.wbBufFlush
+     0.01s 0.064% 79.77%      0.15s  0.97%  strings.(*Replacer).Replace
+         0     0% 79.77%      0.12s  0.77%  bufio.(*Writer).Write
+         0     0% 79.77%      0.27s  1.74%  github.com/dop251/goja.(*Runtime).NewObject (inline)
+         0     0% 79.77%      0.41s  2.64%  github.com/dop251/goja.(*Runtime).ToValue (inline)
+         0     0% 79.77%      0.19s  1.22%  github.com/dop251/goja.(*Runtime).generic_push
+         0     0% 79.77%      0.91s  5.86%  github.com/dop251/goja.(*Runtime).newWrappedFunc.(*Runtime).wrapReflectFunc.func1
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.(*Runtime).runWrapped
+         0     0% 79.77%      0.14s   0.9%  github.com/dop251/goja.(*arrayObject).setOwnIdx
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.(*arrowFuncObject).Call
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.(*baseJsFuncObject).__call
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.(*baseJsFuncObject)._call (inline)
+         0     0% 79.77%      0.19s  1.22%  github.com/dop251/goja.(*baseObject).init (inline)
+         0     0% 79.77%      0.15s  0.97%  github.com/dop251/goja.(*templatedObject).getOwnPropStr
+         0     0% 79.77%      0.14s   0.9%  github.com/dop251/goja.(*templatedObject).getStr
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.(*vm).runTryInner
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.(*vm).try
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.AssertFunction.func1
+         0     0% 79.77%      9.79s 63.08%  github.com/dop251/goja.AssertFunction.func1.1
+         0     0% 79.77%      0.28s  1.80%  github.com/dop251/goja._newObject.exec
+         0     0% 79.77%      0.17s  1.10%  github.com/dop251/goja.asciiString.Export
+         0     0% 79.77%      0.20s  1.29%  github.com/dop251/goja.newBaseObjectObj (inline)
+         0     0% 79.77%      0.34s  2.19%  github.com/dop251/goja.stringValueFromRaw (inline)
+         0     0% 79.77%      0.12s  0.77%  github.com/dop251/goja.valueInt.String (inline)
+         0     0% 79.77%      0.22s  1.42%  github.com/dop251/goja.valueInt.toString
+         0     0% 79.77%      9.85s 63.47%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).RunOnLoop.func1
+         0     0% 79.77%      9.85s 63.47%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).run
+         0     0% 79.77%      9.85s 63.47%  github.com/dop251/goja_nodejs/eventloop.(*EventLoop).runAux
+         0     0% 79.77%      0.12s  0.77%  github.com/felixge/httpsnoop.(*rw).Write
+         0     0% 79.77%      0.73s  4.70%  github.com/go-go-golems/go-go-goja/modules/uidsl.RenderAny
+         0     0% 79.77%      3.97s 25.58%  github.com/go-go-golems/go-go-goja/modules/uidsl.attrsFromValue
+         0     0% 79.77%      0.19s  1.22%  github.com/go-go-golems/go-go-goja/modules/uidsl.nodesFromArgs
+         0     0% 79.77%      9.81s 63.21%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Host).ServeHTTP.func1
+         0     0% 79.77%      0.91s  5.86%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).HTML
+         0     0% 79.77%      0.91s  5.86%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).JSObject.func6
+         0     0% 79.77%      0.18s  1.16%  github.com/go-go-golems/go-go-goja/pkg/gojahttp.(*Response).writeString
+         0     0% 79.77%      9.81s 63.21%  github.com/go-go-golems/go-go-goja/pkg/runtimebridge.WithCallContext
+         0     0% 79.77%      9.85s 63.47%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).Call.func1
+         0     0% 79.77%      9.81s 63.21%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke
+         0     0% 79.77%      9.81s 63.21%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke.func1
+         0     0% 79.77%      9.81s 63.21%  github.com/go-go-golems/go-go-goja/pkg/runtimeowner.(*runner).invoke.func1.1
+         0     0% 79.77%      0.12s  0.77%  github.com/go-go-golems/goja-site/pkg/observability.(*StatusRecorder).Write
+         0     0% 79.77%      0.12s  0.77%  go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp/internal/request.(*RespWriterWrapper).Write
+         0     0% 79.77%      0.15s  0.97%  html.EscapeString (inline)
+         0     0% 79.77%      0.09s  0.58%  internal/poll.(*FD).Write
+         0     0% 79.77%      0.09s  0.58%  internal/poll.ignoringEINTRIO (inline)
+         0     0% 79.77%      0.34s  2.19%  internal/runtime/gc/scan.ScanSpanPacked (inline)
+         0     0% 79.77%      0.34s  2.19%  internal/runtime/gc/scan.ScanSpanPackedAVX512
+         0     0% 79.77%      0.49s  3.16%  internal/runtime/maps.newGroups (inline)
+         0     0% 79.77%      0.22s  1.42%  internal/runtime/maps.newTable
+         0     0% 79.77%      0.49s  3.16%  internal/runtime/maps.newarray
+         0     0% 79.77%      0.12s  0.77%  internal/strconv.FormatInt
+         0     0% 79.77%      0.09s  0.58%  net.(*conn).Write
+         0     0% 79.77%      0.09s  0.58%  net.(*netFD).Write
+         0     0% 79.77%      0.12s  0.77%  net/http.(*chunkWriter).Write
+         0     0% 79.77%      0.11s  0.71%  net/http.(*conn).serve
+         0     0% 79.77%      0.12s  0.77%  net/http.(*response).Write
+         0     0% 79.77%      0.12s  0.77%  net/http.(*response).write
+         0     0% 79.77%      0.09s  0.58%  net/http.checkConnErrorWriter.Write
+         0     0% 79.77%      0.91s  5.86%  reflect.Value.Call
+         0     0% 79.77%      0.91s  5.86%  reflect.Value.call
+         0     0% 79.77%      0.10s  0.64%  runtime.(*mcentral).grow
+         0     0% 79.77%      0.08s  0.52%  runtime.(*mheap).alloc
+         0     0% 79.77%      0.08s  0.52%  runtime.(*mheap).alloc.func1
+         0     0% 79.77%      0.09s  0.58%  runtime.(*mheap).freeSpan (inline)
+         0     0% 79.77%      0.09s  0.58%  runtime.(*mheap).freeSpanLocked
+         0     0% 79.77%      0.09s  0.58%  runtime.(*sweepLocked).sweep.(*mheap).freeSpan.func2
+         0     0% 79.77%      0.26s  1.68%  runtime.(*unwinder).next
+         0     0% 79.77%      0.43s  2.77%  runtime.bgsweep
+         0     0% 79.77%      0.17s  1.10%  runtime.funcspdelta (inline)
+         0     0% 79.77%      0.10s  0.64%  runtime.futexsleep
+         0     0% 79.77%      4.64s 29.90%  runtime.gcBgMarkWorker
+         0     0% 79.77%      4.55s 29.32%  runtime.gcBgMarkWorker.func2
+         0     0% 79.77%      2.27s 14.63%  runtime.gcDrainMarkWorkerDedicated (inline)
+         0     0% 79.77%      2.27s 14.63%  runtime.gcDrainMarkWorkerIdle (inline)
+         0     0% 79.77%      0.09s  0.58%  runtime.gcMarkDone
+         0     0% 79.77%      0.14s   0.9%  runtime.gopreempt_m (inline)
+         0     0% 79.77%      0.16s  1.03%  runtime.goschedImpl
+         0     0% 79.77%      0.40s  2.58%  runtime.heapSetTypeNoHeader (inline)
+         0     0% 79.77%      0.09s  0.58%  runtime.lock (inline)
+         0     0% 79.77%      0.09s  0.58%  runtime.lockWithRank (inline)
+         0     0% 79.77%      0.09s  0.58%  runtime.mProf_Malloc
+         0     0% 79.77%      0.24s  1.55%  runtime.makemap
+         0     0% 79.77%      0.09s  0.58%  runtime.mallocgcSmallNoscan
+         0     0% 79.77%      0.12s  0.77%  runtime.mapIterStart
+         0     0% 79.77%      0.15s  0.97%  runtime.mapassign_fast64ptr
+         0     0% 79.77%      0.76s  4.90%  runtime.markroot.func1
+         0     0% 79.77%      0.29s  1.87%  runtime.markrootBlock
+         0     0% 79.77%      0.26s  1.68%  runtime.mcall
+         0     0% 79.77%      0.13s  0.84%  runtime.morestack
+         0     0% 79.77%      0.18s  1.16%  runtime.newstack
+         0     0% 79.77%      0.08s  0.52%  runtime.notesleep
+         0     0% 79.77%      0.23s  1.48%  runtime.park_m
+         0     0% 79.77%      0.09s  0.58%  runtime.profilealloc
+         0     0% 79.77%      0.10s  0.64%  runtime.rawstring (inline)
+         0     0% 79.77%      0.75s  4.83%  runtime.scanstack
+         0     0% 79.77%      0.12s  0.77%  runtime.stopm
+         0     0% 79.77%      0.09s  0.58%  runtime.wakep
+         0     0% 79.77%      0.40s  2.58%  runtime.wbBufFlush.func1
+         0     0% 79.77%      0.33s  2.13%  slices.Sort[go.shape.[]string,go.shape.string] (inline)
+         0     0% 79.77%      0.33s  2.13%  sort.Strings
+         0     0% 79.77%      0.12s  0.77%  strconv.FormatInt (inline)
+         0     0% 79.77%      0.10s  0.64%  syscall.RawSyscall6
+         0     0% 79.77%      0.09s  0.58%  syscall.Syscall
+         0     0% 79.77%      0.09s  0.58%  syscall.Write (inline)
+         0     0% 79.77%      0.09s  0.58%  syscall.write

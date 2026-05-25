@@ -1,0 +1,20 @@
+{
+  "base_url": "http://127.0.0.1:28083",
+  "binary": "/tmp/goja-site-bench.dnCtbg/goja-site",
+  "created_at_utc": "2026-05-15T20:01:56Z",
+  "duration": "30s",
+  "git_commit": "27eb3293acec1ca87740bda64074b2c9b35b75a3",
+  "git_dirty": true,
+  "go_version": "go version go1.26.2 linux/amd64",
+  "hostname": "f",
+  "metrics_url": "http://127.0.0.1:29093/metrics",
+  "otel_enabled": false,
+  "otel_endpoint": "http://127.0.0.1:4318/v1/traces",
+  "otel_sample_ratio": "0.01",
+  "platform": "Linux-6.8.0-111-generic-x86_64-with-glibc2.39",
+  "pprof_capture": true,
+  "pprof_seconds": "10",
+  "rate": "100/s",
+  "scenario": "render-attrs-1000",
+  "warmup_duration": "5s"
+}

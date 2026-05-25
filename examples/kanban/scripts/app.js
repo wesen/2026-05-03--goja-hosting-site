@@ -225,7 +225,6 @@ const board = kanban.board("trail-notes")
   )
   .features(features => features
     .search({ mode: "client" })
-    .preciseMove()
     .dragDrop()
   )
   .render(render => render

@@ -10,6 +10,13 @@ import (
 	"github.com/dop251/goja"
 )
 
+type Observer interface {
+	ObserveCheck(phase, result string, duration time.Duration)
+	ObserveLimitExceeded(kind SQLKind, hard bool)
+	ObserveCleanup(result string)
+	SetStats(stats Stats, writes int64)
+}
+
 type Guard struct {
 	mu       sync.Mutex
 	db       *sql.DB
@@ -17,6 +24,7 @@ type Guard struct {
 	options  Options
 	vm       *goja.Runtime
 	callback goja.Callable
+	observer Observer
 
 	writeCount     int64
 	cleanupAttempt int64
@@ -69,13 +77,24 @@ func (g *Guard) SetCallback(fn goja.Callable) {
 	g.callback = fn
 }
 
+func (g *Guard) SetObserver(observer Observer) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.observer = observer
+}
+
 func (g *Guard) Stats() (Stats, error) {
+	start := time.Now()
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	stats, err := g.measureLocked()
+	result := "ok"
 	if err == nil {
 		g.lastStats = stats
+	} else {
+		result = "error"
 	}
+	g.observeCheckLocked("manual_stats", result, time.Since(start))
 	return stats, err
 }
 
@@ -91,45 +110,66 @@ func (g *Guard) IsOverLimit() bool {
 }
 
 func (g *Guard) BeforeExec(query string) error {
+	start := time.Now()
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	return g.hardLimitErrorLocked("before exec", query, classifySQL(query), false)
+	err := g.hardLimitErrorLocked("before exec", query, classifySQL(query), false)
+	result := "ok"
+	if err != nil {
+		result = "error"
+	}
+	g.observeCheckLocked("before_exec", result, time.Since(start))
+	return err
 }
 
 func (g *Guard) ErrorAfterExec(query string, result CheckResult) error {
+	start := time.Now()
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	return g.hardLimitErrorLocked("after exec", query, classifySQL(query), true)
+	err := g.hardLimitErrorLocked("after exec", query, classifySQL(query), true)
+	resultLabel := "ok"
+	if err != nil {
+		resultLabel = "error"
+	}
+	g.observeCheckLocked("after_exec_error_gate", resultLabel, time.Since(start))
+	return err
 }
 
 func (g *Guard) AfterExec(query string) (CheckResult, error) {
+	start := time.Now()
 	g.mu.Lock()
 	g.writeCount++
 	if g.inCleanup {
 		res := CheckResult{Reason: "afterExec", SkippedReason: "cleanup already running", OriginalQuery: query, SQLKind: string(classifySQL(query))}
+		g.observeCheckLocked("after_exec", "skipped_cleanup_running", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
 	if g.limitBytesLocked() <= 0 {
 		res := CheckResult{Reason: "afterExec", SkippedReason: "no limit configured", OriginalQuery: query, SQLKind: string(classifySQL(query))}
+		g.observeCheckLocked("after_exec", "skipped_no_limit", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
 	if g.options.CheckEveryWrites > 0 && g.writeCount%g.options.CheckEveryWrites != 0 {
 		res := CheckResult{Reason: "afterExec", SkippedReason: "write counter throttle", OriginalQuery: query, SQLKind: string(classifySQL(query))}
+		g.observeCheckLocked("after_exec", "skipped_throttle", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
 	if !g.lastCleanup.IsZero() && g.options.Cooldown > 0 && time.Since(g.lastCleanup) < g.options.Cooldown {
 		res := CheckResult{Reason: "afterExec", SkippedReason: "cooldown", OriginalQuery: query, SQLKind: string(classifySQL(query))}
+		g.observeCheckLocked("after_exec", "skipped_cooldown", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
 	g.mu.Unlock()
-	return g.CheckNow("afterExec", query)
+	res, err := g.CheckNow("afterExec", query)
+	return res, err
 }
 
 func (g *Guard) CheckNow(reason string, originalQuery ...string) (CheckResult, error) {
+	start := time.Now()
 	if reason == "" {
 		reason = "manual"
 	}
@@ -141,6 +181,7 @@ func (g *Guard) CheckNow(reason string, originalQuery ...string) (CheckResult, e
 	g.mu.Lock()
 	before, err := g.measureLocked()
 	if err != nil {
+		g.observeCheckLocked(reason, "error", time.Since(start))
 		g.mu.Unlock()
 		return CheckResult{Reason: reason, OriginalQuery: query}, err
 	}
@@ -150,12 +191,14 @@ func (g *Guard) CheckNow(reason string, originalQuery ...string) (CheckResult, e
 	if limit <= 0 {
 		res.SkippedReason = "no limit configured"
 		g.lastResult = res
+		g.observeCheckLocked(reason, "skipped_no_limit", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
 	if before.TotalBytes <= limit {
 		res.SkippedReason = "under limit"
 		g.lastResult = res
+		g.observeCheckLocked(reason, "under_limit", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
@@ -165,6 +208,8 @@ func (g *Guard) CheckNow(reason string, originalQuery ...string) (CheckResult, e
 		res.SkippedReason = "no callback registered"
 		res.StillOverLimit = true
 		g.lastResult = res
+		g.observeLimitExceededLocked(classifySQL(query), res.FailHardLimitHit)
+		g.observeCheckLocked(reason, "over_limit_no_callback", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
@@ -172,6 +217,8 @@ func (g *Guard) CheckNow(reason string, originalQuery ...string) (CheckResult, e
 		res.SkippedReason = "cleanup already running"
 		res.StillOverLimit = true
 		g.lastResult = res
+		g.observeLimitExceededLocked(classifySQL(query), res.FailHardLimitHit)
+		g.observeCheckLocked(reason, "over_limit_cleanup_running", time.Since(start))
 		g.mu.Unlock()
 		return res, nil
 	}
@@ -204,6 +251,15 @@ func (g *Guard) CheckNow(reason string, originalQuery ...string) (CheckResult, e
 	g.inCleanup = false
 	g.lastCleanup = time.Now()
 	g.lastResult = res
+	resultLabel := "cleanup_ok"
+	if res.CallbackError != "" || measureErr != nil {
+		resultLabel = "cleanup_error"
+	} else if res.StillOverLimit {
+		resultLabel = "cleanup_still_over_limit"
+	}
+	g.observeLimitExceededLocked(classifySQL(query), res.FailHardLimitHit)
+	g.observeCleanupLocked(resultLabel)
+	g.observeCheckLocked(reason, resultLabel, time.Since(start))
 	g.mu.Unlock()
 	if measureErr != nil {
 		return res, measureErr
@@ -255,6 +311,7 @@ func (g *Guard) measureLocked() (Stats, error) {
 			stats.EstimatedLiveBytes = stats.PageSize * (stats.PageCount - stats.FreeListCount)
 		}
 	}
+	g.observeStatsLocked(stats)
 	return stats, nil
 }
 
@@ -276,7 +333,32 @@ func (g *Guard) hardLimitErrorLocked(phase, query string, kind SQLKind, afterExe
 	if stats.TotalBytes <= g.options.HardMaxBytes {
 		return nil
 	}
+	g.observeLimitExceededLocked(kind, true)
 	return &HardLimitError{Phase: phase, Path: g.path, Query: query, Kind: kind, TotalBytes: stats.TotalBytes, HardMaxBytes: g.options.HardMaxBytes, AfterExec: afterExec}
+}
+
+func (g *Guard) observeCheckLocked(phase, result string, duration time.Duration) {
+	if g.observer != nil {
+		g.observer.ObserveCheck(phase, result, duration)
+	}
+}
+
+func (g *Guard) observeLimitExceededLocked(kind SQLKind, hard bool) {
+	if g.observer != nil {
+		g.observer.ObserveLimitExceeded(kind, hard)
+	}
+}
+
+func (g *Guard) observeCleanupLocked(result string) {
+	if g.observer != nil {
+		g.observer.ObserveCleanup(result)
+	}
+}
+
+func (g *Guard) observeStatsLocked(stats Stats) {
+	if g.observer != nil {
+		g.observer.SetStats(stats, g.writeCount)
+	}
 }
 
 func (g *Guard) limitBytesLocked() int64 {

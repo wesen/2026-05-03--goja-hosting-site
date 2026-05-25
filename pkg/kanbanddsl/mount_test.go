@@ -42,7 +42,7 @@ func TestMountedBoardServesClientScriptAndActionEndpoint(t *testing.T) {
 			const board = kanban.board("mounted")
 			  .columns(cols => cols.column("todo").title("To Do").done().column("done").title("Done").done())
 			  .data(data => data.cards(() => cards).id(card => String(card.id)).column(card => card.status).position(card => card.position).searchText(card => card.title))
-			  .features(features => features.search().preciseMove().dragDrop())
+			  .features(features => features.search().dragDrop())
 			  .render(render => render.card(card => ui.h3(card.title)))
 			  .actions(actions => actions.cardMoved(event => { cards[0].status = event.to.columnId; return { ok: true, refresh: true, sessionId: event.session.id }; }))
 			  .build();
@@ -64,7 +64,7 @@ func TestMountedBoardServesClientScriptAndActionEndpoint(t *testing.T) {
 	}
 
 	client := getString(t, server.URL+"/_kanban/client.js")
-	if !strings.Contains(client, "postAction") || !strings.Contains(client, "data-kb-move-form") {
+	if !strings.Contains(client, "postAction") || !strings.Contains(client, "data-kb-card-actions") || !strings.Contains(client, "data-kb-live-region") {
 		t.Fatalf("client script missing expected runtime markers")
 	}
 

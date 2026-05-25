@@ -1,0 +1,1083 @@
+[
+  {
+    "errors": [],
+    "max_ms": 4.216976,
+    "out_dir": "kanban-fragment-10/rate-25_s/run-1",
+    "p50_ms": 0.763852,
+    "p95_ms": 1.97184,
+    "p99_ms": 2.552525,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 1,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.0663827533274
+  },
+  {
+    "errors": [],
+    "max_ms": 5.076309,
+    "out_dir": "kanban-fragment-10/rate-25_s/run-2",
+    "p50_ms": 0.741217,
+    "p95_ms": 1.925719,
+    "p99_ms": 3.521389,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 2,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.06653299057613
+  },
+  {
+    "errors": [],
+    "max_ms": 5.826572,
+    "out_dir": "kanban-fragment-10/rate-25_s/run-3",
+    "p50_ms": 0.851445,
+    "p95_ms": 2.16679,
+    "p99_ms": 3.301458,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 3,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.064620804962463
+  },
+  {
+    "errors": [],
+    "max_ms": 8.495025,
+    "out_dir": "kanban-fragment-10/rate-100_s/run-1",
+    "p50_ms": 0.855338,
+    "p95_ms": 2.450662,
+    "p99_ms": 4.202118,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 1,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.05697204632575
+  },
+  {
+    "errors": [],
+    "max_ms": 18.057528,
+    "out_dir": "kanban-fragment-10/rate-100_s/run-2",
+    "p50_ms": 0.831586,
+    "p95_ms": 2.199217,
+    "p99_ms": 4.145538,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 2,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.05876475935479
+  },
+  {
+    "errors": [],
+    "max_ms": 4.906499,
+    "out_dir": "kanban-fragment-10/rate-100_s/run-3",
+    "p50_ms": 0.814953,
+    "p95_ms": 2.080278,
+    "p99_ms": 3.410127,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 3,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.06041558505721
+  },
+  {
+    "errors": [],
+    "max_ms": 16.972666,
+    "out_dir": "kanban-fragment-10/rate-250_s/run-1",
+    "p50_ms": 0.701865,
+    "p95_ms": 2.282777,
+    "p99_ms": 5.044714,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 1,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 250.0448511283849
+  },
+  {
+    "errors": [],
+    "max_ms": 9.910001,
+    "out_dir": "kanban-fragment-10/rate-250_s/run-2",
+    "p50_ms": 0.774238,
+    "p95_ms": 2.239963,
+    "p99_ms": 4.333973,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 2,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 250.04221257640316
+  },
+  {
+    "errors": [],
+    "max_ms": 61.778053,
+    "out_dir": "kanban-fragment-10/rate-250_s/run-3",
+    "p50_ms": 0.63811,
+    "p95_ms": 1.909564,
+    "p99_ms": 4.168329,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 3,
+    "scenario": "kanban-fragment-10",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 250.0627843635464
+  },
+  {
+    "errors": [],
+    "max_ms": 16.125224,
+    "out_dir": "kanban-fragment/rate-25_s/run-1",
+    "p50_ms": 3.290028,
+    "p95_ms": 8.639495,
+    "p99_ms": 10.959497,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 1,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.05893415263672
+  },
+  {
+    "errors": [],
+    "max_ms": 14.675384,
+    "out_dir": "kanban-fragment/rate-25_s/run-2",
+    "p50_ms": 3.281715,
+    "p95_ms": 7.057491,
+    "p99_ms": 10.693466,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 2,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.059346600452997
+  },
+  {
+    "errors": [],
+    "max_ms": 15.816598,
+    "out_dir": "kanban-fragment/rate-25_s/run-3",
+    "p50_ms": 3.587146,
+    "p95_ms": 7.813471,
+    "p99_ms": 11.252652,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 3,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.0579150443367
+  },
+  {
+    "errors": [],
+    "max_ms": 36.466815,
+    "out_dir": "kanban-fragment/rate-100_s/run-1",
+    "p50_ms": 3.69246,
+    "p95_ms": 9.772265,
+    "p99_ms": 17.115079,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 1,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.04986315762008
+  },
+  {
+    "errors": [],
+    "max_ms": 39.660775,
+    "out_dir": "kanban-fragment/rate-100_s/run-2",
+    "p50_ms": 3.050075,
+    "p95_ms": 9.185558,
+    "p99_ms": 17.071726,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 2,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.04139205259808
+  },
+  {
+    "errors": [],
+    "max_ms": 63.445188,
+    "out_dir": "kanban-fragment/rate-100_s/run-3",
+    "p50_ms": 2.88363,
+    "p95_ms": 9.343316,
+    "p99_ms": 45.336538,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 3,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.04060182505812
+  },
+  {
+    "errors": [],
+    "max_ms": 105.455625,
+    "out_dir": "kanban-fragment/rate-250_s/run-1",
+    "p50_ms": 5.316666,
+    "p95_ms": 71.739501,
+    "p99_ms": 89.730524,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 1,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 249.9330947100644
+  },
+  {
+    "errors": [],
+    "max_ms": 1297.349268,
+    "out_dir": "kanban-fragment/rate-250_s/run-2",
+    "p50_ms": 518.98238,
+    "p95_ms": 1194.053988,
+    "p99_ms": 1283.786968,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 2,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 243.2976417394904
+  },
+  {
+    "errors": [],
+    "max_ms": 151.201682,
+    "out_dir": "kanban-fragment/rate-250_s/run-3",
+    "p50_ms": 4.314077,
+    "p95_ms": 39.271818,
+    "p99_ms": 115.480425,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 3,
+    "scenario": "kanban-fragment",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 249.88473884837708
+  },
+  {
+    "errors": [],
+    "max_ms": 34.57216,
+    "out_dir": "kanban-fragment-500/rate-25_s/run-1",
+    "p50_ms": 9.540953,
+    "p95_ms": 18.505642,
+    "p99_ms": 31.153099,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 1,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.04559361306512
+  },
+  {
+    "errors": [],
+    "max_ms": 67.17485,
+    "out_dir": "kanban-fragment-500/rate-25_s/run-2",
+    "p50_ms": 10.159311,
+    "p95_ms": 19.833202,
+    "p99_ms": 29.090707,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 2,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.04226605283162
+  },
+  {
+    "errors": [],
+    "max_ms": 40.509303,
+    "out_dir": "kanban-fragment-500/rate-25_s/run-3",
+    "p50_ms": 8.934786,
+    "p95_ms": 24.902051,
+    "p99_ms": 37.837842,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 3,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.05598990959286
+  },
+  {
+    "errors": [],
+    "max_ms": 5767.807764,
+    "out_dir": "kanban-fragment-500/rate-100_s/run-1",
+    "p50_ms": 2076.018731,
+    "p95_ms": 5706.051692,
+    "p99_ms": 5757.728917,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 1,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 72.37847597368491
+  },
+  {
+    "errors": [],
+    "max_ms": 5729.539407,
+    "out_dir": "kanban-fragment-500/rate-100_s/run-2",
+    "p50_ms": 3559.863257,
+    "p95_ms": 5409.094445,
+    "p99_ms": 5685.730937,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 2,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 72.39806090195911
+  },
+  {
+    "errors": [],
+    "max_ms": 5291.755463,
+    "out_dir": "kanban-fragment-500/rate-100_s/run-3",
+    "p50_ms": 4271.145482,
+    "p95_ms": 5267.050792,
+    "p99_ms": 5284.713952,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 3,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 74.57980913662927
+  },
+  {
+    "errors": [],
+    "max_ms": 23424.74974,
+    "out_dir": "kanban-fragment-500/rate-250_s/run-1",
+    "p50_ms": 13919.43544,
+    "p95_ms": 22539.797941,
+    "p99_ms": 23313.593562,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 1,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 97.60259507029086
+  },
+  {
+    "errors": [],
+    "max_ms": 21070.442856,
+    "out_dir": "kanban-fragment-500/rate-250_s/run-2",
+    "p50_ms": 10215.022014,
+    "p95_ms": 20348.094297,
+    "p99_ms": 20915.173553,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 2,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 103.97542439996462
+  },
+  {
+    "errors": [],
+    "max_ms": 20603.788001,
+    "out_dir": "kanban-fragment-500/rate-250_s/run-3",
+    "p50_ms": 8177.688049,
+    "p95_ms": 19687.303833,
+    "p99_ms": 20418.07235,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 3,
+    "scenario": "kanban-fragment-500",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 105.33850163873099
+  },
+  {
+    "errors": [],
+    "max_ms": 33.168767,
+    "out_dir": "render-flat-1000/rate-25_s/run-1",
+    "p50_ms": 5.495114,
+    "p95_ms": 15.446783,
+    "p99_ms": 26.546493,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 1,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.057694412579757
+  },
+  {
+    "errors": [],
+    "max_ms": 25.583717,
+    "out_dir": "render-flat-1000/rate-25_s/run-2",
+    "p50_ms": 5.798704,
+    "p95_ms": 16.794932,
+    "p99_ms": 22.809492,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 2,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.057795688819883
+  },
+  {
+    "errors": [],
+    "max_ms": 29.141778,
+    "out_dir": "render-flat-1000/rate-25_s/run-3",
+    "p50_ms": 5.244264,
+    "p95_ms": 16.116032,
+    "p99_ms": 24.063261,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 3,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.0593320315377
+  },
+  {
+    "errors": [],
+    "max_ms": 288.287794,
+    "out_dir": "render-flat-1000/rate-100_s/run-1",
+    "p50_ms": 16.967688,
+    "p95_ms": 257.360458,
+    "p99_ms": 280.764029,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 1,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.03536564286524
+  },
+  {
+    "errors": [],
+    "max_ms": 106.001515,
+    "out_dir": "render-flat-1000/rate-100_s/run-2",
+    "p50_ms": 7.69563,
+    "p95_ms": 30.206697,
+    "p99_ms": 80.587229,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 2,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 99.97198459083096
+  },
+  {
+    "errors": [],
+    "max_ms": 43.550638,
+    "out_dir": "render-flat-1000/rate-100_s/run-3",
+    "p50_ms": 5.527049,
+    "p95_ms": 23.032401,
+    "p99_ms": 34.033891,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 3,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.01784865184187
+  },
+  {
+    "errors": [],
+    "max_ms": 6546.773629,
+    "out_dir": "render-flat-1000/rate-250_s/run-1",
+    "p50_ms": 3851.385995,
+    "p95_ms": 6261.715615,
+    "p99_ms": 6393.410495,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 1,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 174.1076933925093
+  },
+  {
+    "errors": [],
+    "max_ms": 7878.960366,
+    "out_dir": "render-flat-1000/rate-250_s/run-2",
+    "p50_ms": 3574.069858,
+    "p95_ms": 7267.492959,
+    "p99_ms": 7785.771724,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 2,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 163.93790638580182
+  },
+  {
+    "errors": [],
+    "max_ms": 6195.889827,
+    "out_dir": "render-flat-1000/rate-250_s/run-3",
+    "p50_ms": 3550.582481,
+    "p95_ms": 6044.482597,
+    "p99_ms": 6143.907744,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 3,
+    "scenario": "render-flat-1000",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 176.96487287734632
+  },
+  {
+    "errors": [],
+    "max_ms": 67.485297,
+    "out_dir": "render-attrs-1000/rate-25_s/run-1",
+    "p50_ms": 16.608615,
+    "p95_ms": 38.801187,
+    "p99_ms": 55.407475,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 1,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.03717334891422
+  },
+  {
+    "errors": [],
+    "max_ms": 53.248162,
+    "out_dir": "render-attrs-1000/rate-25_s/run-2",
+    "p50_ms": 15.22361,
+    "p95_ms": 35.292569,
+    "p99_ms": 43.375272,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 2,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.047246313474886
+  },
+  {
+    "errors": [],
+    "max_ms": 58.298778,
+    "out_dir": "render-attrs-1000/rate-25_s/run-3",
+    "p50_ms": 17.045476,
+    "p95_ms": 37.905623,
+    "p99_ms": 51.37252,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 3,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.009581452429043
+  },
+  {
+    "errors": [],
+    "max_ms": 18777.603609,
+    "out_dir": "render-attrs-1000/rate-100_s/run-1",
+    "p50_ms": 6142.093286,
+    "p95_ms": 17316.670221,
+    "p99_ms": 18683.831925,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 1,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 44.4210625396268
+  },
+  {
+    "errors": [],
+    "max_ms": 12894.666483,
+    "out_dir": "render-attrs-1000/rate-100_s/run-2",
+    "p50_ms": 6182.617679,
+    "p95_ms": 12156.00793,
+    "p99_ms": 12779.703195,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 2,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 53.79235927587408
+  },
+  {
+    "errors": [],
+    "max_ms": 12400.683316,
+    "out_dir": "render-attrs-1000/rate-100_s/run-3",
+    "p50_ms": 6719.185422,
+    "p95_ms": 12052.765151,
+    "p99_ms": 12383.435147,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 3,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 54.76523462117101
+  },
+  {
+    "errors": [
+      "context deadline exceeded (Client.Timeout or context cancellation while reading body)",
+      "Get \"http://127.0.0.1:22122/attrs?n=1000\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"
+    ],
+    "max_ms": 30006.413919,
+    "out_dir": "render-attrs-1000/rate-250_s/run-1",
+    "p50_ms": 19753.357067,
+    "p95_ms": 30000.957467,
+    "p99_ms": 30001.57082,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 1,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "0": 858,
+      "200": 2892
+    },
+    "success": 0.7712,
+    "throughput": 64.27135324947874
+  },
+  {
+    "errors": [
+      "Get \"http://127.0.0.1:22123/attrs?n=1000\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"
+    ],
+    "max_ms": 30004.050087,
+    "out_dir": "render-attrs-1000/rate-250_s/run-2",
+    "p50_ms": 20279.336138,
+    "p95_ms": 30001.002613,
+    "p99_ms": 30001.829133,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 2,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "0": 962,
+      "200": 2788
+    },
+    "success": 0.7434666666666667,
+    "throughput": 61.959265760378514
+  },
+  {
+    "errors": [
+      "Get \"http://127.0.0.1:22124/attrs?n=1000\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)"
+    ],
+    "max_ms": 30008.33568,
+    "out_dir": "render-attrs-1000/rate-250_s/run-3",
+    "p50_ms": 23770.143988,
+    "p95_ms": 30001.085487,
+    "p99_ms": 30001.852311,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 3,
+    "scenario": "render-attrs-1000",
+    "status_codes": {
+      "0": 1399,
+      "200": 2351
+    },
+    "success": 0.6269333333333333,
+    "throughput": 52.247838817017175
+  },
+  {
+    "errors": [],
+    "max_ms": 24.176018,
+    "out_dir": "db-read-100/rate-25_s/run-1",
+    "p50_ms": 4.11165,
+    "p95_ms": 12.112136,
+    "p99_ms": 20.153792,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 1,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.058119401209254
+  },
+  {
+    "errors": [],
+    "max_ms": 24.67064,
+    "out_dir": "db-read-100/rate-25_s/run-2",
+    "p50_ms": 4.466622,
+    "p95_ms": 14.735026,
+    "p99_ms": 21.666302,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 2,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.059717423565708
+  },
+  {
+    "errors": [],
+    "max_ms": 23.341618,
+    "out_dir": "db-read-100/rate-25_s/run-3",
+    "p50_ms": 4.072002,
+    "p95_ms": 14.333773,
+    "p99_ms": 21.422315,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 3,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.062235966215493
+  },
+  {
+    "errors": [],
+    "max_ms": 57.851286,
+    "out_dir": "db-read-100/rate-100_s/run-1",
+    "p50_ms": 3.402174,
+    "p95_ms": 29.534063,
+    "p99_ms": 41.063618,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 1,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 99.99505841087176
+  },
+  {
+    "errors": [],
+    "max_ms": 54.206902,
+    "out_dir": "db-read-100/rate-100_s/run-2",
+    "p50_ms": 3.612612,
+    "p95_ms": 24.175759,
+    "p99_ms": 39.381647,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 2,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.03335622933692
+  },
+  {
+    "errors": [],
+    "max_ms": 31.268178,
+    "out_dir": "db-read-100/rate-100_s/run-3",
+    "p50_ms": 4.317408,
+    "p95_ms": 15.728001,
+    "p99_ms": 23.345404,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 3,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 100.02495765395739
+  },
+  {
+    "errors": [],
+    "max_ms": 4111.564188,
+    "out_dir": "db-read-100/rate-250_s/run-1",
+    "p50_ms": 1225.268252,
+    "p95_ms": 4040.214113,
+    "p99_ms": 4102.051379,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 1,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 196.393652714741
+  },
+  {
+    "errors": [],
+    "max_ms": 448.191338,
+    "out_dir": "db-read-100/rate-250_s/run-2",
+    "p50_ms": 127.220425,
+    "p95_ms": 351.119751,
+    "p99_ms": 421.708785,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 2,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 249.2380769887345
+  },
+  {
+    "errors": [],
+    "max_ms": 2751.793615,
+    "out_dir": "db-read-100/rate-250_s/run-3",
+    "p50_ms": 807.282104,
+    "p95_ms": 2444.741444,
+    "p99_ms": 2546.873143,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 3,
+    "scenario": "db-read-100",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 211.29048633413453
+  },
+  {
+    "errors": [],
+    "max_ms": 24.468146,
+    "out_dir": "db-write-batch-10/rate-25_s/run-1",
+    "p50_ms": 10.674244,
+    "p95_ms": 15.650708,
+    "p99_ms": 17.666514,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 1,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.04810677267455
+  },
+  {
+    "errors": [],
+    "max_ms": 26.062143,
+    "out_dir": "db-write-batch-10/rate-25_s/run-2",
+    "p50_ms": 10.158979,
+    "p95_ms": 16.17236,
+    "p99_ms": 17.420916,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 2,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.03451564248254
+  },
+  {
+    "errors": [],
+    "max_ms": 395.185325,
+    "out_dir": "db-write-batch-10/rate-25_s/run-3",
+    "p50_ms": 15.801861,
+    "p95_ms": 168.616874,
+    "p99_ms": 335.346126,
+    "rate_target": "25/s",
+    "requests": 375,
+    "run": 3,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 375
+    },
+    "success": 1,
+    "throughput": 25.049844089590025
+  },
+  {
+    "errors": [],
+    "max_ms": 1431.830161,
+    "out_dir": "db-write-batch-10/rate-100_s/run-1",
+    "p50_ms": 359.02216,
+    "p95_ms": 1419.659516,
+    "p99_ms": 1430.186647,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 1,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 91.49072280182435
+  },
+  {
+    "errors": [],
+    "max_ms": 5693.730879,
+    "out_dir": "db-write-batch-10/rate-100_s/run-2",
+    "p50_ms": 4128.582829,
+    "p95_ms": 5547.669362,
+    "p99_ms": 5675.96682,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 2,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 72.5274379986736
+  },
+  {
+    "errors": [],
+    "max_ms": 726.461118,
+    "out_dir": "db-write-batch-10/rate-100_s/run-3",
+    "p50_ms": 443.605556,
+    "p95_ms": 694.685332,
+    "p99_ms": 715.87227,
+    "rate_target": "100/s",
+    "requests": 1500,
+    "run": 3,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 1500
+    },
+    "success": 1,
+    "throughput": 96.83480834623579
+  },
+  {
+    "errors": [],
+    "max_ms": 26067.819158,
+    "out_dir": "db-write-batch-10/rate-250_s/run-1",
+    "p50_ms": 11484.086839,
+    "p95_ms": 24828.236446,
+    "p99_ms": 25816.57642,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 1,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 91.32204021319878
+  },
+  {
+    "errors": [],
+    "max_ms": 22477.986303,
+    "out_dir": "db-write-batch-10/rate-250_s/run-2",
+    "p50_ms": 11322.653306,
+    "p95_ms": 21398.269003,
+    "p99_ms": 22248.333416,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 2,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 100.06958693107016
+  },
+  {
+    "errors": [],
+    "max_ms": 24843.957206,
+    "out_dir": "db-write-batch-10/rate-250_s/run-3",
+    "p50_ms": 13582.076886,
+    "p95_ms": 23555.207124,
+    "p99_ms": 24609.067101,
+    "rate_target": "250/s",
+    "requests": 3750,
+    "run": 3,
+    "scenario": "db-write-batch-10",
+    "status_codes": {
+      "200": 3750
+    },
+    "success": 1,
+    "throughput": 94.1257599097049
+  }
+]

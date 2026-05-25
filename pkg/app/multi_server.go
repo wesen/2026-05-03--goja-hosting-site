@@ -21,13 +21,19 @@ func NewMultiServer(cfg MultiConfig) (*MultiServer, error) {
 		return nil, err
 	}
 	m := &MultiServer{cfg: cfg, sites: map[string]*Server{}}
+	if cfg.Observability != nil && cfg.Observability.Multi != nil {
+		cfg.Observability.Multi.SetHostsConfigured("multi", len(cfg.Sites))
+	}
 	for _, site := range cfg.Sites {
-		srv, err := NewServer(Config{DBPath: site.DBPath, ScriptDirs: site.ScriptDirs, Dev: cfg.Dev, DBPolicy: site.DBPolicy, ReadOnly: site.ReadOnly, AllowWrites: site.AllowWrites})
+		srv, err := NewServer(Config{DBPath: site.DBPath, ScriptDirs: site.ScriptDirs, Dev: cfg.Dev, DBPolicy: site.DBPolicy, ReadOnly: site.ReadOnly, AllowWrites: site.AllowWrites, SiteName: site.Name, Observability: cfg.Observability})
 		if err != nil {
 			_ = m.Close(context.Background())
 			return nil, fmt.Errorf("create site %s (%s): %w", site.Name, site.Host, err)
 		}
 		m.sites[site.Host] = srv
+		if cfg.Observability != nil && cfg.Observability.Multi != nil {
+			cfg.Observability.Multi.SetSiteUp(site.Name, true)
+		}
 	}
 	return m, nil
 }
@@ -55,18 +61,31 @@ func (m *MultiServer) Run(ctx context.Context) error {
 }
 
 func (m *MultiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	started := time.Now()
 	if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		_, _ = w.Write([]byte("ok\n"))
+		if m.cfg.Observability != nil && m.cfg.Observability.Multi != nil {
+			m.cfg.Observability.Multi.ObserveDispatch("health", started)
+		}
 		return
 	}
 	host := normalizeHost(r.Host)
 	site := m.sites[host]
 	if site == nil {
+		if m.cfg.Observability != nil && m.cfg.Observability.Multi != nil {
+			m.cfg.Observability.Multi.ObserveUnknownHost()
+		}
 		http.Error(w, "unknown goja-site host", http.StatusNotFound)
+		if m.cfg.Observability != nil && m.cfg.Observability.Multi != nil {
+			m.cfg.Observability.Multi.ObserveDispatch("unknown", started)
+		}
 		return
 	}
 	site.ServeHTTP(w, r)
+	if m.cfg.Observability != nil && m.cfg.Observability.Multi != nil {
+		m.cfg.Observability.Multi.ObserveDispatch("ok", started)
+	}
 }
 
 func (m *MultiServer) Close(ctx context.Context) error {

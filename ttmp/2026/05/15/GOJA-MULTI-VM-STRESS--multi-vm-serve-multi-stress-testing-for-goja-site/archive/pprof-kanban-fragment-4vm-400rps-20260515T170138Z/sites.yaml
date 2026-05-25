@@ -1,0 +1,29 @@
+addr: "127.0.0.1:19001"
+dataDir: "/tmp/goja-site-multi-vm.bHcO0E/multi-data"
+baseDomain: "multi-vm.bench.test"
+dev: false
+sites:
+  - name: site-001
+    host: site-001.multi-vm.bench.test
+    dbPolicy: simple
+    allowWrites: true
+    scripts:
+      - bench/scripts/kanban-board
+  - name: site-002
+    host: site-002.multi-vm.bench.test
+    dbPolicy: simple
+    allowWrites: true
+    scripts:
+      - bench/scripts/kanban-board
+  - name: site-003
+    host: site-003.multi-vm.bench.test
+    dbPolicy: simple
+    allowWrites: true
+    scripts:
+      - bench/scripts/kanban-board
+  - name: site-004
+    host: site-004.multi-vm.bench.test
+    dbPolicy: simple
+    allowWrites: true
+    scripts:
+      - bench/scripts/kanban-board

@@ -1,0 +1,40 @@
+# Tasks
+
+## Phase 0 — Ticket and harness setup
+
+- [x] Create GOJA-MULTI-VM-STRESS ticket workspace.
+- [x] Write multi-VM serve-multi stress plan.
+- [x] Add single-run multi-VM Vegeta harness script.
+- [x] Add quick sweep script.
+- [x] Add Markdown summary renderer.
+- [x] Validate script syntax and docmgr hygiene.
+- [x] Commit initial ticket setup.
+
+## Phase 1 — Quick multi-VM validation sweep
+
+- [x] Run quick multi-VM sweep.
+- [x] Generate quick sweep Markdown report.
+- [x] Record results in diary/changelog.
+- [x] Commit quick sweep results.
+
+## Phase 2 — Follow-up stress experiments
+
+- [x] Decide whether to add pprof runs for multi-VM cases.
+- [x] Add a longer even-hot run if quick sweep is healthy.
+- [ ] Add a one-hot idle-VM overhead run with larger VM counts.
+- [ ] Add kanban-action only after choosing safe rates below the known single-VM knee.
+
+## Phase 3 — Saturation sweep
+
+- [x] Add higher-rate multi-VM saturation sweep script.
+- [x] Run higher-rate multi-VM saturation sweep.
+- [x] Generate and inspect saturation sweep report.
+- [x] Record saturation findings in diary/changelog.
+- [x] Commit saturation sweep results.
+
+## Phase 4 — Multi-VM pprof
+
+- [x] Fix CPU pprof capture to overlap measured load.
+- [x] Capture pprof for degraded `kanban-fragment` 4 VM 400/s cell.
+- [x] Generate pprof Markdown report.
+- [x] Commit pprof artifacts and report.

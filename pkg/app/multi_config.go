@@ -8,17 +8,19 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-go-golems/goja-site/pkg/observability"
 	"gopkg.in/yaml.v3"
 )
 
 // MultiConfig describes a single HTTP listener that serves multiple isolated
 // goja-site instances selected by request Host.
 type MultiConfig struct {
-	Addr       string       `json:"addr" yaml:"addr"`
-	DataDir    string       `json:"dataDir" yaml:"dataDir"`
-	BaseDomain string       `json:"baseDomain" yaml:"baseDomain"`
-	Dev        bool         `json:"dev" yaml:"dev"`
-	Sites      []SiteConfig `json:"sites" yaml:"sites"`
+	Addr          string                       `json:"addr" yaml:"addr"`
+	DataDir       string                       `json:"dataDir" yaml:"dataDir"`
+	BaseDomain    string                       `json:"baseDomain" yaml:"baseDomain"`
+	Dev           bool                         `json:"dev" yaml:"dev"`
+	Sites         []SiteConfig                 `json:"sites" yaml:"sites"`
+	Observability *observability.Observability `json:"-" yaml:"-"`
 }
 
 // SiteConfig describes one hosted site. If Host or DBPath are omitted, they are
