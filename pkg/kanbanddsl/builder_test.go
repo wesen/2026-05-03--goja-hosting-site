@@ -5,20 +5,20 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-go-golems/go-go-goja/engine"
 	"github.com/go-go-golems/go-go-goja/modules/uidsl"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
 )
 
 func newRuntime(t *testing.T) *engine.Runtime {
 	t.Helper()
-	factory, err := engine.NewBuilder().
-		WithRuntimeModuleRegistrars(kanbanddsl.NewRegistrar(), uidsl.NewRegistrar()).
+	factory, err := engine.NewRuntimeFactoryBuilder().
+		WithModules(kanbanddsl.NewRegistrar(), uidsl.NewRegistrar()).
 		Build()
 	if err != nil {
 		t.Fatalf("build factory: %v", err)
 	}
-	rt, err := factory.NewRuntime(context.Background())
+	rt, err := factory.NewRuntime(engine.WithStartupContext(context.Background()))
 	if err != nil {
 		t.Fatalf("new runtime: %v", err)
 	}

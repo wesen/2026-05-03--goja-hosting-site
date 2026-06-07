@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	"github.com/go-go-golems/goja-site/pkg/dbguard"
 	"github.com/go-go-golems/goja-site/pkg/observability"
 )
 
 type databaseRuntimeConfig struct {
-	moduleSpecs []engine.ModuleSpec
+	moduleSpecs []engine.RuntimeModuleRegistrar
 	registrars  []engine.RuntimeModuleRegistrar
 }
 
@@ -54,9 +54,9 @@ func buildDatabaseRuntimeConfig(cfg Config, db *sql.DB) (databaseRuntimeConfig, 
 	)
 
 	return databaseRuntimeConfig{
-		moduleSpecs: []engine.ModuleSpec{
-			engine.NativeModuleSpec{ModuleID: "database:app", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader},
-			engine.NativeModuleSpec{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
+		moduleSpecs: []engine.RuntimeModuleRegistrar{
+			engine.NativeModuleRegistrar{ModuleID: "database:app", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader},
+			engine.NativeModuleRegistrar{ModuleID: "database:db-alias", ModuleName: dbAliasModule.Name(), Loader: dbAliasModule.Loader},
 		},
 		registrars: registrars,
 	}, nil
