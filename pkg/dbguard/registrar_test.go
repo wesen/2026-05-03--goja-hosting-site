@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-go-golems/go-go-goja/engine"
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	"github.com/go-go-golems/goja-site/pkg/dbguard"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -23,14 +23,14 @@ func TestDBGuardCallbackRunsThroughDatabaseModule(t *testing.T) {
 	guard := dbguard.New(db, path)
 	metered := dbguard.NewMeteredDB(db, guard)
 	databaseModule := databasemod.New(databasemod.WithPreconfiguredDB(metered), databasemod.WithConfigureEnabled(false))
-	factory, err := engine.NewBuilder().
-		WithModules(engine.NativeModuleSpec{ModuleID: "database:test", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader}).
-		WithRuntimeModuleRegistrars(dbguard.NewRegistrar(guard)).
+	factory, err := engine.NewRuntimeFactoryBuilder().
+		WithModules(engine.NativeModuleRegistrar{ModuleID: "database:test", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader}).
+		WithModules(dbguard.NewRegistrar(guard)).
 		Build()
 	if err != nil {
 		t.Fatalf("build factory: %v", err)
 	}
-	rt, err := factory.NewRuntime(context.Background())
+	rt, err := factory.NewRuntime(engine.WithStartupContext(context.Background()))
 	if err != nil {
 		t.Fatalf("new runtime: %v", err)
 	}
@@ -79,14 +79,14 @@ func TestDBGuardHardLimitSurfacesThroughDatabaseModule(t *testing.T) {
 	guard := dbguard.New(db, path)
 	metered := dbguard.NewMeteredDB(db, guard)
 	databaseModule := databasemod.New(databasemod.WithPreconfiguredDB(metered), databasemod.WithConfigureEnabled(false))
-	factory, err := engine.NewBuilder().
-		WithModules(engine.NativeModuleSpec{ModuleID: "database:test", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader}).
-		WithRuntimeModuleRegistrars(dbguard.NewRegistrar(guard)).
+	factory, err := engine.NewRuntimeFactoryBuilder().
+		WithModules(engine.NativeModuleRegistrar{ModuleID: "database:test", ModuleName: databaseModule.Name(), Loader: databaseModule.Loader}).
+		WithModules(dbguard.NewRegistrar(guard)).
 		Build()
 	if err != nil {
 		t.Fatalf("build factory: %v", err)
 	}
-	rt, err := factory.NewRuntime(context.Background())
+	rt, err := factory.NewRuntime(engine.WithStartupContext(context.Background()))
 	if err != nil {
 		t.Fatalf("new runtime: %v", err)
 	}

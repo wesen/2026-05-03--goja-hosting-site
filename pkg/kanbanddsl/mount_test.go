@@ -10,22 +10,22 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
-	"github.com/go-go-golems/go-go-goja/engine"
 	expressmod "github.com/go-go-golems/go-go-goja/modules/express"
 	"github.com/go-go-golems/go-go-goja/modules/uidsl"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	"github.com/go-go-golems/go-go-goja/pkg/gojahttp"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
 )
 
 func TestMountedBoardServesClientScriptAndActionEndpoint(t *testing.T) {
 	host := gojahttp.NewHost(gojahttp.HostOptions{Dev: true, Renderer: uidsl.RenderAny})
-	factory, err := engine.NewBuilder().
-		WithRuntimeModuleRegistrars(expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()).
+	factory, err := engine.NewRuntimeFactoryBuilder().
+		WithModules(expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar()).
 		Build()
 	if err != nil {
 		t.Fatalf("build factory: %v", err)
 	}
-	rt, err := factory.NewRuntime(context.Background())
+	rt, err := factory.NewRuntime(engine.WithStartupContext(context.Background()))
 	if err != nil {
 		t.Fatalf("new runtime: %v", err)
 	}

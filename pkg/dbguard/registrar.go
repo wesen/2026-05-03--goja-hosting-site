@@ -6,7 +6,7 @@ import (
 
 	"github.com/dop251/goja"
 	"github.com/dop251/goja_nodejs/require"
-	"github.com/go-go-golems/go-go-goja/engine"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 )
 
 type Registrar struct{ guard *Guard }
@@ -14,7 +14,7 @@ type Registrar struct{ guard *Guard }
 func NewRegistrar(guard *Guard) *Registrar { return &Registrar{guard: guard} }
 func (r *Registrar) ID() string            { return "db-guard" }
 
-func (r *Registrar) RegisterRuntimeModules(ctx *engine.RuntimeModuleContext, reg *require.Registry) error {
+func (r *Registrar) RegisterRuntimeModule(ctx *engine.RuntimeModuleRegistrationContext, reg *require.Registry) error {
 	if r.guard == nil {
 		return fmt.Errorf("db.guard registrar requires guard")
 	}

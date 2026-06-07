@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/dop251/goja"
-	"github.com/go-go-golems/go-go-goja/engine"
 	expressmod "github.com/go-go-golems/go-go-goja/modules/express"
 	"github.com/go-go-golems/go-go-goja/modules/uidsl"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	"github.com/go-go-golems/go-go-goja/pkg/gojahttp"
 	"github.com/go-go-golems/goja-site/pkg/kanbanddsl"
 	"github.com/go-go-golems/goja-site/pkg/observability"
@@ -68,17 +68,17 @@ func NewServer(cfg Config) (*Server, error) {
 	registrars := []engine.RuntimeModuleRegistrar{expressmod.NewRegistrar(host), uidsl.NewRegistrar(), kanbanddsl.NewRegistrar(kanbanObserver)}
 	registrars = append(registrars, dbRuntime.registrars...)
 
-	factory, err := engine.NewBuilder().
+	factory, err := engine.NewRuntimeFactoryBuilder().
 		WithModules(dbRuntime.moduleSpecs...).
 		UseModuleMiddleware(engine.MiddlewareOnly("fs", "path", "time", "timer", "yaml")).
-		WithRuntimeModuleRegistrars(registrars...).
+		WithModules(registrars...).
 		Build()
 	if err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("build goja factory: %w", err)
 	}
 
-	rt, err := factory.NewRuntime(context.Background())
+	rt, err := factory.NewRuntime(engine.WithStartupContext(context.Background()))
 	if err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("create goja runtime: %w", err)

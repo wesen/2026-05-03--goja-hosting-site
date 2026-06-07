@@ -1,0 +1,22 @@
+profile:
+  active: local
+
+profiles:
+  local:
+    display_name: Local form generator
+    description: Run the Form Studio goja-site app on 127.0.0.1:60131.
+    plugins:
+      - goja-site
+    env:
+      GOJA_SITE_ADDR: "127.0.0.1:60131"
+      GOJA_SITE_DB: "tmp/form-generator.db"
+      GOJA_SITE_SCRIPTS: "sites/forms/scripts"
+      GOJA_SITE_METRICS_ADDR: "127.0.0.1:60132"
+      GOJA_SITE_BASE_URL: "http://127.0.0.1:60131"
+
+plugins:
+  - id: goja-site
+    path: python3
+    args:
+      - ./devctl/goja-site-plugin.py
+    priority: 10
